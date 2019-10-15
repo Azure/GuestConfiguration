@@ -21,14 +21,14 @@ this module.
 
 ### master
 
-[![Build Status](https://dev.azure.com/migreene-dev/GuestConfiguration/_apis/build/status/mgreenegit.GuestConfiguration?branchName=master)](https://dev.azure.com/migreene-dev/GuestConfiguration/_build/latest?definitionId=5&branchName=master)
+[![Build Status](https://dev.azure.com/guestconfiguration/guestconfiguration/_apis/build/status/powershell.guestconfiguration?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfiguration/_build/latest?definitionId=5&branchName=master)
 
 This is the branch containing the latest release -
 no contributions should be made directly to this branch.
 
 ### dev
 
-[![Build Status](https://dev.azure.com/migreene-dev/GuestConfiguration/_apis/build/status/mgreenegit.GuestConfiguration?branchName=dev)](https://dev.azure.com/migreene-dev/GuestConfiguration/_build/latest?definitionId=5&branchName=dev)
+[![Build Status](https://dev.azure.com/guestconfiguration/guestconfiguration/_apis/build/status/powershell.guestconfiguration?branchName=dev)](https://dev.azure.com/guestconfiguration/guestconfiguration/_build/latest?definitionId=5&branchName=dev)
 
 This is the development branch
 to which contributions should be proposed by contributors as pull requests.

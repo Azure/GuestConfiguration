@@ -102,16 +102,6 @@ jobs:
       pwsh: 'true'
       targetType: 'inline'
       script: |
-        New-Item '$(Build.SourcesDirectory)/bin' -ItemType 'directory'
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/DSC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/DSC_1.0.0.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Linux.zip'
-    displayName: Download agent binaries
-
-  - task: PowerShell@2
-    inputs:
-      pwsh: 'true'
-      targetType: 'inline'
-      script: |
         Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
         Remove-Item '$(Build.SourcesDirectory)/Tests' -Recurse -Force
         Remove-Item '$(Build.SourcesDirectory)/azure-pipelines.yml' -Force
@@ -121,20 +111,25 @@ jobs:
         Remove-Item '$(Build.SourcesDirectory)/GuestConfigXS.png' -Force
         Remove-Item '$(Build.SourcesDirectory)/SECURITY.md' -Force
         Remove-Item '$(Build.SourcesDirectory)/.gitignore' -Force
-        New-Item $(Build.SourcesDirectory)\GuestConfiguration -type Directory
-        Copy-Item -Path $(Build.SourcesDirectory)\bin -Destination $(Build.SourcesDirectory)\GuestConfiguration\bin
-        Copy-Item -Path $(Build.SourcesDirectory)\DscResources -Destination $(Build.SourcesDirectory)\GuestConfiguration\DscResources -Recurse
-        Copy-Item -Path $(Build.SourcesDirectory)\helpers -Destination $(Build.SourcesDirectory)\GuestConfiguration\helpers
-        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psd1 -Destination $(Build.SourcesDirectory)\GuestConfiguration\GuestConfiguration.psd1
-        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psm1 -Destination $(Build.SourcesDirectory)\GuestConfiguration\GuestConfiguration.psm1
-        Copy-Item -Path $(Build.SourcesDirectory)\LICENSE -Destination $(Build.SourcesDirectory)\GuestConfiguration\LICENSE
-        if ('$(Build.SourceBranchName)' -eq 'dev') {
-          Get-ChildItem '$(Build.SourcesDirectory)\GuestConfiguration\'
-          Register-PSRepository -Name 'dev' -SourceLocation 'https://www.myget.org/F/greenenuget/api/v2' -PublishLocation 'https://www.myget.org/F/greenenuget/api/v2/package'
-          Publish-Module -Path '$(Build.SourcesDirectory)\GuestConfiguration\' -NuGetApiKey '$(devapikey)' -Repository 'dev'
-          }
-        if ('$(Build.SourceBranchName)' -eq 'master') {
-          Get-ChildItem '$(Build.SourcesDirectory)\GuestConfiguration\'
-          Publish-Module -Path '$(Build.SourcesDirectory)\GuestConfiguration\' -NuGetApiKey '$(prodapikey)' -Repository 'PSGallery'
-          }
-    displayName: Publish module
+        New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration -type Directory
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration\DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\DscResources -Recurse
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration\helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\helpers -Recurse
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psd1
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psm1
+        Copy-Item -Path $(Build.SourcesDirectory)\LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\LICENSE
+
+    displayName: Stage module artifact
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin -type Directory
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/DSC.zip?token=$(github_token)' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Windows.zip"
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/DSC_1.0.0.zip' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Linux.zip"
+    displayName: Download agent binaries
+
+  - publish: $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+    artifact: Module
+  displayName: Publish artifact

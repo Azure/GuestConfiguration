@@ -6,7 +6,7 @@ trigger:
 
   paths:
     exclude:
-    #- azure-pipelines.yml
+    - azure-pipelines.yml
     - README.md
     - CODE_OF_CONDUCT.md
     - SECURITY.md
@@ -98,14 +98,6 @@ jobs:
       targetType: 'inline'
       script: |
         Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
-        Remove-Item '$(Build.SourcesDirectory)/Tests' -Recurse -Force
-        Remove-Item '$(Build.SourcesDirectory)/azure-pipelines.yml' -Force
-        Remove-Item '$(Build.SourcesDirectory)/changelog.md' -Force
-        Remove-Item '$(Build.SourcesDirectory)/CODE_OF_CONDUCT.md' -Force
-        Remove-Item '$(Build.SourcesDirectory)/README.md' -Force
-        Remove-Item '$(Build.SourcesDirectory)/GuestConfigXS.png' -Force
-        Remove-Item '$(Build.SourcesDirectory)/SECURITY.md' -Force
-        Remove-Item '$(Build.SourcesDirectory)/.gitignore' -Force
         New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration -type Directory
         Copy-Item -Path $(Build.SourcesDirectory)\DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\DscResources -Recurse
         Copy-Item -Path $(Build.SourcesDirectory)\helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\helpers -Recurse

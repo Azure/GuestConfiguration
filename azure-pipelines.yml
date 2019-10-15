@@ -19,16 +19,13 @@ jobs:
   strategy:
     matrix:
       # Get-DscResource is not working in Linux yet
-      #linux:
+      #Ubuntu:
         #imageName: 'ubuntu-latest'
-      mac:
+      MacOS:
         imageName: 'macOS-latest'
-      windows2019:
+      Windows2019:
         imageName: 'windows-latest'
-      windows2016:
-        imageName: 'vs2017-win2016'
-      windows2012:
-        imageName: 'vs2015-win2012r2'
+      
   pool:
     vmImage: $(imageName)
   steps:
@@ -130,6 +127,6 @@ jobs:
 
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY' 
+      targetPath: '{Build.ArtifactStagingDirectory}\GuestConfiguration'
       artifactName: module
   displayName: Publish artifact

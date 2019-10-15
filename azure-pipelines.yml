@@ -1,11 +1,8 @@
-pr: none
-  
 trigger:
   branches:
     include:
-    - master
-    - dev
-    - merge
+      - master
+      - dev
 
   paths:
     exclude:
@@ -131,6 +128,8 @@ jobs:
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/DSC_1.0.0.zip' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Linux.zip"
     displayName: Download agent binaries
 
-  - publish: $env:BUILD_ARTIFACTSTAGINGDIRECTORY
-    artifact: Module
+  - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY' 
+        artifactName: module
   displayName: Publish artifact

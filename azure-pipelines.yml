@@ -129,7 +129,7 @@ jobs:
     displayName: Download agent binaries
 
   - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY' 
-        artifactName: module
+    inputs:
+      targetPath: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY' 
+      artifactName: module
   displayName: Publish artifact

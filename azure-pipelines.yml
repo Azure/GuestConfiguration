@@ -1,0 +1,136 @@
+pr: none
+  
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+    - merge
+
+  paths:
+    exclude:
+    #- azure-pipelines.yml
+    - README.md
+    - CODE_OF_CONDUCT.md
+    - SECURITY.md
+    - LICENSE
+    - .gitignore
+    - .github/*
+
+jobs:
+- job: Test
+  strategy:
+    matrix:
+      # Get-DscResource is not working in Linux yet
+      #linux:
+        #imageName: 'ubuntu-latest'
+      mac:
+        imageName: 'macOS-latest'
+      windows2019:
+        imageName: 'windows-latest'
+      windows2016:
+        imageName: 'vs2017-win2016'
+      windows2012:
+        imageName: 'vs2015-win2012r2'
+  pool:
+    vmImage: $(imageName)
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
+        Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+        ./install-powershell.ps1 -Preview -Destination $powerShellPath
+        if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
+        $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
+        Write-Host "sending " + $vstsCommandString
+        Write-Host "##$vstsCommandString"
+    displayName: Install PowerShell Core
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        if ($IsMacOS) { brew install openssl }
+        if ($IsLinux) { sudo apt-get install openssl }
+    displayName: Install OpenSSL on Mac/Linux
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
+        $modules = (Import-PowerShellDataFile "$(Build.SourcesDirectory)/$repositoryName.psd1").RequiredModules
+        $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
+        write-host "installing " $modules
+        Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+    displayName: Install modules
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        New-Item '$(Build.SourcesDirectory)/bin' -ItemType 'directory'
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/DSC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/DSC_1.0.0.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Linux.zip'
+    displayName: Download agent binaries
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        $PSVersionTable
+        Invoke-Pester -Verbose -OutputFile '$(Build.SourcesDirectory)/TEST.xml' -OutputFormat NUnitXml -EnableExit
+    displayName: Pester Unit Tests
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'NUnit'
+      testResultsFiles: '$(Build.SourcesDirectory)/*TEST*.xml'
+
+- job: Publish
+  dependsOn: Test
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
+        Remove-Item '$(Build.SourcesDirectory)/Tests' -Recurse -Force
+        Remove-Item '$(Build.SourcesDirectory)/azure-pipelines.yml' -Force
+        Remove-Item '$(Build.SourcesDirectory)/changelog.md' -Force
+        Remove-Item '$(Build.SourcesDirectory)/CODE_OF_CONDUCT.md' -Force
+        Remove-Item '$(Build.SourcesDirectory)/README.md' -Force
+        Remove-Item '$(Build.SourcesDirectory)/GuestConfigXS.png' -Force
+        Remove-Item '$(Build.SourcesDirectory)/SECURITY.md' -Force
+        Remove-Item '$(Build.SourcesDirectory)/.gitignore' -Force
+        New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration -type Directory
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration\DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\DscResources -Recurse
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration\helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\helpers -Recurse
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psd1
+        Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psm1
+        Copy-Item -Path $(Build.SourcesDirectory)\LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\LICENSE
+
+    displayName: Stage module artifact
+
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin -type Directory
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/DSC.zip?token=$(github_token)' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Windows.zip"
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/DSC_1.0.0.zip' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Linux.zip"
+    displayName: Download agent binaries
+
+  - publish: $env:BUILD_ARTIFACTSTAGINGDIRECTORY
+    artifact: Module
+  displayName: Publish artifact

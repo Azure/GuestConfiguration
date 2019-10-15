@@ -127,6 +127,6 @@ jobs:
 
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '{Build.ArtifactStagingDirectory}\GuestConfiguration'
+      targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
       artifactName: module
   displayName: Publish artifact

@@ -5,6 +5,7 @@ trigger:
     include:
     - master
     - dev
+    - merge
 
   paths:
     exclude:

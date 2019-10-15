@@ -1,0 +1,5 @@
+/bin
+/DSCConfig
+.DS_Store
+localhost.mof
+*.zip

@@ -11,4 +11,4 @@
 - Switched audit policy to AuditIfNotExis
 - Added basic project md files
 - Added Azure DevOps build script
-- 
+- Catch error if signing cert does not meet requirements

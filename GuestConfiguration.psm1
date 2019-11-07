@@ -312,7 +312,7 @@ function Protect-GuestConfigurationPackage
             Write-Verbose "Signing catalog file : $catalogFilePath."
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
-            if ($CodeSignOutput.Status -match 'Error') {
+            if((Get-AuthenticodeSignature $catalogFilePath).SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
                 Write-Error $CodeSignOutput.StatusMessage
             }
         }

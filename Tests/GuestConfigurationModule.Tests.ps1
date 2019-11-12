@@ -223,7 +223,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         
             $jsonDefinition.properties.displayName.Contains($displayName) | Should Be $true
             $jsonDefinition.properties.description.Contains($description) | Should Be $true
-            $jsonDefinition.properties.category.Contains($category) | Should Be $true
+            $jsonDefinition.properties.metadata.category.Contains($category) | Should Be $true
             $jsonDefinition.properties.policyType | Should Be 'Custom'
             $jsonDefinition.properties.policyRule.then.details.name | Should Be $testpolicyName
         
@@ -232,7 +232,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $jsonDefinition.properties.displayName.Contains($displayName) | Should Be $true
             $jsonDefinition.properties.description.Contains($description) | Should Be $true
-            $jsonDefinition.properties.category.Contains($category) | Should Be $true
+            $jsonDefinition.properties.metadata.category.Contains($category) | Should Be $true
             $jsonDefinition.properties.policyType | Should Be 'Custom'
             $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testpolicyName
             $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'

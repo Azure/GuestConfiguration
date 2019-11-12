@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.19.0
+
+- Resolve bug in custom categories
+
 ## v1.18.0
 
 - seperated module and tests from base repo

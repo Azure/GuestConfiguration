@@ -1528,7 +1528,11 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
 
         [Parameter()]
         [String]
-        $Guid
+        $Guid,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Category = 'Guest Configuration'
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1547,7 +1551,7 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
             policyType  = 'Custom'
             description = $Description
             metadata    = [Ordered]@{
-                category = 'Guest Configuration'
+                category = $Category
             }
         }
     }

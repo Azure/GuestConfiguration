@@ -160,6 +160,8 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
                 $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+                if ($null -eq $Cert) {Write-Error 'no certificate was available for the test environment'}
+                
                 $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputFolder/package
                 
                 Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert

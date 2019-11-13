@@ -17,7 +17,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     BeforeAll {
 
-
         if ($false -eq $IsWindows) {
             $env:Temp = $env:TMPDIR
             Import-Module 'PSDesiredStateConfiguration' -Force
@@ -164,17 +163,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
                 $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputFolder/package
                 
-                # wrap the cert issue until the test can be corrected
-                try {
-                    Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert
-                }
-                catch {
-                    write-warning 'the New-AuthenticodeSignature cmdlet failed in the test environment.'
-                    write-warning 'this is very likely due to issues trusting self signed certificates in CI.'
-                    write-warning 'unable to test Protect- cmdlet.  please validate outside of CI.'
-                }
-
-                # Bug: Protect-GuestConfigurationPackage should return the path of signed package.
+                Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert
                 $signedPackagePath = Join-Path (Get-ChildItem $package.Path).DirectoryName "$($policyName)_signed.zip"
                 
                 if (Test-Path $signedPackagePath -ErrorAction SilentlyContinue) {

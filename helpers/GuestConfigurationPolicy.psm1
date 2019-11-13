@@ -1665,7 +1665,11 @@ function New-GuestConfigurationPolicyDefinitionSet {
         [Parameter()]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform = 'Windows'
+        $Platform = 'Windows',
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Category = 'Guest Configuration'
     )
 
     if (Test-Path -Path $PolicyFolderPath) {
@@ -1676,13 +1680,13 @@ function New-GuestConfigurationPolicyDefinitionSet {
 
     foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
         $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $deployPolicyGuid = New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo -Platform $Platform
+        $deployPolicyGuid = New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo -Platform $Platform -Category $Category
         $currentDeployPolicyInfo['Guid'] = $deployPolicyGuid
     }
 
     foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
         $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform -Category $Category
         $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
     }
 

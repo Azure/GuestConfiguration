@@ -313,7 +313,7 @@ function Protect-GuestConfigurationPackage
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
             $Signature = Get-AuthenticodeSignature $catalogFilePath
-            if ($null -ne $Signature) {
+            if ($null -ne $Signature.SignerCertificate) {
                 if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
                     throw $CodeSignOutput.StatusMessage
                 }

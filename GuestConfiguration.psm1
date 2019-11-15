@@ -313,11 +313,11 @@ function Protect-GuestConfigurationPackage
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
             $Signature = Get-AuthenticodeSignature $catalogFilePath
-            if (($Signature | Get-Member | ForEach-Object Name) -contains 'SignerCertificate') {
+            if ($null -ne $Signature) {
                 if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
-                    Write-Error $CodeSignOutput.StatusMessage
+                    throw $CodeSignOutput.StatusMessage
                 }
-            } else { Write-Error $CodeSignOutput.StatusMessage }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if($osPlatform -eq "Windows") {

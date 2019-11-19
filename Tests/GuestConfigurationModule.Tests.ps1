@@ -49,10 +49,11 @@ DSCConfig -OutputPath "$outputFolder"
             New-SelfsignedCertificateEx `
                 -Subject "CN=testcert" `
                 -EKU 'Code Signing' `
-                -KeyUsage 'nonRepudiation, DigitalSignature' `
+                -KeyUsage 'nonRepudiation, KeyEncipherment, DataEncipherment, DigitalSignature' `
+                -SAN ${ENV:ComputerName} `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
-                -StoreLocation 'LocalMachine' `
+                -StoreLocation 'CurrentUser' `
                 -KeyLength 2048 `
                 -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
                 -AlgorithmName 'RSA' `
@@ -160,7 +161,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
-                $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+                $Cert = Get-ChildItem -Path cert:/CurrentUser/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
                 if ($null -eq $Cert) {write-warning 'no certificate was available for the test environment'}
                 if ($null -eq $Cert.thumbprint) {write-warning 'the certificate does not have a thumbprint'}
 

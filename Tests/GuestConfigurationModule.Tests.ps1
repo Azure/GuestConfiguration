@@ -122,10 +122,11 @@ end
             New-SelfsignedCertificateEx `
                 -Subject "CN=testcert" `
                 -EKU 'Code Signing' `
-                -KeyUsage 'nonRepudiation, DigitalSignature' `
+                -KeyUsage 'nonRepudiation, KeyEncipherment, DataEncipherment, DigitalSignature' `
+                -SAN ${ENV:ComputerName} `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
-                -StoreLocation 'LocalMachine' `
+                -StoreLocation 'CurrentUser' `
                 -KeyLength 2048 `
                 -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
                 -AlgorithmName 'RSA' `

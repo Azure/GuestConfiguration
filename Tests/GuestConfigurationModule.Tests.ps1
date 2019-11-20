@@ -122,8 +122,7 @@ end
             New-SelfsignedCertificateEx `
                 -Subject "CN=testcert" `
                 -EKU 'Code Signing' `
-                -KeyUsage 'nonRepudiation, KeyEncipherment, DataEncipherment, DigitalSignature' `
-                -SAN ${ENV:ComputerName} `
+                -KeyUsage 'nonRepudiation, DigitalSignature' `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
                 -StoreLocation 'CurrentUser' `

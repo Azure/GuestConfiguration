@@ -11,6 +11,7 @@
 
 - Fix Linux line endings in InSpec profiles
 - Resolve bug in custom categories
+- Catch signing error output when certificate is invalid
 
 ## v1.18.0
 

@@ -17,7 +17,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     BeforeAll {
 
-
         if ($false -eq $IsWindows) {
             $env:Temp = $env:TMPDIR
             Import-Module 'PSDesiredStateConfiguration' -Force
@@ -161,19 +160,18 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
                 $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+                if ($null -eq $Cert) {write-warning 'no certificate was available for the test environment'}
+                if ($null -eq $Cert.thumbprint) {write-warning 'the certificate does not have a thumbprint'}
+
                 $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputFolder/package
                 
-                # wrap the cert issue until the test can be corrected
+                # issue with test cert
                 try {
                     Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert
                 }
                 catch {
-                    write-warning 'the New-AuthenticodeSignature cmdlet failed in the test environment.'
-                    write-warning 'this is very likely due to issues trusting self signed certificates in CI.'
-                    write-warning 'unable to test Protect- cmdlet.  please validate outside of CI.'
+                    Write-Warning 'Unable to test Protect-GuestConfigurationPackage.  Verify the certificate is valid and trusted.'
                 }
-
-                # Bug: Protect-GuestConfigurationPackage should return the path of signed package.
                 $signedPackagePath = Join-Path (Get-ChildItem $package.Path).DirectoryName "$($policyName)_signed.zip"
                 
                 if (Test-Path $signedPackagePath -ErrorAction SilentlyContinue) {
@@ -206,10 +204,12 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             $policyPath = "$outputFolder/policyDefinitions"
             $displayName = '[unittest] Audit Windows Service.'
             $description = 'Policy to audit Windows service state.'
+            $category = 'Test'
 
             New-GuestConfigurationPolicy -ContentUri $contentURI `
                 -DisplayName $displayName `
                 -Description $description `
+                -Category $category `
                 -Path $policyPath `
                 -Version 1.0.0.0
 
@@ -220,6 +220,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         
             $jsonDefinition.properties.displayName.Contains($displayName) | Should Be $true
             $jsonDefinition.properties.description.Contains($description) | Should Be $true
+            $jsonDefinition.properties.metadata.category | Should Be $category
             $jsonDefinition.properties.policyType | Should Be 'Custom'
             $jsonDefinition.properties.policyRule.then.details.name | Should Be $testpolicyName
         
@@ -228,6 +229,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $jsonDefinition.properties.displayName.Contains($displayName) | Should Be $true
             $jsonDefinition.properties.description.Contains($description) | Should Be $true
+            $jsonDefinition.properties.metadata.category | Should Be $category
             $jsonDefinition.properties.policyType | Should Be 'Custom'
             $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testpolicyName
             $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'

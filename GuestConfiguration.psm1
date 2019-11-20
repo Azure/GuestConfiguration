@@ -244,7 +244,7 @@ function Test-GuestConfigurationPackage
         Public Gpg key path. This is only supported on Linux.
 
     .Example
-        $Cert = Get-ChildItem -Path Cert:/CurrentUser/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
+        $Cert = Get-ChildItem -Path Cert:/LocalMachine/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
         Protect-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Certificate $Cert
 
     .OUTPUTS
@@ -312,9 +312,12 @@ function Protect-GuestConfigurationPackage
             Write-Verbose "Signing catalog file : $catalogFilePath."
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
-            if((Get-AuthenticodeSignature $catalogFilePath).SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
-                Write-Error $CodeSignOutput.StatusMessage
-            }
+            $Signature = Get-AuthenticodeSignature $catalogFilePath
+            if ($null -ne $Signature.SignerCertificate) {
+                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                    throw $CodeSignOutput.StatusMessage
+                }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if($osPlatform -eq "Windows") {
@@ -504,11 +507,13 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."

@@ -163,6 +163,7 @@ function Copy-ChefInspecDependencies {
         [String]
         $Configuration,
 
+        [Parameter(Mandatory = $false)]
         [string]
         $ChefInspecProfilePath
     )
@@ -483,34 +484,34 @@ function New-GuestConfigurationDeployPolicyDefinition {
         [String]
         $ReferenceId,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [Hashtable[]]
         $ParameterInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
         [String]
         $RPName = 'Microsoft.Compute',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('virtualMachines', 'machines')]
         [String]
         $ResourceName = 'virtualMachines',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [bool]
         $UseCertificateValidation = $false,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration'
     )
@@ -1114,26 +1115,26 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [String]
         $ReferenceId,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
         [String]
         $RPName = 'Microsoft.Compute',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('virtualMachines', 'machines')]
         [String]
         $ResourceName = 'virtualMachines',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration'
     )
@@ -1526,9 +1527,13 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
         [String]
         $Description,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
-        $Guid
+        $Guid,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Category = 'Guest Configuration'
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1547,7 +1552,7 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
             policyType  = 'Custom'
             description = $Description
             metadata    = [Ordered]@{
-                category = 'Guest Configuration'
+                category = $Category
             }
         }
     }
@@ -1658,7 +1663,7 @@ function New-GuestConfigurationPolicyDefinitionSet {
         [Hashtable]
         $InitiativeInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows'
@@ -1678,7 +1683,7 @@ function New-GuestConfigurationPolicyDefinitionSet {
 
     foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
         $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform
         $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
     }
 
@@ -1710,14 +1715,10 @@ function New-CustomGuestConfigPolicy {
         [Hashtable]
         $InitiativeInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform = 'Windows',
-
-        [Parameter(Mandatory = $false)]
-        [string]
-        $Category = 'Guest Configuration'
+        $Platform = 'Windows'
     )
 
     $existingPolicies = Get-AzPolicyDefinition

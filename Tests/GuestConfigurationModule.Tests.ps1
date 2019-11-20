@@ -125,7 +125,7 @@ end
                 -KeyUsage 'nonRepudiation, DigitalSignature' `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
-                -StoreLocation 'CurrentUser' `
+                -StoreLocation 'LocalMachine' `
                 -KeyLength 2048 `
                 -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
                 -AlgorithmName 'RSA' `

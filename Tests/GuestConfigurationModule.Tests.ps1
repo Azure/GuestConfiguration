@@ -60,9 +60,9 @@ DSCConfig -OutputPath "$outputFolder"
 
             $command = @'
 New-Item "$env:Temp/guestconfigurationtest/cert" -type 'directory' -Force
-$Cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { ($_.Subject -eq 'CN=testcert') } | Select-Object -First 1
+$Cert = Get-ChildItem -Path Cert:\CurrentUser\My | Where-Object { ($_.Subject -eq 'CN=testcert') } | Select-Object -First 1
 Export-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -Cert $Cert
-Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -CertStoreLocation Cert:\LocalMachine\Root
+Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -CertStoreLocation Cert:\CurrentUser\Root
 '@                
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }

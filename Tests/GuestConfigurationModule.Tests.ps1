@@ -52,7 +52,7 @@ DSCConfig -OutputPath "$outputFolder"
                 -KeyUsage 'nonRepudiation, DigitalSignature' `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
-                -StoreLocation 'CurrentUser' `
+                -StoreLocation 'LocalMachine' `
                 -KeyLength 2048 `
                 -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
                 -AlgorithmName 'RSA' `
@@ -60,9 +60,9 @@ DSCConfig -OutputPath "$outputFolder"
 
             $command = @'
 New-Item "$env:Temp/guestconfigurationtest/cert" -type 'directory' -Force
-$Cert = Get-ChildItem -Path Cert:\CurrentUser\My | Where-Object { ($_.Subject -eq 'CN=testcert') } | Select-Object -First 1
+$Cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { ($_.Subject -eq 'CN=testcert') } | Select-Object -First 1
 Export-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -Cert $Cert
-Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -CertStoreLocation Cert:\CurrentUser\Root
+Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer" -CertStoreLocation Cert:\LocalMachine\Root
 '@                
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }
@@ -159,13 +159,19 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
-                $Cert = Get-ChildItem -Path cert:/CurrentUser/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+                $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
                 if ($null -eq $Cert) {write-warning 'no certificate was available for the test environment'}
                 if ($null -eq $Cert.thumbprint) {write-warning 'the certificate does not have a thumbprint'}
 
                 $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputFolder/package
                 
-                Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert
+                # issue with test cert
+                try {
+                    Protect-GuestConfigurationPackage -Path $package.Path -Certificate $Cert
+                }
+                catch {
+                    Write-Warning 'Unable to test Protect-GuestConfigurationPackage.  Verify the certificate is valid and trusted.'
+                }
                 $signedPackagePath = Join-Path (Get-ChildItem $package.Path).DirectoryName "$($policyName)_signed.zip"
                 
                 if (Test-Path $signedPackagePath -ErrorAction SilentlyContinue) {

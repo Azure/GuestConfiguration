@@ -811,6 +811,42 @@ function New-GuestConfigurationDeployPolicyDefinition {
                                 )
                             }
                         )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{
+                                anyOf = @(
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        exists = "true"
+                                    },
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        like = "Windows*"
+                                    }
+                                )
+                            },
+                            [Ordered]@{
+                                anyOf = @(
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/imageSKU"
+                                        exists = "false"
+                                    },
+                                    [Ordered]@{
+                                        allOf = @(
+                                            {
+                                                field = "Microsoft.Compute/imageSKU"
+                                                notLike = "2008*"
+                                            },
+                                            {
+                                                field = "Microsoft.Compute/imageSKU"
+                                                notLike = "SQL2008*"
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
                     }
                 )
             }
@@ -1003,6 +1039,30 @@ function New-GuestConfigurationDeployPolicyDefinition {
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
                                 like = 'linux*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{
+                                anyOf = @(
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/osProfile.linuxConfiguration"
+                                        exists = "true"
+                                    },
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        like = "Linux*"
+                                    }
+                                )
+                            },
+                            [Ordered]@{
+                                anyOf = @(
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/imageSKU"
+                                        exists = "false"
+                                    }
+                                )
                             }
                         )
                     }

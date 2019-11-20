@@ -3,6 +3,7 @@
 ## v1.19.0
 
 - Resolve bug in custom categories
+- Catch signing error output when certificate is invalid
 
 ## v1.18.0
 

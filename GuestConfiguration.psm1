@@ -244,7 +244,7 @@ function Test-GuestConfigurationPackage
         Public Gpg key path. This is only supported on Linux.
 
     .Example
-        $Cert = Get-ChildItem -Path Cert:/CurrentUser/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
+        $Cert = Get-ChildItem -Path Cert:/LocalMachine/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
         Protect-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Certificate $Cert
 
     .OUTPUTS

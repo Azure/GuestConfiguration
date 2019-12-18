@@ -145,9 +145,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             if ($isWindows) {
                 Mock Get-GuestConfigPath -ModuleName GuestConfigPath -MockWith { "$env:Temp/guestconfigurationtest/" }
 
-                $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package"
-                ls $package.path
-                $result = Test-GuestConfigurationPackage -Path $package.path -Verbose
+                $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose
 
                 $result.complianceStatus | Should Be $false
                 $result.resources[0].ModuleName | Should Be 'ComputerManagementDsc'

@@ -150,10 +150,10 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $packageFolder | Test-GuestConfigurationPackage -Verbose
 
                 $result.complianceStatus | Should Be $false
-                $result.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-                $result.resources[0].complianceStatus | Should Be $false
-                $result.resources[0].ConfigurationName | Should Be 'DSCConfig'
-                $result.resources[0].IsSingleInstance | Should Be 'Yes'
+                $result.resources.ModuleName | Should Be 'ComputerManagementDsc'
+                $result.resources.complianceStatus | Should Be $false
+                $result.resources.ConfigurationName | Should Be 'DSCConfig'
+                $result.resources.IsSingleInstance | Should Be 'Yes'
             }
         }
         

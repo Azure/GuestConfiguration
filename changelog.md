@@ -12,6 +12,7 @@
 - Fix Linux line endings in InSpec profiles
 - Resolve bug in custom categories
 - Catch signing error output when certificate is invalid
+- update IF for AINE and DINE to support hybrid and Windows custom images
 
 ## v1.18.0
 

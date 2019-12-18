@@ -799,6 +799,24 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 like = "windows*"
             }
         )
+
+        $guestConfigurationExtensionHashtable = [Ordered]@{
+            apiVersion = '2015-05-01-preview'
+            name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
+            type       = 'Microsoft.Compute/virtualMachines/extensions'
+            location   = "[parameters('location')]"
+            properties = [Ordered]@{
+                publisher               = 'Microsoft.GuestConfiguration'
+                type                    = 'ConfigurationforWindows'
+                typeHandlerVersion      = '1.1'
+                autoUpgradeMinorVersion = $true
+                settings                = @{ }
+                protectedSettings       = @{ }
+            }
+            dependsOn  = @(
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
+            )
+        }
     }
     elseif ($Platform -ieq 'Linux')
     {
@@ -975,6 +993,22 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 like = "linux*"
             }
         )
+
+        $guestConfigurationExtensionHashtable = [Ordered]@{
+            apiVersion = '2015-05-01-preview'
+            name       = "[concat(parameters('vmName'), '/AzurePolicyforLinux')]"
+            type       = 'Microsoft.Compute/virtualMachines/extensions'
+            location   = "[parameters('location')]"
+            properties = [Ordered]@{
+                publisher               = 'Microsoft.GuestConfiguration'
+                type                    = 'ConfigurationforLinux'
+                typeHandlerVersion      = '1.0'
+                autoUpgradeMinorVersion = $true
+            }
+            dependsOn  = @(
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
+            )
+        }
     }
     else
     {

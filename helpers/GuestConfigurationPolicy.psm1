@@ -814,33 +814,33 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     },
                     [Ordered]@{
                         allOf = @(
-                            [Ordered]@{
+                            [Ordered]@{ 
                                 anyOf = @(
-                                    [Ordered]@{
+                                    [Ordered]@{ 
                                         field = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
-                                        exists = "true"
+                                        exists = 'true'
                                     },
                                     [Ordered]@{
                                         field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like = "Windows*"
+                                        like = 'Windows*'
                                     }
                                 )
                             },
-                            [Ordered]@{
+                            [Ordered]@{ 
                                 anyOf = @(
-                                    [Ordered]@{
+                                    [Ordered]@{ 
                                         field = "Microsoft.Compute/imageSKU"
-                                        exists = "false"
+                                        exists = 'false'
                                     },
                                     [Ordered]@{
                                         allOf = @(
-                                            {
+                                            [Ordered]@{ 
                                                 field = "Microsoft.Compute/imageSKU"
-                                                notLike = "2008*"
+                                                notLike = '2008*'
                                             },
-                                            {
-                                                field = "Microsoft.Compute/imageSKU"
-                                                notLike = "SQL2008*"
+                                            [Ordered]@{
+                                                field = "Microsoft.Compute/imageOffer"
+                                                notLike = 'SQL2008*'
                                             }
                                         )
                                     }
@@ -872,10 +872,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 settings                = @{ }
                 protectedSettings       = @{ }
             }
-            dependsOn  = @(
-                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
-            )
-        }
+        )
     }
     elseif ($Platform -ieq 'Linux')
     {

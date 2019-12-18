@@ -208,6 +208,9 @@ function Test-GuestConfigurationPackage
                     }
                 }
             }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
+            }
         }
 
         $testResult.resources_in_desired_state | ForEach-Object {
@@ -218,6 +221,9 @@ function Test-GuestConfigurationPackage
                         $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
                     }
                 }
+            }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 

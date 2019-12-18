@@ -199,19 +199,24 @@ function Test-GuestConfigurationPackage
         $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
         $getResult = Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
 
-        $testResult.resources_not_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+        if ($testResult.resources_not_in_desired_state) {
+            $testResult.resources_not_in_desired_state | ForEach-Object {
+                $resourceId = $_;
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+                    }
                 }
             }
         }
-        $testResult.resources_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+
+        if ($testResult.resources_in_desired_state) {
+            $testResult.resources_in_desired_state | ForEach-Object {
+                $resourceId = $_;
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+                    }
                 }
             }
         }

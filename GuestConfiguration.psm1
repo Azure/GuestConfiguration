@@ -208,7 +208,6 @@ function Test-GuestConfigurationPackage
                     }
                 }
             }
-            else { $getResult.complianceStatus = $false }
         }
 
         $testResult.resources_in_desired_state | ForEach-Object {
@@ -220,7 +219,6 @@ function Test-GuestConfigurationPackage
                     }
                 }
             }
-            else { $getResult.complianceStatus = $true }
         }
 
         $result = New-Object -TypeName PSObject

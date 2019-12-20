@@ -339,7 +339,7 @@ function Protect-GuestConfigurationPackage
             gpg --no-default-keyring --keyring $PublicGpgKeyPath --output $ascFilePath --armor --detach-sign $hashFilePath
         }
 
-        # Zip the signed Guest Configuration package
+        # Zip the signed Guest Configuration package.
         Write-Verbose "Creating signed Guest Configuration package : $signedPackageFilePath."
         [System.IO.Compression.ZipFile]::CreateFromDirectory($tempDir, $signedPackageFilePath)
 

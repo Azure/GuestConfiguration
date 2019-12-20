@@ -1136,15 +1136,19 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [Parameter()]
         [String]
         $Category = 'Guest Configuration',
+        
         [Parameter(ParameterSetName='AuditWithoutDINE')]
         [Hashtable[]]
         $ParameterInfo,
+
         [Parameter(ParameterSetName='AuditWithoutDINE')]
         [String]
         $ContentUri,
+
         [Parameter(ParameterSetName='AuditWithoutDINE')]
         [String]
         $ContentHash,
+
         [Parameter(ParameterSetName='AuditWithoutDINE')]
         [String]
         $Version = '1.*'

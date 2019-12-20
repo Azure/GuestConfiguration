@@ -413,7 +413,7 @@ function Protect-GuestConfigurationPackage
 
 function New-GuestConfigurationPolicy
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
     param (
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -444,7 +444,9 @@ function New-GuestConfigurationPolicy
         $Platform = 'Windows',
 
         [parameter(Mandatory = $false)]
-        [string] $Category = 'Guest Configuration'
+        [string] $Category = 'Guest Configuration',
+        [parameter(Mandatory = $false, ParameterSetName = 'AuditWithOutDINE')]
+        [switch]$AuditWithoutDINE
     )
 
     Try {
@@ -485,6 +487,8 @@ function New-GuestConfigurationPolicy
         $packageIsSigned = (((Get-ChildItem -Path $unzippedPkgPath -Filter *.cat) -ne $null) -or `
                             (((Get-ChildItem -Path $unzippedPkgPath -Filter *.asc) -ne $null) -and ((Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums) -ne $null)))
 
+        if ($PSCmdlet.ParameterSetName -eq 'AuditWithDINE')
+        {
         $DeployPolicyInfo = @{
             FileName = "DeployIfNotExists.json"
             DisplayName = "[Deploy] $DisplayName"
@@ -514,6 +518,22 @@ function New-GuestConfigurationPolicy
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."
         New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -DeployPolicyInfo $DeployPolicyInfo -AuditPolicyInfo $AuditPolicyInfo -InitiativeInfo $InitiativeInfo -Platform $Platform -Verbose:$verbose | Out-Null
 
+        }
+        else
+        {
+           $AuditIfNotExistsInfo = @{
+            FileName = 'AuditIfNotExists.json'
+            DisplayName = "[Audit] $DisplayName"
+            Description = $Description
+            ConfigurationName = $policyName
+            ReferenceId = "Audit_$policyName"
+            ParameterInfo = $ParameterInfo
+            ContentUri = $ContentUri
+            ContentHash = $contentHash
+            Version = $Version
+            }
+            New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Platform $Platform -Verbose:$verbose | Out-Null
+        }
         $result = [pscustomobject]@{
             Name = $policyName
             Path = $Path

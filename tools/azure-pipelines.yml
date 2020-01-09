@@ -1,18 +1,26 @@
 trigger:
   branches:
+    batch: true
     include:
       - master
       - dev
 
   paths:
     exclude:
-    - azure-pipelines.yml
+    - /tools/azure-pipelines.yml
     - README.md
     - CODE_OF_CONDUCT.md
     - SECURITY.md
     - LICENSE
     - .gitignore
     - .github/*
+
+schedules:
+  - cron: "0 0 * * *"
+    displayName: Daily midnight build
+    branches:
+      include:
+        - master
 
 jobs:
 - job: Test

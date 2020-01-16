@@ -601,6 +601,12 @@ function Publish-GuestConfigurationPolicy
 
         Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
         New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
+
+        if ($definitionContent.metadata|Get-Member | ForEach-Object Name | Where-Object{$_ -eq 'guestConfiguration'})
+        {
+            Write-Verbose "This is Audit with out DINE Scenario hence skipping publishing DINE and intiative..."
+            return
+        }
     }
 
     # Process initiative

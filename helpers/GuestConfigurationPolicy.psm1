@@ -1187,6 +1187,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 }
                 parameters = $ParameterDefinitions
             }
+            id = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
+            name = $auditPolicyGuid
         }
      }
      else
@@ -1866,27 +1868,28 @@ function Get-ParameterDefinitionsAINE
     param
     (
         [Parameter(Mandatory = $true)]   
-        [array]     
-        $ParameterInfo
+        [Hashtable[]]$ParameterInfo
     )
-    $paramDefinition = [System.Collections.ArrayList]@()
+    $prop = @{}
     foreach($item in $ParameterInfo)
     {
-        $paramDefinition.Add(
-        (New-Object -TypeName PSObject -Property @{
-            $item.ReferenceName = [Ordered]@{
+        $prop[$($item.ReferenceName)] = [Ordered]@{
                 type = $item.Type 
                 metadata = [Ordered]@{
                     displayName = $item.DisplayName
                     description = $item.Description
                 }
-                allowedValues = $item.AllowedValues 
-                defaultValue = $item.DefaultValue
-            }
          }
-         ))| Out-Null
+         if ($item.ContainsKey('AllowedValues'))
+         {
+            $prop[$($item.ReferenceName)]['allowedValues'] = $item.AllowedValues
+         }
+         if ($item.ContainsKey('DefaultValue'))
+         {
+            $prop[$($item.ReferenceName)]['defaultValue'] = $item.DefaultValue  
+         }
     }
-    return $paramDefinition
+    return $prop
 }
 <#
     .SYNOPSIS

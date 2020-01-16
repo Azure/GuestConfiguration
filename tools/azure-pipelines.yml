@@ -33,10 +33,19 @@ jobs:
         imageName: 'macOS-latest'
       Windows2019:
         imageName: 'windows-latest'
-      
   pool:
     vmImage: $(imageName)
   steps:
+  - task: PowerShell@2
+    inputs:
+      pwsh: 'true'
+      targetType: 'inline'
+      script: |
+        New-Item '$(Build.SourcesDirectory)/bin' -ItemType 'directory' -ErrorAction SilentlyContinue
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/GC_1.0.0.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Linux.zip'
+    displayName: Download agent binaries
+
   - task: PowerShell@2
     inputs:
       targetType: 'inline'
@@ -76,24 +85,15 @@ jobs:
       pwsh: 'true'
       targetType: 'inline'
       script: |
-        New-Item '$(Build.SourcesDirectory)/bin' -ItemType 'directory' -ErrorAction SilentlyContinue
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/GC_1.0.0.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Linux.zip'
-    displayName: Download agent binaries
-
-  - task: PowerShell@2
-    inputs:
-      pwsh: 'true'
-      targetType: 'inline'
-      script: |
         $PSVersionTable
         Invoke-Pester -Verbose -OutputFile '$(Build.SourcesDirectory)/TEST.xml' -OutputFormat NUnitXml -EnableExit
-    displayName: Pester Unit Tests
+    displayName: Pester unit tests
 
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: 'NUnit'
       testResultsFiles: '$(Build.SourcesDirectory)/*TEST*.xml'
+    displayName: Publish test results
 
 - job: Publish
   dependsOn: Test
@@ -112,7 +112,6 @@ jobs:
         Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psd1
         Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psm1
         Copy-Item -Path $(Build.SourcesDirectory)\LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\LICENSE
-
     displayName: Stage module artifact
 
   - task: PowerShell@2
@@ -129,4 +128,4 @@ jobs:
     inputs:
       targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
       artifactName: GuestConfiguration
-  displayName: Publish artifact
+    displayName: Publish artifact

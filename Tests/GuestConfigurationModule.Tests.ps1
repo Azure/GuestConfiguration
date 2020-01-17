@@ -19,8 +19,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
         if ($false -eq $IsWindows) {
             $env:Temp = $env:TMPDIR
-            Import-Module 'PSDesiredStateConfiguration' -Force
         }
+        Import-Module 'PSDesiredStateConfiguration' -Force
+
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
 
         $dscConfig = @"
@@ -35,6 +36,8 @@ Configuration DSCConfig
             IsSingleInstance = 'Yes'
             TimeZone         = 'Tonga Standard Time'
         }
+
+        
     }
 }
 DSCConfig -OutputPath "$outputFolder"

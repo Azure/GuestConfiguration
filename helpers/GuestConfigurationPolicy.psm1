@@ -135,16 +135,11 @@ function Copy-DscResources {
         }
     }
 
-    # Copy binary resources.
+    # Copy Chef resource.
     $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $resources = Get-DscResource -Module GuestConfiguration
-    $resources | ForEach-Object {
-        if ($_.ImplementedAs -eq 'Binary') {
-            $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
-            Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
-            Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
-        }
-    }
+    $currentFolder = $PSScriptRoot
+    $binaryResourcePath = Join-Path $currentFolder '..\DscResources\MSFT_ChefInSpecResource'
+    Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
 
     # Remove DSC binaries from package.
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
@@ -191,6 +186,7 @@ function Copy-ChefInspecDependencies {
             }
 
             $chefResourcePath = Join-Path $nativeResourcePath 'MSFT_ChefInSpecResource'
+            Convert-FileToUnixLineEndings -FilePath $chefResourcePath/install_inspec.sh
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }

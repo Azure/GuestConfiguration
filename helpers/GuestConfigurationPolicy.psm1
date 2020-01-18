@@ -1847,12 +1847,10 @@ function  Get-ParameterMappingForAINE
         [array]     
         $ParameterInfo
     )
-    $paramMapping =  [System.Collections.ArrayList]@()
+    $paramMapping =  @{}
     foreach($item in $ParameterInfo)
     {
-        $paramMapping.Add((New-Object -TypeName PSObject -Property @{            
-            $item.ReferenceName = ("{0};{1}" -f $item.MofResourceReference, $item.MofParameterName)
-        })) | Out-Null
+        $paramMapping[$item.ReferenceName] = ("{0};{1}" -f $item.MofResourceReference, $item.MofParameterName)
     }
     return $paramMapping
 }

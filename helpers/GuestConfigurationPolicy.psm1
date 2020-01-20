@@ -1868,10 +1868,11 @@ function Get-ParameterDefinitionsAINE
         [Parameter(Mandatory = $true)]   
         [Hashtable[]]$ParameterInfo
     )
-    $prop = @{}
+    
+    $paramDefinition = [Ordered]@{}
     foreach($item in $ParameterInfo)
     {
-        $prop[$($item.ReferenceName)] = [Ordered]@{
+        $paramDefinition[$($item.ReferenceName)] = @{
                 type = $item.Type 
                 metadata = [Ordered]@{
                     displayName = $item.DisplayName
@@ -1880,14 +1881,14 @@ function Get-ParameterDefinitionsAINE
          }
          if ($item.ContainsKey('AllowedValues'))
          {
-            $prop[$($item.ReferenceName)]['allowedValues'] = $item.AllowedValues
+            $paramDefinition[$($item.ReferenceName)]['allowedValues'] = $item.AllowedValues
          }
          if ($item.ContainsKey('DefaultValue'))
          {
-            $prop[$($item.ReferenceName)]['defaultValue'] = $item.DefaultValue  
+            $paramDefinition[$($item.ReferenceName)]['defaultValue'] = $item.DefaultValue  
          }
     }
-    return $prop
+    return $paramDefinition
 }
 <#
     .SYNOPSIS

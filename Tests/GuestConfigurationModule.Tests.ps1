@@ -70,12 +70,12 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }
 
-        # Extract agent files
+        # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {
-            Expand-Archive $PSScriptRoot/../bin/DSC_Windows.zip "$outputFolder/guestConfig/bin/" -Force
+            Expand-Archive $PSScriptRoot/../bin/DSC_Windows.zip "$outputFolder/bin/" -Force
         }
         else {
-            Expand-Archive $PSScriptRoot/../bin/DSC_Linux.zip "$outputFolder/guestConfig/bin/" -Force
+            Expand-Archive $PSScriptRoot/../bin/DSC_Linux.zip "$outputFolder/bin/" -Force
         }
 
     }

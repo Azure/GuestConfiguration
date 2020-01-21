@@ -73,11 +73,11 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {
             Expand-Archive $PSScriptRoot/../bin/DSC_Windows.zip "$outputFolder/DSC/bin/" -Force
-            dir "$outputFolder/DSC/" -Recurse
-            <#Push-Location
+            
+            Push-Location
             Set-Location "$outputFolder/DSC/"
             Rename-Item 'GC' 'bin'
-            Pop-Location#>
+            Pop-Location
         }
         else {
             Expand-Archive $PSScriptRoot/../bin/DSC_Linux.zip "$outputFolder/DSC/" -Force

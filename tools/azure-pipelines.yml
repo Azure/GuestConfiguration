@@ -86,16 +86,6 @@ jobs:
       targetType: 'inline'
       script: |
         $PSVersionTable
-        # Extract agent files (used by Test-GuestConfigurationPackage)
-        $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
-        If ($IsWindows) {
-            Expand-Archive '$(Build.SourcesDirectory)/bin/DSC_Windows.zip' "$outputFolder/DSC/bin/" -Force
-            ls "$outputFolder/DSC/bin/"
-        }
-        else {
-            Expand-Archive '$(Build.SourcesDirectory)/bin/DSC_Linux.zip' "$outputFolder/DSC/" -Force
-        }
-
         Invoke-Pester -Verbose -OutputFile '$(Build.SourcesDirectory)/TEST.xml' -OutputFormat NUnitXml -EnableExit
     displayName: Pester unit tests
 

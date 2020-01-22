@@ -87,7 +87,8 @@ namespace GuestConfig
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
                 if(context == IntPtr.Zero) 
                 {{
-                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                    string error_msg = "Failed to initialize Guest Configuration library. Agent files not found at path: " + gc_bin_path;
+                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", error_msg, true));
                 }}
 
                 Int32 result = test_dsc_configuration(context, job_id, configuration_name, "");
@@ -130,7 +131,8 @@ namespace GuestConfig
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
                 if(context == IntPtr.Zero) 
                 {{
-                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                    string error_msg = "Failed to initialize Guest Configuration library. Agent files not found at path: " + gc_bin_path;
+                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", error_msg, true));
                 }}
 
                 Int32 result = get_dsc_configuration(context, job_id, configuration_name, "");
@@ -173,7 +175,8 @@ namespace GuestConfig
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
                 if(context == IntPtr.Zero)
                 {{
-                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                    string error_msg = "Failed to initialize Guest Configuration library. Agent files not found at path: " + gc_bin_path;
+                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", error_msg, true));
                 }}
 
                 Int32 result = publish_dsc_assignment(context, job_id, configuration_name, policy_path);
@@ -198,7 +201,8 @@ namespace GuestConfig
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
                 if(context == IntPtr.Zero)
                 {{
-                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                    string error_msg = "Failed to initialize Guest Configuration library. Agent files not found at path: " + gc_bin_path;
+                    ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", error_msg, true));
                 }}
 
                 Int32 result = set_dsc_meta_configuration(context, job_id, configuration_name, policy_path);

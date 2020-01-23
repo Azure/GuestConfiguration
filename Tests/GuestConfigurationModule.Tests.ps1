@@ -148,6 +148,8 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             if ($isWindows) {
                 Mock -CommandName 'Get-GuestConfigBinaryPath' -MockWith { "$env:Temp/guestconfigurationtest/bin/DSC/" }
                 Mock -CommandName 'Publish-DscConfiguration'
+                Mock -CommandName 'Test-DscConfiguration' -MockWith { @{resources_in_desired_state = '';resources_not_in_desired_state=''} }
+                Mock -CommandName 'Get-DscConfiguration'
 
                 $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose
                 $result.complianceStatus | Should Be $false

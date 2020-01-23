@@ -155,7 +155,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose
                 $result.complianceStatus | Should Be $false
 
-                Assert-MockCalled
+                Assert-VerifiableMock
             }
         }
         

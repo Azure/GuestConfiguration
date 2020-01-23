@@ -42,8 +42,7 @@ jobs:
       targetType: 'inline'
       script: |
         New-Item '$(Build.SourcesDirectory)/bin' -ItemType 'directory' -ErrorAction SilentlyContinue
-        #Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
+        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip?token=$(github_token)' -outfile '$(Build.SourcesDirectory)/bin/DSC_Windows.zip'
         Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/GC_1.0.0.zip' -outfile '$(Build.SourcesDirectory)/bin/DSC_Linux.zip'
     displayName: Download agent binaries
 

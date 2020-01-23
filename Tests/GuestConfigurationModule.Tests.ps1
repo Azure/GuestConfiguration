@@ -148,7 +148,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             if ($isWindows) {
                 Mock -CommandName 'Get-GuestConfigPath' -MockWith { "$env:Temp/guestconfigurationtest/" }
 
-                Get-GuestConfigPath | Should Be "$env:Temp/guestconfigurationtest/"
+                Get-GuestConfigPath | Should Be "$env:Temp/guestconfigurationtest/bin/"
                 Test-Path "$env:Temp/guestconfigurationtest/bin/DSC/dsclib.dll" | Should Be $true
 
                 <#

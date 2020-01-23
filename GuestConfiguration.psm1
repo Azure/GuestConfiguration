@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-Module $PSScriptRoot/helpers/GuestConfigPath.psm1 -Force
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
 if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
@@ -201,18 +202,29 @@ function Test-GuestConfigurationPackage
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+                    }
                 }
             }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
+            }
         }
+
         $testResult.resources_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+                    }
                 }
+            }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 

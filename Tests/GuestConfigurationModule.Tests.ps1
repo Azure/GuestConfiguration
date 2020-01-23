@@ -153,8 +153,8 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 # but there appears to be a scoping issue
                 Mock -CommandName 'Publish-DscConfiguration' -ModuleName 'GuestConfiguration' -Verifiable
                 Mock -CommandName 'Set-DscLocalConfigurationManager' -ModuleName 'GuestConfiguration' -Verifiable
-                Mock -CommandName 'Test-DscConfiguration'  -ModuleName 'GuestConfiguration' -MockWith { @{compliance_state=$false;resources_in_desired_state = @(@{resourceid='';compliancestatus=$true});resources_not_in_desired_state=@(@{ResourceId='TimeZoneExample';complianceStatus=$false})} } -Verifiable
-                Mock -CommandName 'Get-DscConfiguration' -ModuleName 'GuestConfiguration' -MockWith { @(@{ResourceId='TimeZoneExample';ModuleName='ComputerManagementDsc';ConfigurationName='DscConfig';IsSingleInstance='yes';complianceStatus=$false}) } -Verifiable
+                Mock -CommandName 'Test-DscConfiguration'  -ModuleName 'GuestConfiguration' -MockWith { @{compliance_state=$false;resources_in_desired_state = @();resources_not_in_desired_state=@('TimeZoneExample')} } -Verifiable
+                Mock -CommandName 'Get-DscConfiguration' -ModuleName 'GuestConfiguration' -MockWith { @{ResourceId='TimeZoneExample';ModuleName='ComputerManagementDsc';ConfigurationName='DscConfig';IsSingleInstance='yes';complianceStatus=$false} } -Verifiable
                 
 
                 $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose

@@ -150,7 +150,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 Mock -CommandName 'Publish-DscConfiguration' -ModuleName 'GuestConfiguration' -Verifiable
                 Mock -CommandName 'Set-DscLocalConfigurationManager' -ModuleName 'GuestConfiguration' -Verifiable
                 Mock -CommandName 'Test-DscConfiguration'  -ModuleName 'GuestConfiguration' -MockWith { @{resources_in_desired_state = '';resources_not_in_desired_state=''} } -Verifiable
-                Mock -CommandName 'Get-DscConfiguration' -ModuleName 'GuestConfiguration' -MockWith { @{property=''} } -Verifiable
+                Mock -CommandName 'Get-DscConfiguration' -ModuleName 'GuestConfiguration' -MockWith { @{ResourceId='test';complianceStatus=$true} } -Verifiable
                 
 
                 $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose

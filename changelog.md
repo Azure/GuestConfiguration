@@ -1,5 +1,11 @@
 # Change Log for GuestConfiguration module
 
+## v1.19.0
+
+- Resolve bug in custom categories
+- Catch signing error output when certificate is invalid
+- update IF for AINE and DINE to support hybrid and Windows custom images
+
 ## v1.18.0
 
 - seperated module and tests from base repo

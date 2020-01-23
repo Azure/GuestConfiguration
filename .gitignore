@@ -1,5 +1,8 @@
-/bin
+
 /DSCConfig
+/.vagrant
 .DS_Store
+Vagrantfile
+VagrantRun.ps1
 localhost.mof
 *.zip

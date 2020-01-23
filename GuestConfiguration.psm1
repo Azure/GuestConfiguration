@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-Module $PSScriptRoot/helpers/GuestConfigPath.psm1 -Force
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
 if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
@@ -201,18 +202,29 @@ function Test-GuestConfigurationPackage
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+                    }
                 }
             }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
+            }
         }
+
         $testResult.resources_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+                    }
                 }
+            }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 
@@ -244,7 +256,7 @@ function Test-GuestConfigurationPackage
         Public Gpg key path. This is only supported on Linux.
 
     .Example
-        $Cert = Get-ChildItem -Path Cert:/CurrentUser/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
+        $Cert = Get-ChildItem -Path Cert:/LocalMachine/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43") }
         Protect-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Certificate $Cert
 
     .OUTPUTS
@@ -312,9 +324,12 @@ function Protect-GuestConfigurationPackage
             Write-Verbose "Signing catalog file : $catalogFilePath."
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
-            if ($CodeSignOutput.Status -match 'Error') {
-                Write-Error $CodeSignOutput.StatusMessage
-            }
+            $Signature = Get-AuthenticodeSignature $catalogFilePath
+            if ($null -ne $Signature.SignerCertificate) {
+                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                    throw $CodeSignOutput.StatusMessage
+                }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if($osPlatform -eq "Windows") {
@@ -508,11 +523,13 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."

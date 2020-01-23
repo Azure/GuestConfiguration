@@ -1156,7 +1156,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
         Creates a new audit policy definition for a guest configuration policy definition set.
 #>
 function New-GuestConfigurationAuditPolicyDefinition {
-    [CmdletBinding()]
+     [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -1204,7 +1204,23 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter(Mandatory = $false)]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+        
+        [Parameter(ParameterSetName='AuditWithoutDINE')]
+        [Hashtable[]]
+        $ParameterInfo,
+
+        [Parameter(ParameterSetName='AuditWithoutDINE')]
+        [String]
+        $ContentUri,
+
+        [Parameter(ParameterSetName='AuditWithoutDINE')]
+        [String]
+        $ContentHash,
+
+        [Parameter(ParameterSetName='AuditWithoutDINE')]
+        [String]
+        $Version = '1.*'
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1216,6 +1232,36 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
 
+    $auditPolicyContentHashtable = [Ordered]@{}
+    if($PSCmdlet.ParameterSetName -eq 'AuditWithoutDINE')
+    {
+        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+        $auditPolicyContentHashtable = [Ordered]@{
+            properties = [Ordered]@{
+                displayName = $DisplayName
+                policyType = 'BuiltIn'
+                mode = 'All'
+                description = $Description
+                metadata = [Ordered]@{
+                    category = 'Guest Configuration'
+                    guestConfiguration = [Ordered]@{
+                        configurationParameter = $ParameterMapping
+                        name = $ConfigurationName
+                        version = $Version
+                        contentType = "Custom"
+                        contentUri = $ContentUri
+                        contentHash = $ContentHash
+                     }
+                }
+                parameters = $ParameterDefinitions
+            }
+            id = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
+            name = $auditPolicyGuid
+        }
+     }
+     else
+     {
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
@@ -1229,6 +1275,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
+            }
     }
 
     $policyRuleHashtable = [Ordered]@{
@@ -1611,10 +1658,26 @@ function New-GuestConfigurationAuditPolicyDefinition {
     {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
+    $existenceConditionList = [Ordered]@{}
 
+    if(($PSCmdlet.ParameterSetName -eq 'AuditWithoutDINE') -and ($null -ne $ParameterInfo))
+    {    
     $existenceConditionList = [Ordered]@{
+              allOf = [System.Collections.ArrayList]@()
+        }
+        $existenceConditionList['allOf'].Add([Ordered]@{
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
         equals = 'Compliant'
+        })
+        $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
+        $existenceConditionList['allOf'].Add($parametersExistenceCondition)
+    }
+    else
+    {
+        $existenceConditionList = [Ordered]@{
+            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+            equals = 'Compliant'
+        }
     }
 
     $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
@@ -1783,24 +1846,27 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
         initiative definition.
 #>
 function New-GuestConfigurationPolicyDefinitionSet {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
     param
     (
         [Parameter(Mandatory = $true)]
         [String]
         $PolicyFolderPath,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable[]]
         $DeployPolicyInfo,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable[]]
         $AuditPolicyInfo,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $InitiativeInfo,
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithoutDINE')]
+        [Hashtable]
+        $AuditIfNotExistsInfo,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
@@ -1813,6 +1879,8 @@ function New-GuestConfigurationPolicyDefinitionSet {
     }
 
     $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
+    if ($PSCmdlet.ParameterSetName -eq 'AuditWithDINE')
+    {
 
     foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
         $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
@@ -1833,26 +1901,37 @@ function New-GuestConfigurationPolicyDefinitionSet {
     $initiativeGuid = New-GuestConfigurationPolicyInitiativeDefinition @InitiativeInfo
     return $initiativeGuid
 }
+    else
+    {
+        foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
+            $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+            New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        }
+    }
+}
 
 function New-CustomGuestConfigPolicy {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
     param
     (
         [Parameter(Mandatory = $true)]
         [String]
         $PolicyFolderPath,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $DeployPolicyInfo,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $AuditPolicyInfo,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $InitiativeInfo,
+        [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithoutDINE')]
+        [Hashtable]
+        $AuditIfNotExistsInfo,
 
         [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
@@ -1861,6 +1940,8 @@ function New-CustomGuestConfigPolicy {
     )
 
     $existingPolicies = Get-AzPolicyDefinition
+    if ($PSCmdlet.ParameterSetName -eq 'AUditWithDINE')
+    {
     $existingDeployPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $DeployPolicyInfo.DisplayName) }
     if ($null -ne $existingDeployPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingDeployPolicy.Properties.displayName)' and guid '$($existingDeployPolicy.Name)'..."
@@ -1878,6 +1959,165 @@ function New-CustomGuestConfigPolicy {
         Write-Verbose -Message "Found initiative with name '$($existingInitiative.Properties.displayName)' and guid '$($existingInitiative.Name)'..."
         $InitiativeInfo['Guid'] = $existingInitiative.Name
     }
+    }
+    else
+    {
+        $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditIfNotExistsInfo.DisplayName) }
+        if ($null -ne $existingAuditPolicy) {
+            Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
+            $AuditIfNotExistsInfo['Guid'] = $existingAuditPolicy.Name
+        }
+    }
 
     New-GuestConfigurationPolicyDefinitionSet @PSBoundParameters
+}
+<#
+    .SYNOPSIS
+        Define the policy parameter mapping to the parameters of the MOF file. 
+    .PARAMETER ParameterInfo
+        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
+#>
+function  Get-ParameterMappingForAINE
+{
+    [CmdletBinding()]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
+    param
+    (
+        [Parameter(Mandatory = $true)]   
+        [array]     
+        $ParameterInfo
+    )
+    $paramMapping =  @{}
+    foreach($item in $ParameterInfo)
+    {
+        $paramMapping[$item.ReferenceName] = ("{0};{1}" -f $item.MofResourceReference, $item.MofParameterName)
+    }
+    return $paramMapping
+}
+<#
+    .SYNOPSIS
+        Define the parmameters of AINE policy for AuditWithout DINE scenario.
+    .PARAMETER ParameterInfo
+        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
+#>
+function Get-ParameterDefinitionsAINE
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]   
+        [Hashtable[]]$ParameterInfo
+    )
+    
+    $paramDefinition = [Ordered]@{}
+    foreach($item in $ParameterInfo)
+    {
+        $paramDefinition[$($item.ReferenceName)] = @{
+                type = $item.Type 
+                metadata = [Ordered]@{
+                    displayName = $item.DisplayName
+                    description = $item.Description
+                }
+         }
+         if ($item.ContainsKey('AllowedValues'))
+         {
+            $paramDefinition[$($item.ReferenceName)]['allowedValues'] = $item.AllowedValues
+         }
+         if ($item.ContainsKey('DefaultValue'))
+         {
+            $paramDefinition[$($item.ReferenceName)]['defaultValue'] = $item.DefaultValue  
+         }
+    }
+    return $paramDefinition
+}
+<#
+    .SYNOPSIS
+        Retrieves a policy section check for the existence of a Guest Configuration Assignment with the specified parameters.
+    .PARAMETER ParameterInfo
+        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
+    .EXAMPLE
+        Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $parameterInfo
+#>
+function Get-GuestConfigurationAssignmentParametersExistenceConditionSection
+{
+    [CmdletBinding()]
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Hashtable[]]
+        $ParameterInfo
+    )
+    $parameterValueConceatenatedStringList = @()
+    foreach ($currentParameterInfo in $ParameterInfo)
+    {
+        $assignmentParameterName = Get-GuestConfigurationAssignmentParameterName -ParameterInfo $currentParameterInfo
+        $assignmentParameterStringValue = Get-GuestConfigurationAssignmentParameterStringValue -ParameterInfo $currentParameterInfo
+        $currentParameterValueConcatenatedString = "'$assignmentParameterName', '=', $assignmentParameterStringValue"
+        $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
+    }
+    $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
+    $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
+    $existenceConditionHashtable = [Ordered]@{
+        field = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
+        equals = $parameterExistenceConditionEqualsValue
+    }
+    return $existenceConditionHashtable
+}
+<#
+    .SYNOPSIS
+        Retrieves the name of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment.
+    .PARAMETER ParameterInfo
+        A single hashtable indicating the necessary parameter info from which to retrieve the parameter name.
+    .EXAMPLE
+        Get-GuestConfigurationAssignmentParameterName -ParameterInfo $currentParameterInfo
+#>
+function Get-GuestConfigurationAssignmentParameterName
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    param
+    (
+        [Parameter()]
+        [Hashtable]
+        $ParameterInfo
+    )
+    $assignmentParameterName = "$($ParameterInfo.MofResourceReference);$($ParameterInfo.MofParameterName)"
+    return $assignmentParameterName
+}
+<#
+    .SYNOPSIS
+        Retrieves the string value of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment as part of the parameter hash.
+    .PARAMETER ParameterInfo
+        A single hashtable indicating the necessary parameter info from which to retrieve the parameter string value.
+    .EXAMPLE
+        Get-GuestConfigurationAssignmentParameterStringValue -ParameterInfo $currentParameterInfo
+#>
+function Get-GuestConfigurationAssignmentParameterStringValue
+{
+    [CmdletBinding()]
+    [OutputType([String])]
+    param
+    (
+        [Parameter()]
+        [Hashtable]
+        $ParameterInfo
+    )
+    if ($ParameterInfo.ContainsKey('ConfigurationValue'))
+    {
+        if ($ParameterInfo.ConfigurationValue.StartsWith('[') -and $ParameterInfo.ConfigurationValue.EndsWith(']'))
+        {
+            $assignmentParameterStringValue = $ParameterInfo.ConfigurationValue.Substring(1, $ParameterInfo.ConfigurationValue.Length - 2)
+        }
+        else
+        {
+            $assignmentParameterStringValue = "'$($ParameterInfo.ConfigurationValue)'"
+        }
+    }
+    else
+    {
+        $assignmentParameterStringValue = "parameters('$($ParameterInfo.ReferenceName)')"
+    }
+    return $assignmentParameterStringValue
 }

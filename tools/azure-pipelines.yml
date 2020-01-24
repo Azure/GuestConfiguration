@@ -37,7 +37,7 @@ jobs:
         inputs:
           command: download
           vstsFeed: guestconfiguration
-          vstsFeedPackage: gc_agent
+          vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
         displayName: Universal download

@@ -103,15 +103,14 @@ jobs:
             Copy-Item -Path $(Build.SourcesDirectory)\GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\GuestConfiguration.psm1
             Copy-Item -Path $(Build.SourcesDirectory)\LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\LICENSE
         displayName: Stage module artifact
-      - task: PowerShell@2
+      - task: UniversalPackages@0
         inputs:
-          pwsh: 'true'
-          targetType: inline
-          script: |
-            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin -type Directory
-            Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/PowerShell/dscpolicy-azure-ext/master/dsc/GC.zip?token=$(github_token)' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Windows.zip"
-            Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Azure/Guest-Configuration-Extension/master/agent/GC_1.0.0.zip' -outfile "$env:BUILD_ARTIFACTSTAGINGDIRECTORY\GuestConfiguration\bin\DSC_Linux.zip"
-        displayName: Download agent binaries
+          command: download
+          vstsFeed: guestconfiguration
+          vstsFeedPackage: gc_agents
+          vstsPackageVersion: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+        displayName: Universal download
       - task: PublishPipelineArtifact@1
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'

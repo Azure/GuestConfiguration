@@ -1,0 +1,118 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+      - dev
+  paths:
+    exclude:
+    - /tools/azure-pipelines.yml
+    - README.md
+    - CODE_OF_CONDUCT.md
+    - SECURITY.md
+    - LICENSE
+    - .gitignore
+    - .github/*
+schedules:
+  - cron: "0 0 * * *"
+    displayName: Daily midnight build
+    branches:
+      include:
+        - master
+jobs:
+  - job: Test
+    strategy:
+      matrix:
+        #Ubuntu:
+          #imageName: ubuntu-latest
+        MacOS:
+          imageName: macOS-latest
+        Windows2019:
+          imageName: windows-latest
+    pool:
+      vmImage: $(imageName)
+    steps:
+      - task: UniversalPackages@0
+        inputs:
+          command: download
+          vstsFeed: guestconfiguration
+          vstsFeedPackage: gc_agents
+          vstsPackageVersion: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+        displayName: Universal download
+      - task: PowerShell@2
+        inputs:
+          targetType: inline
+          script: |
+            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+            ./install-powershell.ps1 -Destination $powerShellPath -Preview
+            if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
+            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
+            Write-Host "sending " + $vstsCommandString
+            Write-Host "##$vstsCommandString"
+        displayName: Install PowerShell Core
+      - task: PowerShell@2
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          script: |
+            if ($IsMacOS) { brew install openssl }
+            if ($IsLinux) { sudo apt-get install openssl }
+        displayName: Install OpenSSL on Mac/Linux
+      - task: PowerShell@2
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          script: |
+            $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
+            $modules = (Import-PowerShellDataFile "$(Build.SourcesDirectory)/$repositoryName.psd1").RequiredModules
+            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
+            write-host "installing " $modules
+            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+        displayName: Install modules
+      - task: PowerShell@2
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          script: |
+            $PSVersionTable
+            Invoke-Pester -Verbose -OutputFile '$(Build.SourcesDirectory)/TEST.xml' -OutputFormat NUnitXml -EnableExit
+        displayName: Pester unit tests
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: NUnit
+          testResultsFiles: '$(Build.SourcesDirectory)/*TEST*.xml'
+        displayName: Publish test result
+  - job: Publish
+    dependsOn: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: PowerShell@2
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          script: |
+            Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
+            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
+            Copy-Item -Path $(Build.SourcesDirectory)/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
+            Copy-Item -Path $(Build.SourcesDirectory)/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
+            Copy-Item -Path $(Build.SourcesDirectory)/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
+            Copy-Item -Path $(Build.SourcesDirectory)/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
+            Copy-Item -Path $(Build.SourcesDirectory)/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
+        displayName: Stage module artifact
+      - task: UniversalPackages@0
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: gc_agents
+          versionDownloadExternal: '*'
+        displayName: Universal download
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
+          artifactName: GuestConfiguration
+        displayName: Publish artifact

@@ -35,10 +35,12 @@ jobs:
       - task: UniversalPackages@0
         inputs:
           command: download
-          vstsFeed: guestconfiguration
-          vstsFeedPackage: gc_agents
-          vstsPackageVersion: '*'
-          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: gc_agents
+          versionDownloadExternal: '*'
+          downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
         displayName: Universal download
       - task: PowerShell@2
         inputs:

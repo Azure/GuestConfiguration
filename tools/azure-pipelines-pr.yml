@@ -38,7 +38,7 @@ jobs:
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
-          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+          downloadDirectory: '$env:BUILD_SOURCESDIRECTORY/bin/'
         displayName: Universal download
       - task: PowerShell@2
         inputs:
@@ -66,7 +66,7 @@ jobs:
           targetType: inline
           script: |
             $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
-            $modules = (Import-PowerShellDataFile "$(Build.SourcesDirectory)/$repositoryName.psd1").RequiredModules
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
             $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
             write-host "installing " $modules
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
@@ -77,12 +77,12 @@ jobs:
           targetType: inline
           script: |
             $PSVersionTable
-            Invoke-Pester -Verbose -OutputFile '$(Build.SourcesDirectory)/TEST.xml' -OutputFormat NUnitXml -EnableExit
+            Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml -EnableExit
         displayName: Pester unit tests
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Build.SourcesDirectory)/*TEST*.xml'
+          testResultsFiles: '$env:BUILD_SOURCESDIRECTORY/*TEST*.xml'
         displayName: Publish test result
   - job: Publish
     dependsOn: Test
@@ -96,11 +96,11 @@ jobs:
           script: |
             Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
-            Copy-Item -Path $(Build.SourcesDirectory)/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
-            Copy-Item -Path $(Build.SourcesDirectory)/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
-            Copy-Item -Path $(Build.SourcesDirectory)/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
-            Copy-Item -Path $(Build.SourcesDirectory)/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
-            Copy-Item -Path $(Build.SourcesDirectory)/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
         displayName: Stage module artifact
       - task: UniversalPackages@0
         inputs:

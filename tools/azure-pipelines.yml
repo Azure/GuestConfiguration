@@ -23,7 +23,6 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        # Get-DscResource is not working in Linux yet
         #Ubuntu:
           #imageName: ubuntu-latest
         MacOS:

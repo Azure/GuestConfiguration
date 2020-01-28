@@ -40,7 +40,7 @@ jobs:
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: gc_agents
           versionDownloadExternal: '*'
-          downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
         displayName: Universal download
       - task: PowerShell@2
         inputs:

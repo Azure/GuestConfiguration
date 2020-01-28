@@ -110,6 +110,7 @@ jobs:
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: gc_agents
           versionDownloadExternal: '*'
+          downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
         displayName: Universal download
       - task: PublishPipelineArtifact@1
         inputs:

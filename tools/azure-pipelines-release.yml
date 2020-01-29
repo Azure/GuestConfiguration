@@ -99,9 +99,7 @@ jobs:
             Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
-            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
         displayName: Stage module artifact
       - task: UniversalPackages@0
@@ -115,11 +113,9 @@ jobs:
           downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
         displayName: Universal download
       - task: PkgESCodeSign@10
-        displayName: 'CodeSign $env:BUILD_SOURCESDIRECTORY/tools/package.xml'
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
           signConfigXml: '$env:BUILD_SOURCESDIRECTORY/tools/package.xml'
-          outPathRoot: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/signedMacOSPackages'
-          binVersion: $(SigingVersion)
-          binVersionOverride: $(SigningVersionOverride)
+          outPathRoot: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration'
+        displayName: 'CodeSign'

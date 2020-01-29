@@ -38,7 +38,7 @@ jobs:
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
-          downloadDirectory: '$env:BUILD_SOURCESDIRECTORY/bin/'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
         displayName: Universal download
       - task: PowerShell@2
         inputs:
@@ -108,7 +108,7 @@ jobs:
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
-          downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
+          downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
         displayName: Universal download
       - task: PublishPipelineArtifact@1
         inputs:

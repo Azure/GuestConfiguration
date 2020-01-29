@@ -122,6 +122,10 @@ function Copy-DscResources {
         # if resource is not a GuestConfiguration module resource.
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            # PowerShell modules required by DSC resource modules
+            $_.RequiredModules | ForEach-Object {
+                $modulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+            }
         }
     }
     $modulesToCopy.Values | ForEach-Object {

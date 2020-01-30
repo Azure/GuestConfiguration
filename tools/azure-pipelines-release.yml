@@ -112,6 +112,10 @@ jobs:
           versionDownloadExternal: '*'
           downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
         displayName: Universal download
+      - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+        displayName: 'Component Detection'
+        inputs:
+          failOnAlert: true  
       - task: PkgESCodeSign@10
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)

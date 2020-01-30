@@ -1231,11 +1231,13 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
-
+    $ParameterMapping  = @{}
+    $ParameterDefinitions  = @{}
     $auditPolicyContentHashtable = [Ordered]@{}
     if($PSCmdlet.ParameterSetName -eq 'AuditWithoutDINE')
     {
-        if ($null -ne $ParameterInfo) {
+        if ($null -ne $ParameterInfo)
+        {
             $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
             $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
         }

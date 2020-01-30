@@ -460,6 +460,7 @@ function New-GuestConfigurationPolicy
 
         [parameter(Mandatory = $false)]
         [string] $Category = 'Guest Configuration',
+        
         [parameter(Mandatory = $false, ParameterSetName = 'AuditWithOutDINE')]
         [switch]$AuditWithoutDINE
     )

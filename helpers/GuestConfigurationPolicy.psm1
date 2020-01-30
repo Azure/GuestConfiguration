@@ -1174,7 +1174,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
         Creates a new audit policy definition for a guest configuration policy definition set.
 #>
 function New-GuestConfigurationAuditPolicyDefinition {
-     [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
+    [CmdletBinding(DefaultParameterSetName = 'AuditWithDINE')]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -1253,8 +1253,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $auditPolicyContentHashtable = [Ordered]@{}
     if($PSCmdlet.ParameterSetName -eq 'AuditWithoutDINE')
     {
-        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+        if ($null -ne $ParameterInfo) {
+            $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+            $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+        }
         $auditPolicyContentHashtable = [Ordered]@{
             properties = [Ordered]@{
                 displayName = $DisplayName
@@ -1882,6 +1884,7 @@ function New-GuestConfigurationPolicyDefinitionSet {
         [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $InitiativeInfo,
+
         [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithoutDINE')]
         [Hashtable]
         $AuditIfNotExistsInfo,
@@ -1900,25 +1903,25 @@ function New-GuestConfigurationPolicyDefinitionSet {
     if ($PSCmdlet.ParameterSetName -eq 'AuditWithDINE')
     {
 
-    foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
-        $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $deployPolicyGuid = New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo -Platform $Platform
-        $currentDeployPolicyInfo['Guid'] = $deployPolicyGuid
+        foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
+            $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
+            $deployPolicyGuid = New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo -Platform $Platform
+            $currentDeployPolicyInfo['Guid'] = $deployPolicyGuid
+        }
+
+        foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
+            $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+            $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform
+            $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
+        }
+
+        $InitiativeInfo['FolderPath'] = $PolicyFolderPath
+        $InitiativeInfo['DeployPolicyInfo'] = $DeployPolicyInfo
+        $InitiativeInfo['AuditPolicyInfo'] = $AuditPolicyInfo
+
+        $initiativeGuid = New-GuestConfigurationPolicyInitiativeDefinition @InitiativeInfo
+        return $initiativeGuid
     }
-
-    foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform
-        $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
-    }
-
-    $InitiativeInfo['FolderPath'] = $PolicyFolderPath
-    $InitiativeInfo['DeployPolicyInfo'] = $DeployPolicyInfo
-    $InitiativeInfo['AuditPolicyInfo'] = $AuditPolicyInfo
-
-    $initiativeGuid = New-GuestConfigurationPolicyInitiativeDefinition @InitiativeInfo
-    return $initiativeGuid
-}
     else
     {
         foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
@@ -1947,6 +1950,7 @@ function New-CustomGuestConfigPolicy {
         [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithDINE')]
         [Hashtable]
         $InitiativeInfo,
+
         [Parameter(Mandatory = $true, ParameterSetName = 'AuditWithoutDINE')]
         [Hashtable]
         $AuditIfNotExistsInfo,
@@ -1958,7 +1962,7 @@ function New-CustomGuestConfigPolicy {
     )
 
     $existingPolicies = Get-AzPolicyDefinition
-    if ($PSCmdlet.ParameterSetName -eq 'AUditWithDINE')
+    if ($PSCmdlet.ParameterSetName -eq 'AuditWithDINE')
     {
     $existingDeployPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $DeployPolicyInfo.DisplayName) }
     if ($null -ne $existingDeployPolicy) {

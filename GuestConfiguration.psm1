@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-Module $PSScriptRoot/helpers/GuestConfigPath.psm1 -Force
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
 if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {

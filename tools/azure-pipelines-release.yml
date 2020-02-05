@@ -21,16 +21,8 @@ schedules:
         - master
 jobs:
   - job: Test
-    strategy:
-      matrix:
-        #Ubuntu:
-          #imageName: ubuntu-latest
-        MacOS:
-          imageName: macOS-latest
-        Windows2019:
-          imageName: windows-latest
     pool:
-      vmImage: $(imageName)
+      name: Package ES CodeHub Lab E
     steps:
       - task: UniversalPackages@0
         inputs:

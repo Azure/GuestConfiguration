@@ -124,6 +124,24 @@ function Copy-DscResources {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
         }
     }
+
+    # PowerShell modules required by DSC resource module
+    $powershellModulesToCopy = @{ }
+    $modulesToCopy.Values | ForEach-Object {
+            $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            $requiredModule.RequiredModules | ForEach-Object {
+                if ($null -ne $_.Version) {
+                    $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+                    Write-Verbose "$($_.Name) is a required PowerShell module"
+                }
+                else {
+                    Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
+                }
+            }
+    }
+
+    $modulesToCopy += $powershellModulesToCopy
+
     $modulesToCopy.Values | ForEach-Object {
         $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
         if ($null -ne $moduleToCopy) {

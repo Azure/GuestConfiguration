@@ -124,6 +124,24 @@ function Copy-DscResources {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
         }
     }
+
+    # PowerShell modules required by DSC resource module
+    $powershellModulesToCopy = @{ }
+    $modulesToCopy.Values | ForEach-Object {
+            $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            $requiredModule.RequiredModules | ForEach-Object {
+                if ($null -ne $_.Version) {
+                    $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+                    Write-Verbose "$($_.Name) is a required PowerShell module"
+                }
+                else {
+                    Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
+                }
+            }
+    }
+
+    $modulesToCopy += $powershellModulesToCopy
+
     $modulesToCopy.Values | ForEach-Object {
         $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
         if ($null -ne $moduleToCopy) {
@@ -135,16 +153,11 @@ function Copy-DscResources {
         }
     }
 
-    # Copy binary resources.
+    # Copy Chef resource.
     $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $resources = Get-DscResource -Module GuestConfiguration
-    $resources | ForEach-Object {
-        if ($_.ImplementedAs -eq 'Binary') {
-            $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
-            Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
+    $currentFolder = $PSScriptRoot
+    $binaryResourcePath = Join-Path $currentFolder '..\DscResources\MSFT_ChefInSpecResource'
             Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
-        }
-    }
 
     # Remove DSC binaries from package.
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
@@ -191,6 +204,7 @@ function Copy-ChefInspecDependencies {
             }
 
             $chefResourcePath = Join-Path $nativeResourcePath 'MSFT_ChefInSpecResource'
+            Convert-FileToUnixLineEndings -FilePath $chefResourcePath/install_inspec.sh
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }

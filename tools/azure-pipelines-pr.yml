@@ -21,7 +21,6 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        # comment out until bugs are resolved in PSDesiredStateConfiguration
         #Ubuntu:
         #  imageName: ubuntu-latest
         MacOSMojave:
@@ -33,11 +32,6 @@ jobs:
         Windows2016:
           imageName: vs2017-win2016
     pool:
-      vmImage: $(imageName)
-    steps:
-      - task: UniversalPackages@0
-        displayName: Universal download
-        inputs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents

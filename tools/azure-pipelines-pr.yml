@@ -38,7 +38,7 @@ jobs:
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
-          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+          downloadDirectory: '/bin/'
         displayName: Universal download
       - task: PowerShell@2
         inputs:

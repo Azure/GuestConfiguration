@@ -81,7 +81,7 @@ jobs:
   - job: Stage
     dependsOn: Test
     pool:
-      vmImage: ubuntu-latest
+      vmImage: windows-latest
     steps:
       - task: PowerShell@2
         inputs:

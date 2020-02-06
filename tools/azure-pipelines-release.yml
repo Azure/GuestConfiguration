@@ -6,7 +6,8 @@ trigger:
       - dev
   paths:
     exclude:
-    - /tools/azure-pipelines.yml
+    - /tools/azure-pipelines-pr.yml
+    - /tools/azure-pipelines-release.yml
     - README.md
     - CODE_OF_CONDUCT.md
     - SECURITY.md

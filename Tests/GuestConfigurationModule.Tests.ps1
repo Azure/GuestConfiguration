@@ -44,6 +44,9 @@ DSCConfig -OutputPath "$outputFolder"
         Set-Content -Path "$outputFolder/DSCConfig.ps1" -Value $dscConfig
         & "$outputFolder/DSCConfig.ps1"
 
+        
+        
+        <#
         If ($IsWindows) {
             Import-Module PSPKI -Force
             
@@ -68,6 +71,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
 '@                
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }
+        #>
 
         # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {
@@ -160,6 +164,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         }
         #>
         
+        <#
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
                 $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
@@ -198,6 +203,7 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
                 }
             }
         }
+        #>
 
         It 'Verify New-GuestConfigurationPolicy cmdlet can create custom policy definitions' {
             Mock Get-AzPolicyDefinition

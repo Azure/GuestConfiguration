@@ -102,7 +102,7 @@ jobs:
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: gc_agents
           versionDownloadExternal: '*'
-          downloadDirectory: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/bin/'
+          downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
         displayName: Universal download
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
         displayName: 'Component Detection'

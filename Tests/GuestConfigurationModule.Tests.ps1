@@ -115,6 +115,9 @@ end
         & "$outputFolder/DSCConfigLinux.ps1"
 #endregion
 
+        
+        
+        <#
         If ($IsWindows) {
             Import-Module PSPKI -Force
             
@@ -139,6 +142,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
 '@                
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }
+        #>
 
         # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {

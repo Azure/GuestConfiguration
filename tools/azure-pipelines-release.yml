@@ -23,7 +23,7 @@ schedules:
 jobs:
   - job: Test
     pool:
-      name: Package ES CodeHub Lab E
+      vmImage: windows-latest
     steps:
       - task: UniversalPackages@0
         inputs:
@@ -82,7 +82,7 @@ jobs:
   - job: Stage
     dependsOn: Test
     pool:
-      vmImage: windows-latest
+      name: Package ES CodeHub Lab E
     steps:
       - task: PowerShell@2
         inputs:

@@ -86,7 +86,7 @@ jobs:
     steps:
       - task: PowerShell@2
         inputs:
-          pwsh: 'true'
+          pwsh: 'false'
           targetType: inline
           script: |
             Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force

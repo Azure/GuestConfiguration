@@ -112,6 +112,6 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
-          signConfigXml: '$env:BUILD_SOURCESDIRECTORY/tools/package.xml'
-          outPathRoot: '$env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration'
+          signConfigXml: '$(Build.SourcesDirectory)/tools/package.xml'
+          outPathRoot: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
         displayName: 'CodeSign'

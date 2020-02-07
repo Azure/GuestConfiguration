@@ -121,7 +121,7 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
           signConfigXml: '$(Build.SourcesDirectory)/tools/SignConfig.xml'
-          inPathRoot: '$(Build.SourcesDirectory)\GuestConfiguration\'
+          inPathRoot: '$(Build.SourcesDirectory)'
           outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\'
         displayName: 'CodeSign'
       - task: PublishPipelineArtifact@1

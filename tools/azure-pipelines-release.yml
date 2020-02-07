@@ -77,7 +77,7 @@ jobs:
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$env:BUILD_SOURCESDIRECTORY/*TEST*.xml'
+          testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
         displayName: Publish test result
   - job: Stage
     dependsOn: Test
@@ -116,3 +116,8 @@ jobs:
           inPathRoot: '$(Build.SourcesDirectory)/GuestConfiguration'
           outPathRoot: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
         displayName: 'CodeSign'
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
+          artifactName: GuestConfiguration
+        displayName: Publish artifact

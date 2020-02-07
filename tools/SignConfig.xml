@@ -5,6 +5,6 @@
     <file src="__INPATHROOT__\GuestConfiguration.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\GuestConfiguration.psd1" />
     <file src="__INPATHROOT__\helpers\DscOperations.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\DscOperations.psm1" />
     <file src="__INPATHROOT__\helpers\GuestConfigPath.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\GuestConfigPath.psm1" />
-    <file src="__INPATHROOT__\helpers\GuestConfigurationPolicy" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\GuestConfigurationPolicy.psm1" />
+    <file src="__INPATHROOT__\helpers\GuestConfigurationPolicy.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\GuestConfigurationPolicy.psm1" />
   </job>
 </SignConfigXML>

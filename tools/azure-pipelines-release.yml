@@ -22,8 +22,16 @@ schedules:
         - master
 jobs:
   - job: Test
+    strategy:
+      matrix:
+        #Ubuntu:
+          #imageName: ubuntu-latest
+        MacOS:
+          imageName: macOS-latest
+        Windows2019:
+          imageName: windows-latest
     pool:
-      vmImage: windows-latest
+      vmImage: $(imageName)
     steps:
       - task: UniversalPackages@0
         inputs:
@@ -77,7 +85,7 @@ jobs:
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
+          testResultsFiles: '$(Build.SourcesDirectory)\TEST.xml'
         displayName: Publish test result
   - job: Stage
     dependsOn: Test
@@ -113,8 +121,8 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
           signConfigXml: '$(Build.SourcesDirectory)/tools/SignConfig.xml'
-          inPathRoot: '$(Build.SourcesDirectory)/GuestConfiguration'
-          outPathRoot: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
+          inPathRoot: '$(Build.SourcesDirectory)\GuestConfiguration\'
+          outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\'
         displayName: 'CodeSign'
       - task: PublishPipelineArtifact@1
         inputs:

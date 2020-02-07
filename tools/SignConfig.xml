@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <SignConfigXML>
   <job platform="AnyCPU" configuration="" dest="__OUTPATHROOT__" jobname="GuestConfiguration" approvers="migreene;nitingup;amitsara">
-    <file src="__INPATHROOT__/GuestConfiguration.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__/GuestConfiguration.psm1" />
-    <file src="__INPATHROOT__/GuestConfiguration.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__/GuestConfiguration.psd1" />
-    <file src="__INPATHROOT__/helpers/DscOperations.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__/helpers/DscOperations.psm1" />
-    <file src="__INPATHROOT__/helpers/GuestConfigPath.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__/helpers/GuestConfigPath.psm1" />
-    <file src="__INPATHROOT__/helpers/GuestConfigurationPolicy" signType="AuthenticodeFormer" dest="__OUTPATHROOT__/helpers/GuestConfigurationPolicy.psm1" />
+    <file src="__INPATHROOT__\GuestConfiguration.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\GuestConfiguration.psm1" />
+    <file src="__INPATHROOT__\GuestConfiguration.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\GuestConfiguration.psd1" />
+    <file src="__INPATHROOT__\helpers\DscOperations.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\DscOperations.psm1" />
+    <file src="__INPATHROOT__\helpers\GuestConfigPath.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\GuestConfigPath.psm1" />
+    <file src="__INPATHROOT__\helpers\GuestConfigurationPolicy" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\helpers\GuestConfigurationPolicy.psm1" />
   </job>
 </SignConfigXML>

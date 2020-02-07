@@ -80,12 +80,12 @@ jobs:
           targetType: inline
           script: |
             $PSVersionTable
-            Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml -EnableExit
+            Invoke-Pester -Verbose -OutputFile "$env:BUILD_SOURCESDIRECTORY/TEST.xml" -OutputFormat NUnitXml -EnableExit
         displayName: Pester unit tests
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Build.SourcesDirectory)\TEST.xml'
+          testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
         displayName: Publish test result
   - job: Stage
     dependsOn: Test
@@ -110,7 +110,7 @@ jobs:
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: gc_agents
           versionDownloadExternal: '*'
-          downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
+          downloadDirectory: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\bin\'
         displayName: Universal download
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
         inputs:
@@ -120,12 +120,12 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
-          signConfigXml: '$(Build.SourcesDirectory)/tools/SignConfig.xml'
-          inPathRoot: '$(Build.SourcesDirectory)'
+          signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
+          inPathRoot: '$(Build.SourcesDirectory)\'
           outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\'
         displayName: 'CodeSign'
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
+          targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
           artifactName: GuestConfiguration
         displayName: Publish artifact

@@ -106,13 +106,14 @@ jobs:
           downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
         displayName: Universal download
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-        displayName: 'Component Detection'
         inputs:
-          failOnAlert: true  
+          failOnAlert: true
+        displayName: 'Component Detection'
       - task: PkgESCodeSign@10
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
-          signConfigXml: '$(Build.SourcesDirectory)/tools/package.xml'
+          signConfigXml: '$(Build.SourcesDirectory)/tools/SignConfig.xml'
+          inPathRoot: '$(Build.SourcesDirectory)/GuestConfiguration'
           outPathRoot: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
         displayName: 'CodeSign'

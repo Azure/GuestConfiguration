@@ -87,7 +87,7 @@ jobs:
           testResultsFormat: NUnit
           testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
         displayName: Publish test result
-  - job: Sign
+  - job: CodeSign
     dependsOn: Test
     pool:
       name: Package ES CodeHub Lab E
@@ -121,8 +121,8 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
           signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
-          inPathRoot: '$(Build.SourcesDirectory)\'
-          outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\'
+          inPathRoot: '$(Build.SourcesDirectory)'
+          outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
         displayName: 'CodeSign'
       - task: PublishPipelineArtifact@1
         inputs:

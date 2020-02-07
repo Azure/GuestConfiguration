@@ -87,7 +87,7 @@ jobs:
           testResultsFormat: NUnit
           testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
         displayName: Publish test result
-  - job: Stage
+  - job: Sign
     dependsOn: Test
     pool:
       name: Package ES CodeHub Lab E

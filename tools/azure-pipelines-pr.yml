@@ -1,8 +1,10 @@
 trigger:
+  pr: none 
   batch: true
   branches:
     include:
       - master
+      - rollback
       - dev
   paths:
     exclude:
@@ -14,12 +16,7 @@ trigger:
     - LICENSE
     - .gitignore
     - .github/*
-schedules:
-  - cron: "0 0 * * *"
-    displayName: Daily midnight build
-    branches:
-      include:
-        - master
+
 jobs:
   - job: Test
     strategy:

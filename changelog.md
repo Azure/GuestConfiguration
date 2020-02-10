@@ -5,6 +5,9 @@
 - Resolve bug in custom categories
 - Catch signing error output when certificate is invalid
 - update IF for AINE and DINE to support hybrid and Windows custom images
+- write message about resources outside GC module to debug rather than warning
+- add tests for IF section of policy
+- moved build scripts to 'tools' folder
 
 ## v1.19.0
 

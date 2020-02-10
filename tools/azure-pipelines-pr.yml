@@ -40,10 +40,10 @@ jobs:
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install PowerShell Core
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
@@ -54,11 +54,11 @@ jobs:
             Write-Host "##$vstsCommandString"
       - task: PowerShell@2
         displayName: Install OpenSSL on Mac/Linux
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             if ($IsMacOS) { brew install openssl }
             if ($IsLinux) { sudo apt-get install openssl }
@@ -67,6 +67,8 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
@@ -98,11 +100,11 @@ jobs:
     steps:
       - task: PowerShell@2
         displayName: Stage module artifact
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory

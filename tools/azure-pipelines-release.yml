@@ -45,10 +45,10 @@ jobs:
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
         displayName: Universal download
       - task: PowerShell@2
-        failOnStderr: true
-        errorActionPreference: stop
-        inputs:
+         inputs:
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
@@ -59,21 +59,21 @@ jobs:
             Write-Host "##$vstsCommandString"
         displayName: Install PowerShell Core
       - task: PowerShell@2
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             if ($IsMacOS) { brew install openssl }
             if ($IsLinux) { sudo apt-get install openssl }
         displayName: Install OpenSSL on Mac/Linux
       - task: PowerShell@2
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
@@ -83,8 +83,6 @@ jobs:
         displayName: Install modules
       - task: PowerShell@2
         displayName: Pester unit tests
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -107,11 +105,11 @@ jobs:
       name: Package ES CodeHub Lab E
     steps:
       - task: PowerShell@2
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'false'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse

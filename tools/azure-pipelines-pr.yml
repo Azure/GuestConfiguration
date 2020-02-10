@@ -75,7 +75,10 @@ jobs:
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
             write-host "BuildTempFolder: $env:BuildTempFolder"
-            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

@@ -73,8 +73,6 @@ jobs:
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
         displayName: Pester unit tests
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline

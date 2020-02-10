@@ -45,8 +45,6 @@ jobs:
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install PowerShell Core
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           targetType: inline
           failOnStderr: true
@@ -97,8 +95,6 @@ jobs:
     steps:
       - task: PowerShell@2
         displayName: Stage module artifact
-        failOnStderr: true
-        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline

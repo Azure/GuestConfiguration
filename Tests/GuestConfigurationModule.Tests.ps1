@@ -5,7 +5,7 @@
 #  configuration assignement.
 ######################################################
 
-# requires environment variable "BuildFolder" to be set before running
+# requires environment variable "BuildTempFolder" to be set before running
 
 $ErrorActionPreference = 'Stop'
 
@@ -95,8 +95,8 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         if (Test-Path "$outputFolder") {
             Remove-Item "$outputFolder" -Force -Recurse
         }
-        if (Test-Path $env:BuildFolder) {
-            Remove-Item $env:BuildFolder -Recurse -Force
+        if (Test-Path "$env:BuildTempFolder") {
+            Remove-Item "$env:BuildTempFolder" -Recurse -Force
         }
     }
 

@@ -10,19 +10,21 @@
 $ErrorActionPreference = 'Stop'
 
 Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
-Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
+if ($IsWindows) {
+    Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
+}
 
 Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
 Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
-Describe "Test Guest Configuration Custom Policy cmdlets using $env:Temp" {
+Describe "Test Guest Configuration Custom Policy cmdlets" {
 
     BeforeAll {
 
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
-
+        Write-Warning "debug:`n$(Get-DscResource | % Name)"
         $dscConfig = @"
 Configuration DSCConfig
 {

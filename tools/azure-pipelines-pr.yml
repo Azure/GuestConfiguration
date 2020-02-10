@@ -39,6 +39,8 @@ jobs:
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install PowerShell Core
+        failOnStderr: true
+        errorActionPreference: stop
         inputs:
           targetType: inline
           failOnStderr: true
@@ -75,10 +77,7 @@ jobs:
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
             write-host "BuildTempFolder: $env:BuildTempFolder"
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
-            }
+            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
@@ -92,6 +91,8 @@ jobs:
     steps:
       - task: PowerShell@2
         displayName: Stage module artifact
+        failOnStderr: true
+        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline

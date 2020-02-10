@@ -73,6 +73,8 @@ jobs:
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
         displayName: Pester unit tests
+        failOnStderr: true
+        errorActionPreference: stop
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -82,10 +84,7 @@ jobs:
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
             write-host "BuildTempFolder: $env:BuildTempFolder"
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
-            }
+            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml
       - task: PublishTestResults@2
         displayName: Publish test result
         condition: succeededOrFailed()

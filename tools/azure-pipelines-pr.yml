@@ -78,7 +78,7 @@ jobs:
             $PSVersionTable
             $env:Temp = New-Item -Type Directory "$(Build.SourcesDirectory)/Temp" | % FullName
             write-host "temp: $env:Temp"
-            Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml -EnableExit
+            Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit

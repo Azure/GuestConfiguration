@@ -75,7 +75,6 @@ jobs:
           targetType: inline
           script: |
             $PSVersionTable
-            Get-Variable
             Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml -EnableExit
       - task: PublishTestResults@2
         inputs:

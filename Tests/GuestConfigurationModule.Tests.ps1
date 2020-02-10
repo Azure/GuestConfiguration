@@ -15,7 +15,7 @@ Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
 Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
 Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
-Describe 'Test Guest Configuration Custom Policy cmdlets' {
+Describe "Test Guest Configuration Custom Policy cmdlets using $env:Temp" {
 
     BeforeAll {
 

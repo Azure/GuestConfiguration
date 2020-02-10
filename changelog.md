@@ -21,6 +21,10 @@
 
 - address bug when copying Chef resource and Linux line endings
 
+## v1.19.0
+
+- address bug when copying Chef resource and Linux line endings
+
 ## v1.18.0
 
 - separated module and tests from base repo

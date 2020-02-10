@@ -81,10 +81,9 @@ jobs:
           targetType: inline
           script: |
             $PSVersionTable
-            if ($true -eq $IsMacOS) { $env:Temp = $env:TMPDIR }
-            if ($true -eq $IsLinux) { $env:Temp = & mktemp }
-            write-host "temp: $env:Temp"
-            Invoke-Pester -Verbose -OutputFile "$env:BUILD_SOURCESDIRECTORY/TEST.xml" -OutputFormat NUnitXml
+            $env:BuildFolder = "$(Build.SourcesDirectory)"
+            write-host "BuildFolder: $env:BuildFolder"
+            Invoke-Pester -OutputFile "$env:BUILD_SOURCESDIRECTORY/TEST.xml" -OutputFormat NUnitXml
         displayName: Pester unit tests
       - task: PublishTestResults@2
         inputs:

@@ -115,8 +115,6 @@ end
         & "$outputFolder/DSCConfigLinux.ps1"
 #endregion
 
-        
-        
         <#
         If ($IsWindows) {
             Import-Module PSPKI -Force

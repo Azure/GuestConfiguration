@@ -17,7 +17,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
 
         if ($true -eq $IsMacOS) { $env:Temp = $env:TMPDIR }
-        if ($true -eq $IsLinux) { $env:Temp = mktemp }
+        if ($true -eq $IsLinux) { $env:Temp = & mktemp }
+
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
@@ -40,7 +41,9 @@ Configuration DSCConfig
 }
 DSCConfig -OutputPath "$outputFolder"
 "@
+        
         Set-Content -Path "$outputFolder/DSCConfig.ps1" -Value $dscConfig
+            
         & "$outputFolder/DSCConfig.ps1"
 
         <#
@@ -104,7 +107,8 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             'Publish-GuestConfigurationPolicy'
 
         if ($true -eq $IsMacOS) { $env:Temp = $env:TMPDIR }
-        if ($true -eq $IsLinux) { $env:Temp = mktemp }
+        if ($true -eq $IsLinux) { $env:Temp = & mktemp }
+
         $outputFolder = "$env:Temp/guestconfigurationtest"
         $mofPath = "$outputFolder/localhost.mof"
         $policyName = 'testPolicy'

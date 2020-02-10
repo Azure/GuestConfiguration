@@ -83,7 +83,7 @@ function Test-GuestConfigurationMofResourceDependencies {
             }
 
             $configurationName = $resourcesInMofDocument[$i].ConfigurationName
-            Write-Warning -Message "The configuration '$configurationName' is using one or more resources outside of the GuestConfiguration module. Please make sure these resources work with PowerShell Core"
+            Write-Debug -Message "The configuration '$configurationName' is using one or more resources outside of the GuestConfiguration module. Please make sure these resources work with PowerShell Core"
             break
         }
     }

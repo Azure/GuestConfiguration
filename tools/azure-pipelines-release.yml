@@ -76,19 +76,19 @@ jobs:
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
         displayName: Install modules
       - task: PowerShell@2
+        displayName: Pester unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
           script: |
             $PSVersionTable
-            $env:BuildFolder = "$(Build.SourcesDirectory)"
-            write-host "BuildFolder: $env:BuildFolder"
-            Invoke-Pester -OutputFile "$env:BUILD_SOURCESDIRECTORY/TEST.xml" -OutputFormat NUnitXml
-        displayName: Pester unit tests
+            $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
+            write-host "BuildTempFolder: $env:BuildTempFolder"
+            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
+          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
         displayName: Publish test result
   - job: CodeSign
     dependsOn: Test

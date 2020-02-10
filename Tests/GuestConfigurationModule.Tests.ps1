@@ -160,7 +160,11 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 Remove-Item "$Env:BuildTempFolder/Modules" -Force -Recurse
             }
         }
-        if ($true -eq $IsLinux) { Remove-Item $env:Temp -Recurse -Force }
+        if ($true -eq $IsLinux) {
+            if (Test-Path $env:Temp) {
+                Remove-Item $env:Temp -Recurse -Force
+            }
+        }
     }
 
     InModuleScope -ModuleName 'GuestConfiguration' {

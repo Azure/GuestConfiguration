@@ -30,14 +30,15 @@ jobs:
       vmImage: $(imageName)
     steps:
       - task: UniversalPackages@0
+        displayName: Universal download
         inputs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
-        displayName: Universal download
       - task: PowerShell@2
+        displayName: Install PowerShell Core
         inputs:
           targetType: inline
           script: |
@@ -48,16 +49,16 @@ jobs:
             $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
             Write-Host "sending " + $vstsCommandString
             Write-Host "##$vstsCommandString"
-        displayName: Install PowerShell Core
       - task: PowerShell@2
+        displayName: Install OpenSSL on Mac/Linux
         inputs:
           pwsh: 'true'
           targetType: inline
           script: |
             if ($IsMacOS) { brew install openssl }
             if ($IsLinux) { sudo apt-get install openssl }
-        displayName: Install OpenSSL on Mac/Linux
       - task: PowerShell@2
+        displayName: Install modules
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -67,15 +68,15 @@ jobs:
             $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
             write-host "installing " $modules
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
-        displayName: Install modules
       - task: PowerShell@2
+        displayName: Pester unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
           script: |
             $PSVersionTable
+            Get-Variable
             Invoke-Pester -Verbose -OutputFile '$env:BUILD_SOURCESDIRECTORY/TEST.xml' -OutputFormat NUnitXml -EnableExit
-        displayName: Pester unit tests
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
@@ -87,6 +88,7 @@ jobs:
       vmImage: ubuntu-latest
     steps:
       - task: PowerShell@2
+        displayName: Stage module artifact
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -98,17 +100,16 @@ jobs:
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
-        displayName: Stage module artifact
       - task: UniversalPackages@0
+        displayName: Universal download
         inputs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
           downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
-        displayName: Universal download
       - task: PublishPipelineArtifact@1
+        displayName: Publish artifact
         inputs:
           targetPath: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
           artifactName: GuestConfiguration
-        displayName: Publish artifact

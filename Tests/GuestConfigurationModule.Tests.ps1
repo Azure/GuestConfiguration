@@ -24,8 +24,6 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
-        Import-Module -Name 'ComputerManagementDsc' -Force
-        Write-Error "debug:`n$(Get-DscResource | % Name)"
   
         $dscConfig = @"
 Configuration DSCConfig
@@ -50,7 +48,6 @@ DSCConfig -OutputPath "$outputFolder"
             
         & "$outputFolder/DSCConfig.ps1"
 
-        <#
         If ($IsWindows) {
             Import-Module PSPKI -Force
             
@@ -75,7 +72,6 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
 '@                
             powershell.exe -NoProfile -NonInteractive -Command $command       
         }
-        #>
 
         # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {
@@ -179,6 +175,8 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         #>
         
         <#
+        Comment out until PKI issues resolved
+        
         It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
             if ($IsWindows) {
                 $Cert = Get-ChildItem -Path cert:/LocalMachine/My | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1

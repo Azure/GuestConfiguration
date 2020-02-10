@@ -20,8 +20,9 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        Ubuntu:
-          imageName: ubuntu-latest
+        # comment out until bugs are resolved in PSDesiredStateConfiguration
+        #Ubuntu:
+        #  imageName: ubuntu-latest
         MacOS:
           imageName: macOS-latest
         Windows2019:

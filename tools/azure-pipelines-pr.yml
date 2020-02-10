@@ -74,6 +74,8 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"

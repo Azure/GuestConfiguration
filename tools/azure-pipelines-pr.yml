@@ -1,5 +1,4 @@
 trigger:
-  pr: none 
   batch: true
   branches:
     include:
@@ -7,22 +6,22 @@ trigger:
       - rollback
       - dev
   paths:
-    exclude:
-    - /tools/azure-pipelines-pr.yml
-    - /tools/azure-pipelines-release.yml
-    - README.md
-    - CODE_OF_CONDUCT.md
-    - SECURITY.md
-    - LICENSE
-    - .gitignore
-    - .github/*
+  exclude:
+      - /tools/azure-pipelines-pr.yml
+      - /tools/azure-pipelines-release.yml
+      - README.md
+      - CODE_OF_CONDUCT.md
+      - SECURITY.md
+      - LICENSE
+      - .gitignore
+      - .github/*
 
 jobs:
   - job: Test
     strategy:
       matrix:
-        #Ubuntu:
-          #imageName: ubuntu-latest
+        Ubuntu:
+          imageName: ubuntu-latest
         MacOS:
           imageName: macOS-latest
         Windows2019:

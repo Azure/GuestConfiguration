@@ -1,9 +1,9 @@
 trigger:
+  pr: none
   batch: true
   branches:
     include:
       - master
-      - dev
   paths:
     exclude:
     - /tools/azure-pipelines-pr.yml

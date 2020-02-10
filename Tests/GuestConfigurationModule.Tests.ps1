@@ -158,10 +158,8 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 Remove-Item "$Env:BuildTempFolder/Modules" -Force -Recurse
             }
         }
-        if ($true -eq $IsLinux) {
-            if (Test-Path $env:Temp) {
-                Remove-Item $env:Temp -Recurse -Force
-            }
+        if (Test-Path $env:BuildFolder) {
+            Remove-Item $env:BuildFolder -Recurse -Force
         }
     }
 

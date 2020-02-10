@@ -86,7 +86,7 @@ jobs:
             write-host "BuildTempFolder: $env:BuildTempFolder"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
-              throw "$($res.FailedCount) tests failed."
+              Write-Error "$($Pester.FailedCount) tests failed."
             }
       - task: PublishTestResults@2
         inputs:

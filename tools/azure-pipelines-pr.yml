@@ -82,7 +82,7 @@ jobs:
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$env:BUILD_SOURCESDIRECTORY/*TEST*.xml'
+          testResultsFiles: '$(Build.SourcesDirectory)/TEST.xml'
         displayName: Publish test result
   - job: Publish
     dependsOn: Test

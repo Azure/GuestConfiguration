@@ -60,7 +60,7 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            if ($IsMacOS) { brew install openssl }
+            if ($IsMacOS) { brew install -f openssl }
             if ($IsLinux) { sudo apt-get install openssl }
       - task: PowerShell@2
         displayName: Install modules

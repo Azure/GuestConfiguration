@@ -53,16 +53,6 @@ jobs:
             Write-Host "sending " + $vstsCommandString
             Write-Host "##$vstsCommandString"
       - task: PowerShell@2
-        displayName: Install OpenSSL on Mac/Linux
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            if ($IsMacOS) { brew install -f openssl }
-            if ($IsLinux) { sudo apt-get install openssl }
-      - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'

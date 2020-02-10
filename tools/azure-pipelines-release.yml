@@ -65,16 +65,6 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            if ($IsMacOS) { brew install openssl }
-            if ($IsLinux) { sudo apt-get install openssl }
-        displayName: Install OpenSSL on Mac/Linux
-      - task: PowerShell@2
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
             $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
             $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')

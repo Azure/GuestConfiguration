@@ -84,7 +84,7 @@ jobs:
             $PSVersionTable
             $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
             write-host "BuildTempFolder: $env:BuildTempFolder"
-            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml
+            Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: NUnit

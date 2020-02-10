@@ -24,6 +24,7 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
+        Import-Module -Name 'ComputerManagementDsc' -Force
         Write-Error "debug:`n$(Get-DscResource | % Name)"
   
         $dscConfig = @"

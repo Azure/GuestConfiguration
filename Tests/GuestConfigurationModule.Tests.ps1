@@ -21,7 +21,7 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
 
     BeforeAll {
 
-        $outputFolder = New-Item "$env:BuildFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
+        $outputFolder = New-Item "$env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
   

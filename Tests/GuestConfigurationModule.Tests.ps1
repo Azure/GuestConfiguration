@@ -108,7 +108,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             'New-GuestConfigurationPolicy', `
             'Publish-GuestConfigurationPolicy'
 
-        $outputFolder = "$env:BuildFolder/guestconfigurationtest"
+        $outputFolder = "$env:BuildTempFolder/guestconfigurationtest"
         $mofPath = "$outputFolder/localhost.mof"
         $policyName = 'testPolicy'
 

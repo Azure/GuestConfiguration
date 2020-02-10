@@ -16,12 +16,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     BeforeAll {
 
-        if ($false -eq $IsWindows) {
-            $env:Temp = $env:TMPDIR
-        }
-        Import-Module 'PSDesiredStateConfiguration' -Force
-
+        if ($false -eq $IsWindows) { $env:Temp = $env:TMPDIR }
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
+        
+        Import-Module 'PSDesiredStateConfiguration' -Force
 
         $dscConfig = @"
 Configuration DSCConfig
@@ -44,8 +42,6 @@ DSCConfig -OutputPath "$outputFolder"
         Set-Content -Path "$outputFolder/DSCConfig.ps1" -Value $dscConfig
         & "$outputFolder/DSCConfig.ps1"
 
-        
-        
         <#
         If ($IsWindows) {
             Import-Module PSPKI -Force
@@ -84,11 +80,17 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
     }
     
     BeforeEach {
-        Remove-Item "$outputFolder/package/" -Force -Recurse -ErrorAction SilentlyContinue
-        Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse -ErrorAction SilentlyContinue
+        if (Test-Path "$outputFolder/package/") {
+            Remove-Item "$outputFolder/package/" -Force -Recurse
+        }
+        if (Test-Path "$outputFolder/verifyPackage/") {
+            Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
+        }
     }
     AfterAll {
-        Remove-Item "$outputFolder" -Force -Recurse -ErrorAction SilentlyContinue
+        if (Test-Path "$outputFolder") {
+            Remove-Item "$outputFolder" -Force -Recurse
+        }
     }
 
     InModuleScope -ModuleName 'GuestConfiguration' {

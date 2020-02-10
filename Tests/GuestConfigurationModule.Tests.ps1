@@ -4,6 +4,9 @@
 #  Verify repot is sent for every consistency run of a 
 #  configuration assignement.
 ######################################################
+
+# requires environment variable "Temp" to be set before running
+
 $ErrorActionPreference = 'Stop'
 
 Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
@@ -15,9 +18,6 @@ Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     BeforeAll {
-
-        if ($true -eq $IsMacOS) { $env:Temp = $env:TMPDIR }
-        if ($true -eq $IsLinux) { $env:Temp = & mktemp }
 
         $outputFolder = New-Item "$env:Temp/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
@@ -95,7 +95,11 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
         if (Test-Path "$outputFolder") {
             Remove-Item "$outputFolder" -Force -Recurse
         }
-        if ($true -eq $IsLinux) { Remove-Item $env:Temp -Recurse -Force }
+        if ($true -eq $IsLinux) {
+            if (Test-Path $env:Temp) {
+                Remove-Item $env:Temp -Recurse -Force
+            }
+        }
     }
 
     InModuleScope -ModuleName 'GuestConfiguration' {
@@ -105,9 +109,6 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             'Protect-GuestConfigurationPackage', `
             'New-GuestConfigurationPolicy', `
             'Publish-GuestConfigurationPolicy'
-
-        if ($true -eq $IsMacOS) { $env:Temp = $env:TMPDIR }
-        if ($true -eq $IsLinux) { $env:Temp = & mktemp }
 
         $outputFolder = "$env:Temp/guestconfigurationtest"
         $mofPath = "$outputFolder/localhost.mof"

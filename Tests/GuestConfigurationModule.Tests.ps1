@@ -158,8 +158,8 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 Remove-Item "$Env:BuildTempFolder/Modules" -Force -Recurse
             }
         }
-        if (Test-Path $env:BuildFolder) {
-            Remove-Item $env:BuildFolder -Recurse -Force
+        if (Test-Path "$env:BuildTempFolder") {
+            Remove-Item "$env:BuildTempFolder" -Recurse -Force
         }
     }
 

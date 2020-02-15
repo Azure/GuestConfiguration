@@ -8,6 +8,13 @@
 # Requires environment variable "BuildTempFolder" to be set before running.
 # The best place for this folder is an arbitrary file location outside the project folder
 # where the build service has write access.
+if (!$Env:BuildTempFolder) {
+    if ($IsWindows) {$Env:BuildTempFolder = $Env:Temp}
+}
+
+# Setting this to $true will retain the temp folders to review policy files and the package
+# after tests have completed.  This is good for running locally on a workstation.
+$keepTempFolders = $false
 
 $ErrorActionPreference = 'Stop'
 
@@ -88,19 +95,23 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
     }
     
     BeforeEach {
-        if (Test-Path "$outputFolder/package/") {
-            Remove-Item "$outputFolder/package/" -Force -Recurse
-        }
-        if (Test-Path "$outputFolder/verifyPackage/") {
-            Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
+        if ($false -eq $keepTempFolders) { 
+            if (Test-Path "$outputFolder/package/") {
+                Remove-Item "$outputFolder/package/" -Force -Recurse
+            }
+            if (Test-Path "$outputFolder/verifyPackage/") {
+                Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
+            }
         }
     }
     AfterAll {
-        if (Test-Path "$outputFolder") {
-            Remove-Item "$outputFolder" -Force -Recurse
-        }
-        if (Test-Path "$Env:BuildTempFolder") {
-            Remove-Item "$Env:BuildTempFolder" -Recurse -Force
+        if ($false -eq $keepTempFolders) {
+            if (Test-Path "$outputFolder") {
+                Remove-Item "$outputFolder" -Force -Recurse
+            }
+            if (Test-Path "$Env:BuildTempFolder") {
+                Remove-Item "$Env:BuildTempFolder" -Recurse -Force
+            }
         }
     }
 

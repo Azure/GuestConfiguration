@@ -1216,16 +1216,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $Platform = 'Windows',
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
-        [String]
-        $RPName = 'Microsoft.Compute',
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet('virtualMachines', 'machines')]
-        [String]
-        $ResourceName = 'virtualMachines',
-
-        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration'
     )
@@ -1256,10 +1246,22 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
-            allOf = @(
+            anyOf = @(
                 [Ordered]@{
-                    field  = 'type'
-                    equals = $RPName + '/' + $ResourceName
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                            equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
+                },
+                [Ordered]@{
+                    allOf = @(,
+                        [Ordered]@{
+                            field = "type"
+                            equals = "Microsoft.HybridCompute/machines"
+                        }
+                    )
                 }
             )
         }
@@ -1273,27 +1275,9 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     }
 
-    $computeSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.Compute/virtualMachines"
-            }
-        )
-    }
-
-    $hybridSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.HybridCompute/machines"
-            }
-        )
-    }
-
     if ($Platform -ieq 'Windows')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1447,7 +1431,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "windows*"
@@ -1456,7 +1440,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
     elseif ($Platform -ieq 'Linux')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1623,7 +1607,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "linux*"

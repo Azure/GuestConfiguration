@@ -241,6 +241,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             $jsonDefinition.properties.metadata.category | Should -Be $category
             $jsonDefinition.properties.policyType | Should -Be 'Custom'
             $jsonDefinition.properties.policyRule.then.details.name | Should -Be $testpolicyName
+            write-host $($jsonDefinition.properties.policyRule.if.anyOf.allOf)
             $resourceTypes = $jsonDefinition.properties.policyRule.if.anyOf.allOf | Where-Object {$_.field -eq 'type'} | ForEach-Object {$_.equals}
             $resourceTypes | Should -Contain 'Microsoft.Compute/virtualMachines'
             $resourceTypes | Should -Contain 'Microsoft.HybridCompute/machines'

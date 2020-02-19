@@ -171,10 +171,8 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                         Test-Path "$outputFolder/verifyPackage/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
                     }
                 }
-            }
 
-            # Test the native DSC resources are only included once
-            It 'instances of native InSpec resource' {
+                # Test the native DSC resources are only included once
                 $nativeInSpecResource = @()
                 $nativeInSpecResource += Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
                 $nativeInSpecResource.Count | Should -BeLessThan 2

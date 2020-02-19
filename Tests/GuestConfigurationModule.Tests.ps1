@@ -36,7 +36,7 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
 
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
-        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse
+        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse -ErrorAction SilentlyContinue
         $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
@@ -47,7 +47,7 @@ Configuration DSCConfigWindows
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
 
-    Node localhost
+    Node DSCConfigWindows
     {
         TimeZone TimeZoneExample
         {
@@ -72,15 +72,24 @@ Configuration DSCConfigLinux
 {
     Import-DscResource -ModuleName 'GuestConfiguration'
 
-    ChefInSpecResource 'Audit Linux time zone'
+    Node DSCConfigLinux
     {
-        Name = 'linux-timezone'
+        ChefInSpecResource 'Audit Linux path exists'
+        {
+            Name = 'linux-path'
+        }
     }
 }
 DSCConfigLinux -OutputPath "$outputFolder"
 "@
+        $inSpecProfile = @"
+describe file('/tmp') do
+    it { should exist }
+end
+"@
         
         Set-Content -Path "$outputFolder/DSCConfigLinux.ps1" -Value $dscConfigLinux
+        Set-Content -Path "$outputFolder/linux-path.yml" -Value $inSpecProfile
             
         & "$outputFolder/DSCConfigLinux.ps1"
 #endregion
@@ -119,24 +128,11 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         }
 
     }
-    
-    BeforeEach {
-        if ($false -eq $keepTempFolders) { 
-            if (Test-Path "$outputFolder/package/") {
-                Remove-Item "$outputFolder/package/" -Force -Recurse
-            }
-            if (Test-Path "$outputFolder/verifyPackage/") {
-                Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
-            }
-        }
-    }
+
     AfterAll {
         if ($false -eq $keepTempFolders) {
             if (Test-Path "$outputFolder") {
                 Remove-Item "$outputFolder" -Force -Recurse
-            }
-            if (Test-Path "$Env:BuildTempFolder") {
-                Remove-Item "$Env:BuildTempFolder" -Recurse -Force
             }
         }
     }
@@ -150,7 +146,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             'Publish-GuestConfigurationPolicy'
 
         $outputFolder = "$Env:BuildTempFolder/guestconfigurationtest"
-        $mofPath = "$outputFolder/localhost.mof"
+        $mofPath = "$outputFolder/DscConfigWindows.mof"
         $policyName = 'testPolicy'
         
         Context 'Module Quality' {
@@ -175,18 +171,25 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             }
         }
 
-        Context 'Functional Tests' {
-            It 'Create Custom policy package and test its contents' {
+        Context 'Package creation' {
+            It 'creates Custom policy package' {
                 $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package"
 
                 # Verify package exists
                 Test-Path $package.Path | Should -Be $true
                 # Verify package name
                 $package.Name | Should -Be $policyName
+            }
+
+            It 'extracts package contents without error' {
+                $package = Get-ChildItem "$outputFolder/package/$policyName/$policyName.zip"
 
                 # Verify package contents
                 Add-Type -AssemblyName System.IO.Compression.FileSystem
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, "$outputFolder/verifyPackage")
+                {[System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, "$outputFolder/verifyPackage")} | Should -Not -Throw
+            }
+
+            It 'contains expected package mof' {
                 # Verify mof document exists.
                 Test-Path "$outputFolder/verifyPackage/$policyName.mof" | Should -Be $true
 
@@ -197,13 +200,37 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                         Test-Path "$outputFolder/verifyPackage/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
                     }
                 }
+            }
 
-                # Test the native DSC resources are only included once
-                It 'instances of native InSpec resource' {
-                    $nativeInSpecResource = Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
-                    $nativeInSpecResource.Count | Should -BeLessThan 2
+            # Test the native DSC resources are only included once
+            It 'instances of native InSpec resource' {
+                $nativeInSpecResource = Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
+                $nativeInSpecResource.Count | Should -BeLessThan 2
+            }
+
+            It 'contains expected modules' {
+                # Test required modules are included in the package
+                $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances("$outputFolder/verifyPackage/$policyName.mof", 4) 
+                for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
+                    if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName') {
+                        Test-Path "$outputFolder/verifyPackage/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
+                    }
                 }
             }
+            
+            # Test the native DSC resources are only included once
+            It 'instances of native InSpec resource' {
+                $nativeInSpecResource = Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
+                $nativeInSpecResource.Count | Should -BeLessThan 2
+            }
+
+            It 'contains only one native InSpec resource' {
+                $nativeInSpecResource = Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
+                $nativeInSpecResource.Count | Should -BeLessThan 2
+            }
+        }
+
+        Context 'Package test/publish' {
 
             It 'Verify Test-GuestConfigurationPackage can validate the package generated by New-GuestConfigurationPackage (Windows only)' {
                 if ($isWindows) {

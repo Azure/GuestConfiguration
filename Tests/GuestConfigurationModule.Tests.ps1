@@ -18,12 +18,16 @@ if (!$Env:BuildTempFolder) {
 $keepTempFolders = $true
 
 # adding project to PSModulePath so DSC will load the Guest Configuration module
+Import-Module 'PSDesiredStateConfiguration' -Force
+
 if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
 $GuestConfigurationFolder = Get-Item $PSScriptRoot | ForEach-Object {$_.Parent}
 $Env:PSModulePath = $Env:PSModulePath + $delimiter + $GuestConfigurationFolder
+Import-Module GuestConfiguration -Verbose
 
 $d = Get-DscResource | % Name
 Write-Host "DSC Modules: $d"
+Write-Host "PSModulePath: $Env:PSModulePath"
 
 $ErrorActionPreference = 'Stop'
 
@@ -35,16 +39,14 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         if ($IsWindows) {
             Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
         }
-        Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
+        #Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
         Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
         Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse -ErrorAction SilentlyContinue
         $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
-        
-        Import-Module 'PSDesiredStateConfiguration' -Force
-  
+          
 #region Windows DSC config
         $dscConfigWindows = @"
 Configuration DSCConfigWindows

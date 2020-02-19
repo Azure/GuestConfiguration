@@ -10,34 +10,40 @@
 # where the build service has write access.
 if (!$Env:BuildTempFolder) {
     if ($IsWindows) {$Env:BuildTempFolder = $Env:Temp}
+    else {throw 'Please set environment variable "BuildTempFolder"'}
 }
 
 # Setting this to $true will retain the temp folders to review policy files and the package
 # after tests have completed.  This is good for running locally on a workstation.
-$keepTempFolders = $false
+$keepTempFolders = $true
 
 $ErrorActionPreference = 'Stop'
-
-Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
-if ($IsWindows) {
-    Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
-}
-
-Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
-Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
 Describe "Test Guest Configuration Custom Policy cmdlets" {
 
     BeforeAll {
 
+        Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
+        if ($IsWindows) {
+            Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
+        }
+        Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
+        Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
+
+        if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
+        $GuestConfigurationFolder = Resolve-Path -Path "$PSScriptRoot/../"
+        $Env:PSModulePath += "$delimiter$GuestConfigurationFolder"
+
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
+        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse
         $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
   
-        $dscConfig = @"
-Configuration DSCConfig
+#region Windows DSC config
+        $dscConfigWindows = @"
+Configuration DSCConfigWindows
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
 
@@ -52,12 +58,32 @@ Configuration DSCConfig
         
     }
 }
-DSCConfig -OutputPath "$outputFolder"
+DSCConfigWindows -OutputPath "$outputFolder"
 "@
         
-        Set-Content -Path "$outputFolder/DSCConfig.ps1" -Value $dscConfig
+        Set-Content -Path "$outputFolder/DSCConfigWindows.ps1" -Value $dscConfigWindows
             
-        & "$outputFolder/DSCConfig.ps1"
+        & "$outputFolder/DSCConfigWindows.ps1"
+#endregion
+
+#region Linux DSC config
+        $dscConfigLinux = @"
+Configuration DSCConfigLinux
+{
+    Import-DscResource -ModuleName 'GuestConfiguration'
+
+    ChefInSpecResource 'Audit Linux time zone'
+    {
+        Name = 'linux-timezone'
+    }
+}
+DSCConfigLinux -OutputPath "$outputFolder"
+"@
+        
+        Set-Content -Path "$outputFolder/DSCConfigLinux.ps1" -Value $dscConfigLinux
+            
+        & "$outputFolder/DSCConfigLinux.ps1"
+#endregion
 
         If ($IsWindows) {
             Import-Module PSPKI -Force
@@ -138,7 +164,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             }
 
             It 'Does not throw while running Script Analyzer' {
-                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules -EnableExit
+                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules
                 $scriptanalyzer | Should -Be $Null
             }
 

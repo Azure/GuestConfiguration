@@ -117,9 +117,9 @@ function Copy-DscResources {
     }
     Copy-Item "$($latestModule.ModuleBase)/*" $guestConfigModulePath -Recurse -Force
 
+    # Copies DSC resource modules
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
-        # if resource is not a GuestConfiguration module resource.
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
         }
@@ -128,6 +128,7 @@ function Copy-DscResources {
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
+        if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             $requiredModule.RequiredModules | ForEach-Object {
                 if ($null -ne $_.Version) {
@@ -138,6 +139,7 @@ function Copy-DscResources {
                     Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
                 }
             }
+        }
     }
 
     $modulesToCopy += $powershellModulesToCopy

@@ -29,17 +29,22 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         }
         Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
-        # importing PSDSC and adding project to PSModulePath so DSC will load the Guest Configuration module
-        Import-Module 'PSDesiredStateConfiguration' -Force
-        if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
-        $guestConfigurationFolder = Get-Item $PSScriptRoot | ForEach-Object {$_.Parent}
-        $rootFolder = Get-Item $guestConfigurationFolder | ForEach-Object {$_.Parent}
-        $Env:PSModulePath = $Env:PSModulePath + $delimiter + $rootFolder
-        Import-Module GuestConfiguration -Verbose
-
+        # Create temp folder if it doesn't exist
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
+        # Setup environment for testing GC module DSC resources
+        Import-Module 'PSDesiredStateConfiguration' -Force
+        if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
+        Copy-Item "$PSScriptRoot/../DscResources/" "$Env:BuildTempFolder/Modules/GuestConfiguration/DscResources/" -Recurse
+        Copy-Item "$PSScriptRoot/../GuestConfiguration.psd1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
+        Copy-Item "$PSScriptRoot/../GuestConfiguration.psm1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psm1"
+        $Env:PSModulePath = $Env:PSModulePath + $delimiter + "$Env:BuildTempFolder/Modules/"
+        Import-Module GuestConfiguration -Verbose
+
+        # Clean build environment
         Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse -ErrorAction SilentlyContinue
+
+        # Setup folder for output of all tests
         $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
           
 #region Windows DSC config

@@ -36,7 +36,7 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
 
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
-        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse
+        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse -ErrorAction SilentlyContinue
         $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
         
         Import-Module 'PSDesiredStateConfiguration' -Force
@@ -47,7 +47,7 @@ Configuration DSCConfigWindows
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
 
-    Node localhost
+    Node DSCConfigWindows
     {
         TimeZone TimeZoneExample
         {
@@ -72,15 +72,24 @@ Configuration DSCConfigLinux
 {
     Import-DscResource -ModuleName 'GuestConfiguration'
 
-    ChefInSpecResource 'Audit Linux time zone'
+    Node DSCConfigLinux
     {
-        Name = 'linux-timezone'
+        ChefInSpecResource 'Audit Linux path exists'
+        {
+            Name = 'linux-path'
+        }
     }
 }
 DSCConfigLinux -OutputPath "$outputFolder"
 "@
+        $inSpecProfile = @"
+describe file('/tmp') do
+    it { should exist }
+end
+"@
         
         Set-Content -Path "$outputFolder/DSCConfigLinux.ps1" -Value $dscConfigLinux
+        Set-Content -Path "$outputFolder/linux-path.yml" -Value $inSpecProfile
             
         & "$outputFolder/DSCConfigLinux.ps1"
 #endregion
@@ -119,24 +128,11 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         }
 
     }
-    
-    BeforeEach {
-        if ($false -eq $keepTempFolders) { 
-            if (Test-Path "$outputFolder/package/") {
-                Remove-Item "$outputFolder/package/" -Force -Recurse
-            }
-            if (Test-Path "$outputFolder/verifyPackage/") {
-                Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
-            }
-        }
-    }
+
     AfterAll {
         if ($false -eq $keepTempFolders) {
             if (Test-Path "$outputFolder") {
                 Remove-Item "$outputFolder" -Force -Recurse
-            }
-            if (Test-Path "$Env:BuildTempFolder") {
-                Remove-Item "$Env:BuildTempFolder" -Recurse -Force
             }
         }
     }
@@ -150,7 +146,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             'Publish-GuestConfigurationPolicy'
 
         $outputFolder = "$Env:BuildTempFolder/guestconfigurationtest"
-        $mofPath = "$outputFolder/localhost.mof"
+        $mofPath = "$outputFolder/DscConfigWindows.mof"
         $policyName = 'testPolicy'
         
         Context 'Module Quality' {

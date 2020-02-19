@@ -34,8 +34,8 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         $GuestConfigurationFolder = Resolve-Path -Path "$PSScriptRoot/../"
         $Env:PSModulePath = $Env:PSModulePath + $delimiter + $GuestConfigurationFolder
 
-        $d = Get-DscResource | Select Name, Module
-        Write-Error $d
+        $d = Get-DscResource | % Name
+        Write-Warning "DSC Modules: $d"
 
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 

@@ -17,6 +17,14 @@ if (!$Env:BuildTempFolder) {
 # after tests have completed.  This is good for running locally on a workstation.
 $keepTempFolders = $true
 
+# adding project to PSModulePath so DSC will load the Guest Configuration module
+if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
+$GuestConfigurationFolder = Get-Item $PSScriptRoot | ForEach-Object {$_.Parent}
+$Env:PSModulePath = $Env:PSModulePath + $delimiter + $GuestConfigurationFolder
+
+$d = Get-DscResource | % Name
+Write-Host "DSC Modules: $d"
+
 $ErrorActionPreference = 'Stop'
 
 Describe "Test Guest Configuration Custom Policy cmdlets" {
@@ -29,13 +37,6 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         }
         Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
         Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
-
-        if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
-        $GuestConfigurationFolder = Resolve-Path -Path "$PSScriptRoot/../"
-        $Env:PSModulePath = $Env:PSModulePath + $delimiter + $GuestConfigurationFolder
-
-        $d = Get-DscResource | % Name
-        Write-Warning "DSC Modules: $d"
 
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 

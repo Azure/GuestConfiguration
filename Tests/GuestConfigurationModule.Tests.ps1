@@ -37,6 +37,7 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
         Copy-Item "$PSScriptRoot/../DscResources/" "$Env:BuildTempFolder/Modules/GuestConfiguration/DscResources/" -Recurse
         Copy-Item "$PSScriptRoot/../helpers/" "$Env:BuildTempFolder/Modules/GuestConfiguration/helpers/" -Recurse
+        Copy-Item "$PSScriptRoot/../helpers/" "$Env:BuildTempFolder/bin/GuestConfiguration/bin/" -Recurse
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psd1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psm1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psm1"
         $Env:PSModulePath = $Env:PSModulePath + $delimiter + "$Env:BuildTempFolder/Modules/"

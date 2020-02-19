@@ -35,9 +35,9 @@ Describe "Test Guest Configuration Custom Policy cmdlets" {
         # Setup environment for testing GC module DSC resources
         Import-Module 'PSDesiredStateConfiguration' -Force
         if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
-        Copy-Item "$PSScriptRoot/../DscResources/" "$Env:BuildTempFolder/Modules/GuestConfiguration/DscResources/" -Recurse
-        Copy-Item "$PSScriptRoot/../helpers/" "$Env:BuildTempFolder/Modules/GuestConfiguration/helpers/" -Recurse
-        Copy-Item "$PSScriptRoot/../bin/" "$Env:BuildTempFolder/Modules/GuestConfiguration/bin/" -Recurse
+        foreach ($subfolder in @('DscResources','helpers')) {
+            Copy-Item "$PSScriptRoot/../$subfolder/" "$Env:BuildTempFolder/Modules/GuestConfiguration/$subfolder/" -Recurse
+        }
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psd1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psm1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psm1"
         $Env:PSModulePath = $Env:PSModulePath + $delimiter + "$Env:BuildTempFolder/Modules/"

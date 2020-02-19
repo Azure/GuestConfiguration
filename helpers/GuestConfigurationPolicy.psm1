@@ -512,16 +512,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
         $Platform = 'Windows',
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
-        [String]
-        $RPName = 'Microsoft.Compute',
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet('virtualMachines', 'machines')]
-        [String]
-        $ResourceName = 'virtualMachines',
-
-        [Parameter(Mandatory = $false)]
         [bool]
         $UseCertificateValidation = $false,
 
@@ -556,10 +546,22 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
-            allOf = @(
+            anyOf = @(
                 [Ordered]@{
-                    field  = 'type'
-                    equals = $RPName + '/' + $ResourceName
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                            equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
+                },
+                [Ordered]@{
+                    allOf = @(,
+                        [Ordered]@{
+                            field = "type"
+                            equals = "Microsoft.HybridCompute/machines"
+                        }
+                    )
                 }
             )
         }
@@ -618,42 +620,42 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     }
 
-    $guestConfigurationAssignmentHashtable = [Ordered]@{
-        apiVersion = '2018-11-20'
-        type       = $RPName + '/' + $ResourceName + '/providers/guestConfigurationAssignments'
-        name       = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
-        location   = "[parameters('location')]"
-        properties = [Ordered]@{
-            guestConfiguration = [Ordered]@{
-                name        = "[parameters('configurationName')]"
-                contentUri  = "[parameters('contentUri')]"
-                contentHash = "[parameters('contentHash')]"
-                version     = $ConfigurationVersion.ToString()
+    $guestConfigurationAssignmentHashtable = @(
+        [Ordered]@{
+            apiVersion = '2018-11-20'
+            type       = 'Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments'
+            name       = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
+            location   = "[parameters('location')]"
+            properties = [Ordered]@{
+                guestConfiguration = [Ordered]@{
+                    name        = "[parameters('configurationName')]"
+                    contentUri  = "[parameters('contentUri')]"
+                    contentHash = "[parameters('contentHash')]"
+                    version     = $ConfigurationVersion.ToString()
+                }
             }
+            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+        },
+        [Ordered]@{
+            apiVersion = '2018-11-20'
+            type       = 'Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments'
+            name       = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
+            location   = "[parameters('location')]"
+            properties = [Ordered]@{
+                guestConfiguration = [Ordered]@{
+                    name        = "[parameters('configurationName')]"
+                    contentUri  = "[parameters('contentUri')]"
+                    contentHash = "[parameters('contentHash')]"
+                    version     = $ConfigurationVersion.ToString()
+                }
+            }
+            condition  = "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
         }
-    }
-
-    $computeSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.Compute/virtualMachines"
-            }
-        )
-    }
-
-    $hybridSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.HybridCompute/machines"
-            }
-        )
-    }
+    )
 
     if ($Platform -ieq 'Windows')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -807,7 +809,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "windows*"
@@ -834,7 +836,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
     elseif ($Platform -ieq 'Linux')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1001,7 +1003,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "linux*"
@@ -1022,6 +1024,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             dependsOn  = @(
                 "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
             )
+            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
         }
     }
     else
@@ -1135,19 +1138,21 @@ function New-GuestConfigurationDeployPolicyDefinition {
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable
 
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
-    if ($RPName -eq 'Microsoft.Compute') {
-        $systemAssignedHashtable = [Ordered]@{
-            apiVersion = '2017-03-30'
-            type       = 'Microsoft.Compute/virtualMachines'
-            identity   = [Ordered]@{
-                type = 'SystemAssigned'
-            }
-            name       = "[parameters('vmName')]"
-            location   = "[parameters('location')]"
-        }    
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
-    }
+    
+    $systemAssignedHashtable = [Ordered]@{
+        apiVersion = '2017-03-30'
+        type       = 'Microsoft.Compute/virtualMachines'
+        identity   = [Ordered]@{
+            type = 'SystemAssigned'
+        }
+        name       = "[parameters('vmName')]"
+        location   = "[parameters('location')]"
+        condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+    }    
+    
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
+    
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
 
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
@@ -1211,16 +1216,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $Platform = 'Windows',
 
         [Parameter(Mandatory = $false)]
-        [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
-        [String]
-        $RPName = 'Microsoft.Compute',
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet('virtualMachines', 'machines')]
-        [String]
-        $ResourceName = 'virtualMachines',
-
-        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration'
     )
@@ -1251,10 +1246,22 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
-            allOf = @(
+            anyOf = @(
                 [Ordered]@{
-                    field  = 'type'
-                    equals = $RPName + '/' + $ResourceName
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                            equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
+                },
+                [Ordered]@{
+                    allOf = @(,
+                        [Ordered]@{
+                            field = "type"
+                            equals = "Microsoft.HybridCompute/machines"
+                        }
+                    )
                 }
             )
         }
@@ -1268,27 +1275,9 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     }
 
-    $computeSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.Compute/virtualMachines"
-            }
-        )
-    }
-
-    $hybridSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field = "type"
-                equals = "Microsoft.HybridCompute/machines"
-            }
-        )
-    }
-
     if ($Platform -ieq 'Windows')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1442,7 +1431,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "windows*"
@@ -1451,7 +1440,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
     elseif ($Platform -ieq 'Linux')
     {
-        $computeSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1618,7 +1607,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "linux*"

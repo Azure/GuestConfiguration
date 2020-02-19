@@ -105,17 +105,6 @@ function Copy-DscResources {
 
     Write-Verbose "Copy DSC resources ..."
     $modulePath = New-Item -ItemType Directory -Force -Path (Join-Path $Destination 'Modules')
-    $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
-    try {
-        $latestModule = @()
-        $latestModule += Get-Module GuestConfiguration
-        $latestModule += Get-Module GuestConfiguration -ListAvailable
-        $latestModule = ($latestModule | Sort-Object Version)[0]
-    }
-    catch {
-        write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
-    }
-    Copy-Item "$($latestModule.ModuleBase)/*" $guestConfigModulePath -Recurse -Force
 
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
@@ -153,15 +142,12 @@ function Copy-DscResources {
         }
     }
 
-    # Copy Chef resource.
+    # Copy native resources.
     $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
     $currentFolder = $PSScriptRoot
     $binaryResourcePath = Join-Path $currentFolder '..\DscResources\MSFT_ChefInSpecResource'
             Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
 
-    # Remove DSC binaries from package.
-    $binaryPath = Join-Path $guestConfigModulePath 'bin'
-    Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
 }
 
 function Copy-ChefInspecDependencies {

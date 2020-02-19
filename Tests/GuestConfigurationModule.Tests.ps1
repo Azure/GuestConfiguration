@@ -138,7 +138,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             }
 
             It 'Does not throw while running Script Analyzer' {
-                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules -EnableExit
+                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules
                 $scriptanalyzer | Should -Be $Null
             }
 
@@ -175,7 +175,8 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
 
             # Test the native DSC resources are only included once
             It 'instances of native InSpec resource' {
-                $nativeInSpecResource = Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
+                $nativeInSpecResource = @()
+                $nativeInSpecResource += Get-ChildItem "$outputFolder/verifyPackage/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
                 $nativeInSpecResource.Count | Should -BeLessThan 2
             }
 

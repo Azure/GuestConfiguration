@@ -15,7 +15,7 @@ if (!$Env:BuildTempFolder) {
 
 # Setting this to $true will retain the temp folders to review policy files and the package
 # after tests have completed.  This is good for running locally on a workstation.
-$keepTempFolders = $false
+$keepTempFolders = $true
 
 $ErrorActionPreference = 'Stop'
 

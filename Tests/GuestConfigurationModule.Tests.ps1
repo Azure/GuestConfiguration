@@ -19,7 +19,7 @@ $keepTempFolders = $false
 
 $ErrorActionPreference = 'Stop'
 
-Describe "Test Guest Configuration Custom Policy cmdlets" {
+Describe "Guest Configuration Custom Policy cmdlets" {
 
     BeforeAll {
 
@@ -171,22 +171,28 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         $outputFolder = "$Env:BuildTempFolder/guestconfigurationtest"
         $policyName = 'testPolicy'
         
-        Context 'Module Quality' {
-            It 'Has a PowerShell module manifest that meets functional requirements' {
+        Context 'Module fundamentals' {
+            
+            It 'has the agent binaries from the project feed' {
+                Test-Path $PSScriptRoot../bin/DSC_Windows.zip | Should -BeTrue
+                Test-Path $PSScriptRoot../bin/DSC_Linux.zip | Should -BeTrue
+            }
+            
+            It 'has a PowerShell module manifest that meets functional requirements' {
                 Test-ModuleManifest -Path $PSScriptRoot/../GuestConfiguration.psd1 | Should Not BeNullOrEmpty
                 $? | Should -Be $true
             }
 
-            It 'Imported the module successfully' {
+            It 'tmported the module successfully' {
                 Get-Module GuestConfiguration | ForEach-Object {$_.Name} | Should -Be 'GuestConfiguration'
             }
 
-            It 'Does not throw while running Script Analyzer' {
+            It 'does not throw while running Script Analyzer' {
                 $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules
                 $scriptanalyzer | Should -Be $Null
             }
 
-            It 'Has text in help examples' {
+            It 'has text in help examples' {
                 foreach ($function in $publicFunctions) {
                     Get-Help $function | ForEach-Object {$_.Examples} | Should -Not -BeNullOrEmpty
                 }

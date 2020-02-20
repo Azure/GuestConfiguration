@@ -263,7 +263,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 $mofPath = "$outputFolder/DscConfig$OS.mof"
                 $projectRoot = "$PSScriptRoot/../"
                 It 'validates the package' {
-                        Mock -CommandName 'Get-GuestConfigPath' -ModuleName 'GuestConfigPath' -MockWith { "$Env:BuildTempFolder/guestconfigurationtest/" } -Verifiable
+                        Mock -CommandName 'Get-GuestConfigPath' -ModuleName 'GuestConfigPath' -MockWith { "$Env:BuildTempFolder/GuestConfig/" } -Verifiable
                         Mock -CommandName 'Get-GuestConfigurationModulePath' -MockWith { $projectRoot }
 
                         Mock -CommandName 'Publish-DscConfiguration' -Verifiable

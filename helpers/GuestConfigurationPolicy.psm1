@@ -115,19 +115,25 @@ function Copy-DscResources {
     catch {
         write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
     }
-    Copy-Item "$($latestModule.ModuleBase)/*" $guestConfigModulePath -Recurse -Force
+    Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
 
+    # Copies DSC resource modules
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
-        # if resource is not a GuestConfiguration module resource.
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            if ($_.ModuleName -ne 'GuestConfiguration') {
+                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            }
         }
     }
 
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
+        if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             $requiredModule.RequiredModules | ForEach-Object {
                 if ($null -ne $_.Version) {
@@ -138,6 +144,7 @@ function Copy-DscResources {
                     Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
                 }
             }
+        }
     }
 
     $modulesToCopy += $powershellModulesToCopy
@@ -153,13 +160,7 @@ function Copy-DscResources {
         }
     }
 
-    # Copy Chef resource.
-    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $currentFolder = $PSScriptRoot
-    $binaryResourcePath = Join-Path $currentFolder '..\DscResources\MSFT_ChefInSpecResource'
-            Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
-
-    # Remove DSC binaries from package.
+    # Remove DSC binaries from package (just a safeguard).
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
     Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
 }
@@ -183,7 +184,7 @@ function Copy-ChefInspecDependencies {
 
     # Copy Chef resource and profiles.
     $modulePath = Join-Path $PackagePath 'Modules'
-    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
+    $nativeResourcePath = Get-Item -Path (Join-Path $modulePath 'GuestConfiguration/DscResources/')
     $missingDependencies = @()
     $chefInspecProfiles = @()
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)

@@ -10,6 +10,7 @@
 # where the build service has write access.
 if (!$Env:BuildTempFolder) {
     if ($IsWindows) {$Env:BuildTempFolder = $Env:Temp}
+    else {throw 'Please set environment variable "BuildTempFolder"'}
 }
 
 # Setting this to $true will retain the temp folders to review policy files and the package
@@ -18,30 +19,43 @@ $keepTempFolders = $false
 
 $ErrorActionPreference = 'Stop'
 
-Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
-if ($IsWindows) {
-    Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
-}
-
-Import-Module "$PSScriptRoot/../GuestConfiguration.psd1" -Force
-Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
-
-Describe "Test Guest Configuration Custom Policy cmdlets" {
+Describe "Guest Configuration Custom Policy cmdlets" {
 
     BeforeAll {
 
+        Install-Module -Name 'ComputerManagementDsc' -Repository 'PSGallery' -Force
+        if ($IsWindows) {
+            Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
+        }
+        Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
+
+        # Create temp folder if it doesn't exist
         if (!$(Test-Path $Env:BuildTempFolder)) {New-Item -ItemType Directory -Path $Env:BuildTempFolder}
 
-        $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
-        
+        # Setup environment for testing GC module DSC resources
         Import-Module 'PSDesiredStateConfiguration' -Force
-  
-        $dscConfig = @"
-Configuration DSCConfig
+        if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
+        foreach ($subfolder in @('DscResources','helpers')) {
+            Copy-Item "$PSScriptRoot/../$subfolder/" "$Env:BuildTempFolder/Modules/GuestConfiguration/$subfolder/" -Recurse
+        }
+        Copy-Item "$PSScriptRoot/../GuestConfiguration.psd1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
+        Copy-Item "$PSScriptRoot/../GuestConfiguration.psm1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psm1"
+        $Env:PSModulePath = $Env:PSModulePath + $delimiter + "$Env:BuildTempFolder/Modules/"
+        Import-Module GuestConfiguration -Verbose
+
+        # Clean build environment
+        Remove-Item "$Env:BuildTempFolder/guestconfigurationtest" -Force -Recurse -ErrorAction SilentlyContinue
+
+        # Setup folder for output of all tests
+        $outputFolder = New-Item "$Env:BuildTempFolder/guestconfigurationtest" -ItemType 'directory' -Force | ForEach-Object FullName
+          
+#region Windows DSC config
+        $dscConfigWindows = @"
+Configuration DSCConfigWindows
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
 
-    Node localhost
+    Node DSCConfigWindows
     {
         TimeZone TimeZoneExample
         {
@@ -52,12 +66,54 @@ Configuration DSCConfig
         
     }
 }
-DSCConfig -OutputPath "$outputFolder"
+DSCConfigWindows -OutputPath "$outputFolder"
 "@
         
-        Set-Content -Path "$outputFolder/DSCConfig.ps1" -Value $dscConfig
+        Set-Content -Path "$outputFolder/DSCConfigWindows.ps1" -Value $dscConfigWindows
             
-        & "$outputFolder/DSCConfig.ps1"
+        & "$outputFolder/DSCConfigWindows.ps1"
+#endregion
+
+#region Linux DSC config
+        $dscConfigLinux = @"
+Configuration DSCConfigLinux
+{
+    Import-DscResource -ModuleName 'GuestConfiguration'
+
+    Node DSCConfigLinux
+    {
+        ChefInSpecResource 'Audit Linux path exists'
+        {
+            Name = 'linux-path'
+        }
+    }
+}
+DSCConfigLinux -OutputPath "$outputFolder"
+"@
+        $inSpecProfileYml = @"
+name: linux-path
+title: Linux path
+maintainer: Test
+summary: Test profile
+license: MIT
+version: 1.0.0
+supports:
+    - os-family: unix
+"@
+        $inSpecProfileRB = @"
+describe file('/tmp') do
+    it { should exist }
+end
+"@
+        
+        Set-Content -Path "$outputFolder/DSCConfigLinux.ps1" -Value $dscConfigLinux
+        New-Item -ItemType Directory -Path "$outputFolder/linux-path"
+        Set-Content -Path "$outputFolder/linux-path/inspec.yml" -Value $inSpecProfileYml
+        New-Item -ItemType Directory -Path "$outputFolder/linux-path/controls"
+        Set-Content -Path "$outputFolder/linux-path/controls/linux-path.rb" -Value $inSpecProfileRB
+            
+        & "$outputFolder/DSCConfigLinux.ps1"
+#endregion
 
         If ($IsWindows) {
             Import-Module PSPKI -Force
@@ -86,31 +142,20 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
 
         # Extract agent files (used by Test-GuestConfigurationPackage)
         If ($IsWindows) {
-            Expand-Archive $PSScriptRoot/../bin/DSC_Windows.zip "$outputFolder/bin/DSC/" -Force
+            Expand-Archive $PSScriptRoot/../bin/DSC_Windows.zip "$outputFolder/bin/" -Force
         }
         else {
-            Expand-Archive $PSScriptRoot/../bin/DSC_Linux.zip "$outputFolder/bin/DSC/" -Force
+            Expand-Archive $PSScriptRoot/../bin/DSC_Linux.zip "$outputFolder/bin/" -Force
         }
 
-    }
-    
-    BeforeEach {
-        if ($false -eq $keepTempFolders) { 
-            if (Test-Path "$outputFolder/package/") {
-                Remove-Item "$outputFolder/package/" -Force -Recurse
-            }
-            if (Test-Path "$outputFolder/verifyPackage/") {
-                Remove-Item "$outputFolder/verifyPackage/" -Force -Recurse
-            }
-        }
     }
     AfterAll {
         if ($false -eq $keepTempFolders) {
             if (Test-Path "$outputFolder") {
                 Remove-Item "$outputFolder" -Force -Recurse
             }
-            if (Test-Path "$Env:BuildTempFolder") {
-                Remove-Item "$Env:BuildTempFolder" -Recurse -Force
+            if (Test-Path "$Env:BuildTempFolder/Modules") {
+                Remove-Item "$Env:BuildTempFolder/Modules" -Force -Recurse
             }
         }
     }
@@ -124,73 +169,123 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             'Publish-GuestConfigurationPolicy'
 
         $outputFolder = "$Env:BuildTempFolder/guestconfigurationtest"
-        $mofPath = "$outputFolder/localhost.mof"
         $policyName = 'testPolicy'
         
-        Context 'Module Quality' {
-            It 'Has a PowerShell module manifest that meets functional requirements' {
-                Test-ModuleManifest -Path $PSScriptRoot/../GuestConfiguration.psd1 | Should Not BeNullOrEmpty
+        Context 'Module fundamentals' {
+            
+            It 'has the agent binaries from the project feed' {
+                Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
+                Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
+            }
+            
+            It 'has a PowerShell module manifest that meets functional requirements' {
+                Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
                 $? | Should -Be $true
             }
 
-            It 'Imported the module successfully' {
+            It 'tmported the module successfully' {
                 Get-Module GuestConfiguration | ForEach-Object {$_.Name} | Should -Be 'GuestConfiguration'
             }
 
-            It 'Does not throw while running Script Analyzer' {
-                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules -EnableExit
+            It 'does not throw while running Script Analyzer' {
+                $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules
                 $scriptanalyzer | Should -Be $Null
             }
 
-            It 'Has text in help examples' {
+            It 'has text in help examples' {
                 foreach ($function in $publicFunctions) {
                     Get-Help $function | ForEach-Object {$_.Examples} | Should -Not -BeNullOrEmpty
                 }
             }
         }
 
-        Context 'Functional Tests' {
-            It 'Create Custom policy package and test its contents' {
-                $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package"
+        foreach ($OS in @('Windows','Linux')) {
+            Context "$OS Package creation" {
+                $mofPath = "$outputFolder/DscConfig$OS.mof"
+        
+                It 'creates Custom policy package' {
+                    if ('Windows' -eq $OS) {
+                        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/Package_$OS"
+                    } 
+                    if ('Linux' -eq $OS) {
+                        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/Package_$OS" -ChefInspecProfilePath $outputFolder
+                    }
+                    # Verify package exists
+                    Test-Path $package.Path | Should -Be $true
+                    # Verify package name
+                    $package.Name | Should -Be $policyName
+                }
 
-                # Verify package exists
-                Test-Path $package.Path | Should -Be $true
-                # Verify package name
-                $package.Name | Should -Be $policyName
+                It 'extracts package contents without error' {
+                    $package = Get-ChildItem "$outputFolder/Package_$OS/$policyName/$policyName.zip"
 
-                # Verify package contents
-                Add-Type -AssemblyName System.IO.Compression.FileSystem
-                [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, "$outputFolder/verifyPackage")
-                # Verify mof document exists.
-                Test-Path "$outputFolder/verifyPackage/$policyName.mof" | Should -Be $true
+                    # Verify package contents
+                    Add-Type -AssemblyName System.IO.Compression.FileSystem
+                    {[System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, "$outputFolder/verifyPackage_$OS")} | Should -Not -Throw
+                }
 
-                # Test required modules are included in the package
-                $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances("$outputFolder/verifyPackage/$policyName.mof", 4) 
-                for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
-                    if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName') {
-                        Test-Path "$outputFolder/verifyPackage/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
+                It 'contains expected package mof' {
+                    # Verify mof document exists.
+                    Test-Path "$outputFolder/verifyPackage_$OS/$policyName.mof" | Should -Be $true
+
+                    # Test required modules are included in the package
+                    $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances("$outputFolder/verifyPackage_$OS/$policyName.mof", 4) 
+                    for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
+                        if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName') {
+                            Test-Path "$outputFolder/verifyPackage_$OS/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
+                        }
+                    }
+                }
+
+                It 'contains expected modules' {
+                    # Test required modules are included in the package
+                    $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances("$outputFolder/verifyPackage_$OS/$policyName.mof", 4) 
+                    for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
+                        if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName') {
+                            Test-Path "$outputFolder/verifyPackage_$OS/Modules/$($resourcesInMofDocument[$i].ModuleName)" | Should -Be $true
+                        }
+                    }
+                }
+                
+                if ('Linux' -eq $OS) {
+                    # Test the native DSC resources are only included once                
+                    It 'contains only one native InSpec resource' {
+                        $nativeInSpecResource = @()
+                        $nativeInSpecResource += Get-ChildItem "$outputFolder/verifyPackage_$OS/Modules" -Recurse -File 'libMSFT_ChefInSpecResource.so'
+                        $nativeInSpecResource.Count | Should -BeLessThan 2
                     }
                 }
             }
+        }
 
-            It 'Verify Test-GuestConfigurationPackage can validate the package generated by New-GuestConfigurationPackage (Windows only)' {
-                if ($isWindows) {
-                    Mock -CommandName 'Get-GuestConfigBinaryPath' -MockWith { "$env:BuildFolder/guestconfigurationtest/bin/DSC/" } -Verifiable
-                    
-                    Mock -CommandName 'Publish-DscConfiguration' -Verifiable
-                    Mock -CommandName 'Set-DscLocalConfigurationManager' -Verifiable
-                    Mock -CommandName 'Test-DscConfiguration' -MockWith { New-Object -type psobject -Property @{compliance_state=$false;resources_in_desired_state = @();resources_not_in_desired_state=@('TimeZoneExample')} } -Verifiable
-                    Mock -CommandName 'Get-DscConfiguration' -MockWith { New-Object -type psobject -Property @{ResourceId='TimeZoneExample'} } -Verifiable
+        foreach ($OS in @('Windows','Linux')) {
+            Context "$OS Test- package cmdlets" {
+                $mofPath = "$outputFolder/DscConfig$OS.mof"
+                $projectRoot = "$PSScriptRoot/../"
+                It 'validates the package' {
+                        Mock -CommandName 'Get-GuestConfigPath' -ModuleName 'GuestConfigPath' -MockWith { "$Env:BuildTempFolder/GuestConfig/" } -Verifiable
+                        Mock -CommandName 'Get-GuestConfigurationModulePath' -MockWith { $projectRoot }
 
-                    $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package" | Test-GuestConfigurationPackage -Verbose
-                    $result.complianceStatus | Should -Be $false
+                        Mock -CommandName 'Publish-DscConfiguration' -Verifiable
+                        Mock -CommandName 'Set-DscLocalConfigurationManager' -Verifiable
+                        Mock -CommandName 'Test-DscConfiguration' -MockWith { New-Object -type psobject -Property @{compliance_state=$false;resources_in_desired_state = @();resources_not_in_desired_state=@('TimeZoneExample')} } -Verifiable
+                        Mock -CommandName 'Get-DscConfiguration' -MockWith { New-Object -type psobject -Property @{ResourceId='TimeZoneExample'} } -Verifiable
 
-                    Assert-VerifiableMock
+                        if ('Windows' -eq $OS) {
+                            $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package_$OS" | Test-GuestConfigurationPackage -Verbose
+                        }
+                        if ('Linux' -eq $OS) {
+                            $result = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path "$outputFolder/package_$OS" -ChefInspecProfilePath $outputFolder | Test-GuestConfigurationPackage -Verbose
+                        }
+                        $result.complianceStatus | Should -Be $false
+
+                        Assert-VerifiableMock
                 }
             }
-            
-            <#
-            Comment out until PKI issues resolved
+        }
+        
+        <#
+            Comment out until PKI test cert resolved
 
             It 'Verify Protect-GuestConfigurationPackage cmdlet can sign policy package (Windows Only)' {
                 if ($IsWindows) {
@@ -230,7 +325,9 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                     }
                 }
             }
-            #>
+        #>
+
+        Context 'Policy cmdlets' {
 
             It 'Verify New-GuestConfigurationPolicy cmdlet can create custom policy definitions' {
                 Mock Get-AzPolicyDefinition

@@ -149,18 +149,6 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         }
 
     }
-    AfterEach {
-        if ($false -eq $keepTempFolders) {
-            foreach ($OS in @('Windows','Linux')) {
-                if (Test-Path "$outputFolder/package_$OS/") {
-                    Remove-Item "$outputFolder/package_$OS/" -Force -Recurse
-                }
-                if (Test-Path "$outputFolder/verifyPackage_$OS/") {
-                    Remove-Item "$outputFolder/verifyPackage_$OS/" -Force -Recurse
-                }
-            }
-        }
-    }
     AfterAll {
         if ($false -eq $keepTempFolders) {
             if (Test-Path "$outputFolder") {

@@ -174,12 +174,12 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
         Context 'Module fundamentals' {
             
             It 'has the agent binaries from the project feed' {
-                Test-Path $PSScriptRoot../bin/DSC_Windows.zip | Should -BeTrue
-                Test-Path $PSScriptRoot../bin/DSC_Linux.zip | Should -BeTrue
+                Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
+                Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
             }
             
             It 'has a PowerShell module manifest that meets functional requirements' {
-                Test-ModuleManifest -Path $PSScriptRoot/../GuestConfiguration.psd1 | Should Not BeNullOrEmpty
+                Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
                 $? | Should -Be $true
             }
 
@@ -188,7 +188,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
             }
 
             It 'does not throw while running Script Analyzer' {
-                $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules
+                $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules
                 $scriptanalyzer | Should -Be $Null
             }
 

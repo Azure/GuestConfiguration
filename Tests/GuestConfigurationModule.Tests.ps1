@@ -15,7 +15,7 @@ if (!$Env:BuildTempFolder) {
 
 # Setting this to $true will retain the temp folders to review policy files and the package
 # after tests have completed.  This is good for running locally on a workstation.
-$keepTempFolders = $true
+$keepTempFolders = $false
 
 $ErrorActionPreference = 'Stop'
 
@@ -269,9 +269,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 $mofPath = "$outputFolder/DscConfig$OS.mof"
                 It 'validates the package' {
                         Mock -CommandName 'Get-GuestConfigPath' -ModuleName 'GuestConfigPath' -MockWith { "$Env:BuildTempFolder/guestconfigurationtest/" } -Verifiable
-                        Mock -CommandName 'Get-GuestConfigurationModulePath' -ModuleName 'GuestConfigPath' -MockWith { "$Env:BuildTempFolder/guestconfigurationtest/" }
-
-                        
+                        Mock -CommandName 'Get-GuestConfigurationModulePath' -MockWith { "$Env:BuildTempFolder/guestconfigurationtest/" }
 
                         Mock -CommandName 'Publish-DscConfiguration' -Verifiable
                         Mock -CommandName 'Set-DscLocalConfigurationManager' -Verifiable

@@ -1724,19 +1724,19 @@ function New-CustomGuestConfigPolicy {
     $existingDeployPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $DeployPolicyInfo.DisplayName) }
     if ($null -ne $existingDeployPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingDeployPolicy.Properties.displayName)' and guid '$($existingDeployPolicy.Name)'..."
-        $DeployPolicyInfo['Guid'] = $existingDeployPolicy.Name
+        $DeployPolicyInfo['Guid'] = $existingDeployPolicy.Name.ToString()
     }
 
     $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditPolicyInfo.DisplayName) }
     if ($null -ne $existingAuditPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
-        $AuditPolicyInfo['Guid'] = $existingAuditPolicy.Name
+        $AuditPolicyInfo['Guid'] = $existingAuditPolicy.Name.ToString()
     }
 
     $existingInitiative = Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $InitiativeInfo.DisplayName) }
     if ($null -ne $existingInitiative) {
         Write-Verbose -Message "Found initiative with name '$($existingInitiative.Properties.displayName)' and guid '$($existingInitiative.Name)'..."
-        $InitiativeInfo['Guid'] = $existingInitiative.Name
+        $InitiativeInfo['Guid'] = $existingInitiative.Name.ToString()
     }
 
     New-GuestConfigurationPolicyDefinitionSet @PSBoundParameters

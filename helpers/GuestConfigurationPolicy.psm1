@@ -586,6 +586,9 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 location          = [Ordered]@{
                     value = "[field('location')]"
                 }
+                type              = [Ordered]@{
+                    value = "[field('type')]"
+                }
                 configurationName = [Ordered]@{
                     value = $ConfigurationName
                 }
@@ -604,6 +607,9 @@ function New-GuestConfigurationDeployPolicyDefinition {
                         type = 'string'
                     }
                     location          = [Ordered]@{
+                        type = 'string'
+                    }
+                    type              = [Ordered]@{
                         type = 'string'
                     }
                     configurationName = [Ordered]@{

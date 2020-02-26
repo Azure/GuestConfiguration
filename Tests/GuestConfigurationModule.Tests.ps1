@@ -328,7 +328,7 @@ Import-Certificate -FilePath "$env:BuildFolder/guestconfigurationtest/cert/expor
                 $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should -Be 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
                 $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $contentURI
                 $jsonDefinition.properties.policyRule.then.details.deployment.properties.parameters.type | Should -Be "@{value=[field('type')]}"
-                $jsonDefinition.properties.policyRule.then.details.deployment.properties.template.parameters.type | Should -Exist
+                $jsonDefinition.properties.policyRule.then.details.deployment.properties.template.parameters.type | Should -Be "@{type=string}"
                 
                 $resourceTypes = $jsonDefinition.properties.policyRule.if.anyOf.allOf | Where-Object {$_.equals -like "Microsoft.*"} | ForEach-Object {$_.equals}
                 $resourceTypes | Should -Contain 'Microsoft.Compute/virtualMachines'

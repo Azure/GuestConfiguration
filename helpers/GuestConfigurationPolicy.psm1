@@ -184,7 +184,7 @@ function Copy-ChefInspecDependencies {
 
     # Copy Chef resource and profiles.
     $modulePath = Join-Path $PackagePath 'Modules'
-    $nativeResourcePath = Get-Item -Path (Join-Path $modulePath 'DscNativeResources')
+    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
     $missingDependencies = @()
     $chefInspecProfiles = @()
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)

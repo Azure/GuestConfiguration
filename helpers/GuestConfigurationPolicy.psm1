@@ -160,6 +160,17 @@ function Copy-DscResources {
         }
     }
 
+    # Copy binary resources.
+    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
+    $resources = Get-DscResource -Module GuestConfiguration
+    $resources | ForEach-Object {
+        if ($_.ImplementedAs -eq 'Binary') {
+            $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
+            Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
+            Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
+        }
+    }
+
     # Remove DSC binaries from package (just a safeguard).
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
     Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null

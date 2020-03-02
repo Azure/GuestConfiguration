@@ -1,0 +1,145 @@
+pr: none
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    exclude:
+    - /tools/azure-pipelines-pr.yml
+    - /tools/azure-pipelines-release.yml
+    - README.md
+    - CODE_OF_CONDUCT.md
+    - SECURITY.md
+    - LICENSE
+    - .gitignore
+    - .github/*
+schedules:
+  - cron: "0 0 * * *"
+    displayName: Daily midnight build
+    branches:
+      include:
+        - master
+jobs:
+  - job: Test
+    strategy:
+      matrix:
+        # comment out until bugs are resolved in PSDesiredStateConfiguration
+        #Ubuntu:
+        #  imageName: ubuntu-latest
+        MacOSMojave:
+          imageName: macOS-10.14
+        MacOSCatalina:
+          imageName: macOS-10.15
+        Windows2019:
+          imageName: windows-latest
+        Windows2016:
+          imageName: vs2017-win2016
+        Windows2012r2:
+          imageName: vs2015-win2012r2
+          # will be deprecated March 2020
+    pool:
+      vmImage: $(imageName)
+    steps:
+      - task: UniversalPackages@0
+        displayName: Universal download
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: gc_agents
+          versionDownloadExternal: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+      - task: PowerShell@2
+        displayName: Install PowerShell Core
+        inputs:
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+            ./install-powershell.ps1 -Destination $powerShellPath -Preview
+            if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
+            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
+            Write-Host "sending " + $vstsCommandString
+            Write-Host "##$vstsCommandString"
+      - task: PowerShell@2
+        displayName: Install modules
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
+            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
+            write-host "installing " $modules
+            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+      - task: PowerShell@2
+        displayName: Pester unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
+            write-host "BuildTempFolder: $env:BuildTempFolder"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
+      - task: PublishTestResults@2
+        displayName: Publish test result
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: NUnit
+          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+  - job: CodeSign
+    dependsOn: Test
+    pool:
+      name: Package ES CodeHub Lab E
+    steps:
+      - task: PowerShell@2
+        displayName: Stage module artifact
+        inputs:
+          pwsh: 'false'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
+      - task: UniversalPackages@0
+        displayName: Universal download
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: gc_agents
+          versionDownloadExternal: '*'
+          downloadDirectory: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\bin\'
+      - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+        displayName: 'Component Detection'
+        inputs:
+          failOnAlert: true
+      - task: PkgESCodeSign@10
+        displayName: 'CodeSign'
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        inputs:
+          signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
+          inPathRoot: '$(Build.SourcesDirectory)'
+          outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
+      - task: PublishPipelineArtifact@1
+        displayName: Publish artifact
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
+          artifactName: GuestConfiguration

@@ -1,0 +1,128 @@
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - master
+      - rollback
+      - dev
+  paths:
+    exclude:
+        - /tools/azure-pipelines-pr.yml
+        - /tools/azure-pipelines-release.yml
+        - README.md
+        - CODE_OF_CONDUCT.md
+        - SECURITY.md
+        - LICENSE
+        - .gitignore
+        - .github/*
+
+jobs:
+  - job: Test
+    strategy:
+      matrix:
+        # comment out until bugs are resolved in PSDesiredStateConfiguration
+        #Ubuntu:
+        #  imageName: ubuntu-latest
+        MacOSMojave:
+          imageName: macOS-10.14
+        MacOSCatalina:
+          imageName: macOS-10.15
+        Windows2019:
+          imageName: windows-latest
+        Windows2016:
+          imageName: vs2017-win2016
+        Windows2012r2:
+          imageName: vs2015-win2012r2
+          # will be deprecated March 2020
+    pool:
+      vmImage: $(imageName)
+    steps:
+      - task: UniversalPackages@0
+        displayName: Universal download
+        inputs:
+          command: download
+          vstsFeed: guestconfiguration
+          vstsFeedPackage: gc_agents
+          vstsPackageVersion: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+      - task: PowerShell@2
+        displayName: Install PowerShell Core
+        inputs:
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+            ./install-powershell.ps1 -Destination $powerShellPath -Preview
+            if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
+            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
+            Write-Host "sending " + $vstsCommandString
+            Write-Host "##$vstsCommandString"
+      - task: PowerShell@2
+        displayName: Install modules
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
+            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
+            write-host "installing " $modules
+            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+      - task: PowerShell@2
+        displayName: Pester unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
+            write-host "BuildTempFolder: $env:BuildTempFolder"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: NUnit
+          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+        displayName: Publish test result
+  - job: Publish
+    dependsOn: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: PowerShell@2
+        displayName: Stage module artifact
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
+            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
+      - task: UniversalPackages@0
+        displayName: Universal download
+        inputs:
+          command: download
+          vstsFeed: guestconfiguration
+          vstsFeedPackage: gc_agents
+          vstsPackageVersion: '*'
+          downloadDirectory: '$(Build.ArtifactStagingDirectory)/GuestConfiguration/bin/'
+      - task: PublishPipelineArtifact@1
+        displayName: Publish artifact
+        inputs:
+          targetPath: '$(Build.ArtifactStagingDirectory)/GuestConfiguration'
+          artifactName: GuestConfiguration

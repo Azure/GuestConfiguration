@@ -35,11 +35,17 @@ Describe "Guest Configuration Custom Policy cmdlets" {
         # Setup environment for testing GC module DSC resources
         Import-Module 'PSDesiredStateConfiguration' -Force
         if ($IsWindows) {$delimiter = ';'} else {$delimiter = ':'}
+        # Copy DSC Resources and helper modules
         foreach ($subfolder in @('DscResources','helpers')) {
             Copy-Item "$PSScriptRoot/../$subfolder/" "$Env:BuildTempFolder/Modules/GuestConfiguration/$subfolder/" -Recurse
         }
+        # Copy Guest Configuration module/manifest
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psd1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
         Copy-Item "$PSScriptRoot/../GuestConfiguration.psm1" "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psm1"
+        # Comment out require modules so Az modules will not be required during test config compilation
+        $psd1 = "$Env:BuildTempFolder/Modules/GuestConfiguration/GuestConfiguration.psd1"
+        (Get-Content $psd1) -replace 'RequiredModules =','# RequiredModules =' | Set-Content $psd1
+        # Update PSModulePath to include location of Guest Confifguration module
         $Env:PSModulePath = $Env:PSModulePath + $delimiter + "$Env:BuildTempFolder/Modules/"
         Import-Module GuestConfiguration -Verbose
 

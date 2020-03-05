@@ -822,42 +822,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
                                 )
                             }
                         )
-                    },
-                    [Ordered]@{
-                        allOf = @(
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
-                                        exists = 'true'
-                                    },
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like = 'Windows*'
-                                    }
-                                )
-                            },
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field = "Microsoft.Compute/imageSKU"
-                                        exists = 'false'
-                                    },
-                                    [Ordered]@{
-                                        allOf = @(
-                                            [Ordered]@{ 
-                                                field = "Microsoft.Compute/imageSKU"
-                                                notLike = '2008*'
-                                            },
-                                            [Ordered]@{
-                                                field = "Microsoft.Compute/imageOffer"
-                                                notLike = 'SQL2008*'
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
                     }
                 )
             }
@@ -883,7 +847,10 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 settings                = @{ }
                 protectedSettings       = @{ }
             }
-        )
+            dependsOn  = @(
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
+            )
+        }
     }
     elseif ($Platform -ieq 'Linux')
     {
@@ -1047,30 +1014,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
                                 like = 'linux*'
-                            }
-                        )
-                    },
-                    [Ordered]@{
-                        allOf = @(
-                            [Ordered]@{
-                                anyOf = @(
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/osProfile.linuxConfiguration"
-                                        exists = "true"
-                                    },
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like = "Linux*"
-                                    }
-                                )
-                            },
-                            [Ordered]@{
-                                anyOf = @(
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/imageSKU"
-                                        exists = "false"
-                                    }
-                                )
                             }
                         )
                     }
@@ -1512,24 +1455,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 like = "windows*"
             }
         )
-
-        $guestConfigurationExtensionHashtable = [Ordered]@{
-            apiVersion = '2015-05-01-preview'
-            name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
-            type       = 'Microsoft.Compute/virtualMachines/extensions'
-            location   = "[parameters('location')]"
-            properties = [Ordered]@{
-                publisher               = 'Microsoft.GuestConfiguration'
-                type                    = 'ConfigurationforWindows'
-                typeHandlerVersion      = '1.1'
-                autoUpgradeMinorVersion = $true
-                settings                = @{ }
-                protectedSettings       = @{ }
-            }
-            dependsOn  = @(
-                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
-            )
-        }
     }
     elseif ($Platform -ieq 'Linux')
     {
@@ -1706,22 +1631,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 like = "linux*"
             }
         )
-
-        $guestConfigurationExtensionHashtable = [Ordered]@{
-            apiVersion = '2015-05-01-preview'
-            name       = "[concat(parameters('vmName'), '/AzurePolicyforLinux')]"
-            type       = 'Microsoft.Compute/virtualMachines/extensions'
-            location   = "[parameters('location')]"
-            properties = [Ordered]@{
-                publisher               = 'Microsoft.GuestConfiguration'
-                type                    = 'ConfigurationforLinux'
-                typeHandlerVersion      = '1.0'
-                autoUpgradeMinorVersion = $true
-            }
-            dependsOn  = @(
-                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
-            )
-        }
     }
     else
     {

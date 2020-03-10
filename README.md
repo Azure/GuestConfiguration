@@ -3,11 +3,12 @@
 ![GuestConfig](./GuestConfigXS.png)
 
 The Guest Configuration PowerShell module provides commands that automate
-publishing custom content for Azure Policy to audit settings inside virtual machines.
+publishing custom content for Azure Policy to audit settings inside Azure virtual machines
+and Arc connected machines.
 
 There are three tasks that this module automates:
 
-- Creating the content package (.zip) from an existing DSC configuration (.mof)
+- Create the content package (.zip) from an existing DSC configuration (.mof)
 - Functional validation of the content package
   - Contains required files
   - Runs the Audit against the local machine using the agent binaries used in Azure
@@ -21,34 +22,43 @@ this module.
 
 ### master
 
-[![Build Status](https://dev.azure.com/guestconfiguration/guestconfiguration/_apis/build/status/powershell.guestconfiguration?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfiguration/_build/latest?definitionId=5&branchName=master)
+[![Build Status](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_apis/build/status/PowerShell.GuestConfiguration%20(Public)?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_build/latest?definitionId=7&branchName=master)
 
-This is the branch containing the latest release -
-no contributions should be made directly to this branch.
+This is the branch containing the latest release.
+No contributions should be made directly to this branch.
+Branch protection is set to require approval from atleast one reviewer.
+A merge to this branch will trigger a new private build where,
+if all tests pass, a release workflow will automatically
+request human approval for publishing to the PowerShell Gallery.
 
 ### dev
 
-[![Build Status](https://dev.azure.com/guestconfiguration/guestconfiguration/_apis/build/status/powershell.guestconfiguration?branchName=dev)](https://dev.azure.com/guestconfiguration/guestconfiguration/_build/latest?definitionId=5&branchName=dev)
+[![Build Status](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_apis/build/status/PowerShell.GuestConfiguration%20(Public)?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_build/latest?definitionId=7&branchName=dev)
 
 This is the development branch
 to which contributions should be proposed by contributors as pull requests.
 This development branch will periodically be merged to the master branch,
 and be released to [PowerShell Gallery](https://www.powershellgallery.com/).
+A Pull Request should usually be pending from dev to master
+with a clear title that stages the next release of the module.
+The pull request should request atleast two reviewers and be tagged 'Release'.
+Any new commits will automatically require new approval,
+even if the PR had been previously approved.
 
 ## Installation
 
 The agent binaries are added to the module when it is published to the PowerShell Gallery.
 The module will not be functional if it is installed by cloning the GitHub repo.
 
-To install from the PowerShell gallery using PowerShellGet (in PowerShell 5.0)
+To install from the PowerShell gallery using PowerShellGet
 run the following command:
 
     Install-Module -Name GuestConfiguration -Repository PSGallery
 
 ## Requirements
 
-The minimum PowerShell version is
-PowerShell 5.1 or higher, which ships with Windows 10 Anniiversary Update and in Windows Server 2016 R2.
+The minimum PowerShell version is PowerShell 6.2.
+Tests are performed using the latest preview of PowerShell.
 
 ## Changelog
 

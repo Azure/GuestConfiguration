@@ -6,6 +6,7 @@ trigger:
       - master
   paths:
     exclude:
+    - /bin/*
     - /tools/azure-pipelines-pr.yml
     - /tools/azure-pipelines-release.yml
     - README.md

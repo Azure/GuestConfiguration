@@ -32,9 +32,7 @@ jobs:
           imageName: windows-latest
         Windows2016:
           imageName: vs2017-win2016
-        Windows2012r2:
-          imageName: vs2015-win2012r2
-          # will be deprecated March 2020
+
     pool:
       vmImage: $(imageName)
     steps:

@@ -4,7 +4,7 @@
 RootModule = 'GuestConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '1.19.1'
+moduleVersion = '1.20.1'
 
 # ID used to uniquely identify this module
 GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -22,7 +22,7 @@ Copyright = '(c) 2019 Microsoft Corporation. All rights reserved.'
 Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '5.1'
+PowerShellVersion = '6.2'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @('Az.Accounts','Az.Resources')

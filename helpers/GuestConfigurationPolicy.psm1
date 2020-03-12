@@ -850,6 +850,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             dependsOn  = @(
                 "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
             )
+            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
         }
     }
     elseif ($Platform -ieq 'Linux')

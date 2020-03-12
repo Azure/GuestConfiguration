@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.1
+
+- Fix missing condition on extension deployment
+
 ## v1.20.0
 
 - Fix Linux line endings in InSpec profiles

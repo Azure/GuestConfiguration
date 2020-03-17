@@ -3,6 +3,9 @@
 ## v1.19.1
 
 - Bug fix for type error in subcmdlet
+- moved build scripts to 'tools' folder
+- Added basic project md files
+- Added Azure DevOps build script
 
 ## v1.19.0
 

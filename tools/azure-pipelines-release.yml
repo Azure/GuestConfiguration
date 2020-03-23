@@ -6,6 +6,7 @@ trigger:
       - master
   paths:
     exclude:
+    - /bin/*
     - /tools/azure-pipelines-pr.yml
     - /tools/azure-pipelines-release.yml
     - README.md
@@ -14,12 +15,7 @@ trigger:
     - LICENSE
     - .gitignore
     - .github/*
-schedules:
-  - cron: "0 0 * * *"
-    displayName: Daily midnight build
-    branches:
-      include:
-        - master
+
 jobs:
   - job: Test
     strategy:
@@ -35,9 +31,6 @@ jobs:
           imageName: windows-latest
         Windows2016:
           imageName: vs2017-win2016
-        Windows2012r2:
-          imageName: vs2015-win2012r2
-          # will be deprecated March 2020
     pool:
       vmImage: $(imageName)
     steps:

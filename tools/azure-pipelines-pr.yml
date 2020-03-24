@@ -52,7 +52,7 @@ jobs:
           script: |
             $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-            ./install-powershell.ps1 -Destination $powerShellPath -Preview
+            ./install-powershell.ps1 -Destination $powerShellPath
             if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
             $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
             Write-Host "sending " + $vstsCommandString

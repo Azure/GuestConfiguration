@@ -16,25 +16,16 @@ $policyName = 'testPolicy'
 
 function Get-OSPlatform
 {
-    [CmdletBinding()]
-    param()
-
-    $platform = 'Windows'
-
-    if($PSVersionTable.PSEdition -eq 'Desktop') {
-        $platform = 'Windows'
+    if($IsWindows) {
+      $platform = 'Windows'
     }
-    elseif($PSVersionTable.PSEdition -eq 'Core') {
-        if($IsWindows) {
-            $platform = 'Windows'
-        }
-        elseif($IsLinux) {
-            $platform = 'Linux'
-        }
-        else {
-            throw 'GuestConfiguration is not supported on MacOS'
-        }
+    elseif($IsLinux) {
+      $platform = 'Linux'
     }
+    elseif($IsMacOS) {
+      $platform = 'MacOS'
+    }
+}
 
     return $platform
 }

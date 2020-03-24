@@ -25,6 +25,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
         if ($IsWindows) {
             Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
         }
+        Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
 
 $dscConfig = @"
 Configuration DSCConfig

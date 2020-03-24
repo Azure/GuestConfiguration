@@ -47,19 +47,24 @@ DSCConfig -OutputPath $dscConfigFolderPath
         & $dscConfigScriptPath
 
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-        # Create self signed certificate
-        New-SelfsignedCertificateEx `
-            -Subject "CN=testcert" `
-            -EKU 'Code Signing' `
-            -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
-            -SAN ${ENV:ComputerName} `
-            -FriendlyName 'DSC Credential Encryption certificate' `
-            -Exportable `
-            -StoreLocation 'LocalMachine' `
-            -KeyLength 2048 `
-            -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
-            -AlgorithmName 'RSA' `
-            -SignatureAlgorithm 'SHA256'
+
+        If ($IsWindows) {
+            Import-Module PSPKI -Force
+        
+            # Create self signed certificate
+            New-SelfsignedCertificateEx `
+                -Subject "CN=testcert" `
+                -EKU 'Code Signing' `
+                -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
+                -SAN ${ENV:ComputerName} `
+                -FriendlyName 'DSC Credential Encryption certificate' `
+                -Exportable `
+                -StoreLocation 'LocalMachine' `
+                -KeyLength 2048 `
+                -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
+                -AlgorithmName 'RSA' `
+                -SignatureAlgorithm 'SHA256'
+        }
     }
     BeforeEach {
         Remove-Item $testOutputPath -Force -Recurse -ErrorAction SilentlyContinue

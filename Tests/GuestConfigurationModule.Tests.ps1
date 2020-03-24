@@ -47,8 +47,10 @@ DSCConfig -OutputPath $dscConfigFolderPath
         Set-Content -Path $dscConfigScriptPath -Value $dscConfig
         & $dscConfigScriptPath
 
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-
+        If ($IsWindows) {
+            Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+        }
+        
         If ($IsWindows) {
             Import-Module PSPKI -Force
         

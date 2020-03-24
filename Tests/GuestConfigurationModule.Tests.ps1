@@ -25,7 +25,6 @@ function Get-OSPlatform
     elseif($IsMacOS) {
       $platform = 'MacOS'
     }
-}
 
     return $platform
 }
@@ -40,11 +39,13 @@ function Run-Test {
 }
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT') {
+    <# Allow tests to be run outside PkgES
     BeforeAll {
         if(-not (Run-Test)) {
             Write-Verbose 'GuestConfiguration cmdlet test are supported only on Windows in PackageES' -Verbose
             return
         }
+    #>
 	# Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 

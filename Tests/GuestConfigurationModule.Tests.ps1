@@ -48,7 +48,6 @@ DSCConfig -OutputPath $dscConfigFolderPath
 
         Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
         # Create self signed certificate
-        Import-Module $PSScriptRoot\New-SelfSignedCertificateEx.ps1 -Force 
         New-SelfsignedCertificateEx `
             -Subject "CN=testcert" `
             -EKU 'Code Signing' `

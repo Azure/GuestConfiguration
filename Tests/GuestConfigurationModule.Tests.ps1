@@ -55,8 +55,7 @@ DSCConfig -OutputPath $dscConfigFolderPath
             New-SelfsignedCertificateEx `
                 -Subject "CN=testcert" `
                 -EKU 'Code Signing' `
-                -KeyUsage 'DataEncipherment, DigitalSignature' `
-                -SAN ${ENV:ComputerName} `
+                -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
                 -FriendlyName 'DSC Credential Encryption certificate' `
                 -Exportable `
                 -StoreLocation 'LocalMachine' `

@@ -14,47 +14,17 @@ $mofDocPath = "$dscConfigFolderPath\localhost.mof"
 $testOutputPath = "$PSScriptRoot\output"
 $policyName = 'testPolicy'
 
-function Get-OSPlatform
-{
-    if($IsWindows) {
-      $platform = 'Windows'
-    }
-    elseif($IsLinux) {
-      $platform = 'Linux'
-    }
-    elseif($IsMacOS) {
-      $platform = 'MacOS'
-    }
-
-    return $platform
-}
-
-function Run-Test {
-    # Currently this test will only run on Windows machine in PackageES
-    if((Test-Path env:\PKGES) -and ($(Get-OSPlatform) -eq 'Windows')) {
-        return $true
-    }
-    
-    return $false
-}
-
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT') {
     BeforeAll {
-    <# Allow tests to be run outside PkgES
-        if(-not (Run-Test)) {
-            Write-Verbose 'GuestConfiguration cmdlet test are supported only on Windows in PackageES' -Verbose
-            return
-        }
-    #>
+
 	# Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
         Install-Module -Name xTimeZone -AllowClobber -Force
         Install-Module -Name GuestConfiguration -AllowClobber -AllowPreRelease -Force
-
-        # Suppress for public build
-        # Install-AzLibraries
-        # Login-ToTestAzAccount
+        if ($IsWindows) {
+            Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
+        }
 
 $dscConfig = @"
 Configuration DSCConfig

@@ -39,8 +39,8 @@ function Run-Test {
 }
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT') {
-    <# Allow tests to be run outside PkgES
     BeforeAll {
+    <# Allow tests to be run outside PkgES
         if(-not (Run-Test)) {
             Write-Verbose 'GuestConfiguration cmdlet test are supported only on Windows in PackageES' -Verbose
             return
@@ -52,8 +52,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
         Install-Module -Name xTimeZone -AllowClobber -Force
         Install-Module -Name GuestConfiguration -AllowClobber -AllowPreRelease -Force
 
-        Install-AzLibraries
-        Login-ToTestAzAccount
+        # Suppress for public build
+        # Install-AzLibraries
+        # Login-ToTestAzAccount
 
 $dscConfig = @"
 Configuration DSCConfig

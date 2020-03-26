@@ -1,8 +1,8 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
-$ReleaseVersion
+$ReleaseVersion = '0.0.0'
 
-function Initialize-Path
+function InitReleaseVersionInfo
 {
     [CmdletBinding()]
     Param(

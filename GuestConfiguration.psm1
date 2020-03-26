@@ -1,6 +1,5 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
-$DefaultReleaseVersion = '0.0.0'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
@@ -172,11 +171,11 @@ function Test-GuestConfigurationPackage
 
         # Unzip Guest Configuration binaries
         try {
-            $Version = $GuestConfigurationManifest.moduleVersion
+            InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
         } catch {
-            $Version = $DefaultReleaseVersion
+            # default: $ReleaseVersion = '0.0.0'
         }
-        Initialize-Path $Version
+        
         $gcBinPath = Get-GuestConfigBinaryPath
         if(-not (Test-Path $gcBinPath)) {
             $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
@@ -467,9 +466,9 @@ function New-GuestConfigurationPolicy
         New-Item -ItemType Directory -Force -Path $policyDefinitionsPath | Out-Null
 
         # Check if ContentUri is a valid web Uri
-	    $uri = $ContentUri -as [System.URI]
-	    if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
-            Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
+        $uri = $ContentUri -as [System.URI]
+        if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
+           Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
         }
 
         # Generate checksum hash for policy content.

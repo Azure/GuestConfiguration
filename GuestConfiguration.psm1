@@ -1,8 +1,10 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
+$DefaultReleaseVersion = '0.0.0'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
 if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
@@ -169,6 +171,12 @@ function Test-GuestConfigurationPackage
         }
 
         # Unzip Guest Configuration binaries
+        try {
+            $Version = $GuestConfigurationManifest.moduleVersion
+        } catch {
+            $Version = $DefaultReleaseVersion
+        }
+        Initialize-Path $Version
         $gcBinPath = Get-GuestConfigBinaryPath
         if(-not (Test-Path $gcBinPath)) {
             $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'

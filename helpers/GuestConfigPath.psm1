@@ -1,5 +1,17 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
+$ReleaseVersion
+
+function Initialize-Path
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [string] $Version
+    )
+
+    $global:ReleaseVersion = $Version
+}
 
 function Get-GuestConfigurationModulePath
 {
@@ -22,7 +34,7 @@ function Get-GuestConfigBinaryPath
     [CmdletBinding()]
     param()
 
-    return Join-path (Join-path $(Get-GuestConfigPath) 'bin') 'DSC'
+    return Join-path (Join-path (Join-path $(Get-GuestConfigPath) 'bin') $ReleaseVersion) 'GC'
 }
 
 function Get-GuestConfigPolicyPath

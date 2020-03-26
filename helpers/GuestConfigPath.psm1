@@ -29,12 +29,20 @@ function Get-InspecProfilePath
     return Join-path $(Get-GuestConfigBinaryPath) 'inspec'
 }
 
+function Get-GuestConfigBinaryRootPath
+{
+    [CmdletBinding()]
+    param()
+
+    return Join-path $(Get-GuestConfigPath) 'bin'
+}
+
 function Get-GuestConfigBinaryPath
 {
     [CmdletBinding()]
     param()
 
-    return Join-path (Join-path (Join-path $(Get-GuestConfigPath) 'bin') $ReleaseVersion) 'GC'
+    return Join-path (Join-path (Join-path $(Get-GuestConfigPath) 'bin') $global:ReleaseVersion) 'GC'
 }
 
 function Get-GuestConfigPolicyPath

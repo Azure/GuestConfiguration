@@ -13,6 +13,9 @@ if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')
     [System.Globalization.CultureInfo]::CurrentCulture = [System.Globalization.CultureInfo]::new('en-US')
 }
 
+#inject version info to GuestConfigPath.psm1
+InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
+
 <#
     .SYNOPSIS
         Creates a Guest Configuration policy package.
@@ -170,14 +173,12 @@ function Test-GuestConfigurationPackage
         }
 
         # Unzip Guest Configuration binaries
-        try {
-            InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
-        } catch {
-            # default: $ReleaseVersion = '0.0.0'
-        }
-        
         $gcBinPath = Get-GuestConfigBinaryPath
+        $gcBinRootPath = Get-GuestConfigBinaryRootPath
         if(-not (Test-Path $gcBinPath)) {
+            # Clean the bin folder
+            Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
+
             $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
             if($(Get-OSPlatform) -eq 'Windows') {
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
@@ -468,7 +469,7 @@ function New-GuestConfigurationPolicy
         # Check if ContentUri is a valid web Uri
         $uri = $ContentUri -as [System.URI]
         if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
-           Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
+            Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
         }
 
         # Generate checksum hash for policy content.

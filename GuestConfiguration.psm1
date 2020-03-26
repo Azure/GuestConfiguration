@@ -196,8 +196,8 @@ function Test-GuestConfigurationPackage
         # Clear Inspec profiles
         Remove-Item $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
 
-        $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
-        $getResult = Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        $testResult = @(Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
+        $getResult = @(Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;

@@ -16,6 +16,9 @@ trigger:
     - .gitignore
     - .github/*
 
+variables:
+  releaseBuild: true
+
 jobs:
   - job: Test
     strategy:
@@ -80,7 +83,6 @@ jobs:
           errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
-            $env:ReleaseBuild = 'true'
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Write-Error "$($Pester.FailedCount) tests failed."

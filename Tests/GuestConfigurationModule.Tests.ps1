@@ -8,16 +8,11 @@ $ErrorActionPreference = 'Stop'
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT') {
     BeforeAll {
+        $dscConfigScriptPath = "$PSScriptRoot/DSCConfig.ps1"
 
         if ($env:ReleaseBuild -eq 'true') {
             Import-Module "$PSScriptRoot/../../Common/AzHelper.psm1"
         }
-
-        $dscConfigScriptPath = "$PSScriptRoot/DSCConfig.ps1"
-        $dscConfigFolderPath = "$PSScriptRoot/DSCConfig"
-        $mofDocPath = "$dscConfigFolderPath/localhost.mof"
-        $testOutputPath = "$PSScriptRoot/output"
-        $policyName = 'testPolicy'
 
 	# Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -83,6 +78,10 @@ DSCConfig -OutputPath $dscConfigFolderPath
     }
     
     InModuleScope -ModuleName 'GuestConfiguration' {
+        $dscConfigFolderPath = "$PSScriptRoot/DSCConfig"
+        $mofDocPath = "$dscConfigFolderPath/localhost.mof"
+        $testOutputPath = "$PSScriptRoot/output"
+        $policyName = 'testPolicy'
 
         It 'Create Custom policy package and test its contents' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testOutputPath/package

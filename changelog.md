@@ -1,5 +1,10 @@
 # Change Log for GuestConfiguration module
 
+## v1.19.2
+
+- Bug fix for Test-GuestConfigurationPackage
+- Added agent versioning
+
 ## v1.19.1
 
 - Bug fix for type error in subcmdlet

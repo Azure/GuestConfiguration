@@ -108,14 +108,6 @@ Import-Certificate -FilePath "$env:Temp/guestconfigurationtest/cert/exported.cer
             Get-Module GuestConfiguration | ForEach-Object {$_.Name} | Should -Be 'GuestConfiguration'
         }
 
-        It 'Extract agent to the right place' {
-            Import-LocalizedData -BaseDirectory $PSScriptRoot/../ -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
-
-            # Verify path exists
-            $AgentBinPath = Join-path (Join-path (Join-path $env:ProgramData 'GuestConfig') 'bin') $GuestConfigurationManifest.moduleVersion
-            Test-Path $AgentBinPath | Should Be $true
-        }
-
         It 'Does not throw while running Script Analyzer' {
             $scriptanalyzer = Invoke-ScriptAnalyzer -path $PSScriptRoot/../ -Severity Error -Recurse -IncludeDefaultRules -EnableExit
             $scriptanalyzer | Should -Be $Null

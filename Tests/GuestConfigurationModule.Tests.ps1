@@ -69,9 +69,12 @@ DSCConfig -OutputPath $dscConfigFolderPath
         }
     }
     BeforeEach {
+        $testOutputPath = "$PSScriptRoot/output"
         Remove-Item $testOutputPath -Force -Recurse -ErrorAction SilentlyContinue
     }
     AfterAll{
+        $dscConfigFolderPath = "$PSScriptRoot/DSCConfig"
+        $testOutputPath = "$PSScriptRoot/output"
         Remove-Item "$PSScriptRoot/DSCConfig.ps1" -Force -ErrorAction SilentlyContinue
         Remove-Item $dscConfigFolderPath -Force -Recurse -ErrorAction SilentlyContinue
         Remove-Item $testOutputPath -Force -Recurse -ErrorAction SilentlyContinue

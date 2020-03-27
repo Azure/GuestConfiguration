@@ -20,13 +20,14 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
 	# Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-        Install-Module -Name xTimeZone -Force
-        Install-Module -Name GuestConfiguration -Force
+        Install-Module -Name 'xTimeZone' -Force
+        Install-Module -Name 'GuestConfiguration' -Force
         if ($IsWindows) {
             Install-Module -Name 'PSPKI' -Repository 'PSGallery' -Force
         }
-        Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
-        Import-Module 'PSDesiredStateConfiguration' -Force
+        Import-Module "$PSScriptRoot/ProxyFunctions.psm1"
+        Import-Module 'PSDesiredStateConfiguration'
+        Import-Module 'GuestConfiguration'
 
 $dscConfig = @"
 Configuration DSCConfig

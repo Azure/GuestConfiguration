@@ -133,6 +133,24 @@ function Initialize-PackageESMachineForGCTesting {
     Login-ToTestAzAccount
 }
 
+function Initialize-MachineForGCTesting {
+    [CmdletBinding()]
+    param ()
+
+    Write-Verbose -Message 'Setting up Azure DevOps machine for Guest Configuration module testing...' -Verbose
+
+    # Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    
+    Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
+
+    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
+    Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
+    Import-Module -Name 'GuestConfiguration'
+    Write-ModuleInfo -ModuleName 'GuestConfiguration'
+}
+
 function Write-ModuleInfo {
     [CmdletBinding()]
     param
@@ -198,6 +216,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
             else {
                 throw 'Current machine is not running Windows. The Guest Configuration module is currently only supported on Windows.'
             }
+        }
+
+        if ($null -eq $Env:releaseBuild -OR $false -eq $Env:releaseBuild) {
+            Initialize-MachineForGCTesting
         }
 
         # Set up test paths

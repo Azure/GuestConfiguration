@@ -237,6 +237,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 throw 'Current machine is not running Windows. The Guest Configuration module is currently only supported on Windows.'
             }
         }
+  
+        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
 
         if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD) {
             Initialize-MachineForGCTesting
@@ -252,6 +254,11 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
         if (Test-CurrentMachineIsWindows) {
             New-TestCertificate
         }
+        
+        if ($false -eq (Test-CurrentMachineIsWindows)) {
+            Import-Module 'PSDesiredStateConfiguration'
+        }
+        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
         # Set up type needed for package extraction
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem

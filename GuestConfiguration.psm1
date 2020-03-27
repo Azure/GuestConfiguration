@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
 if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
@@ -11,6 +12,9 @@ if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')
     [System.Globalization.CultureInfo]::CurrentUICulture = [System.Globalization.CultureInfo]::new('en-US')
     [System.Globalization.CultureInfo]::CurrentCulture = [System.Globalization.CultureInfo]::new('en-US')
 }
+
+#inject version info to GuestConfigPath.psm1
+InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
 
 <#
     .SYNOPSIS
@@ -170,7 +174,11 @@ function Test-GuestConfigurationPackage
 
         # Unzip Guest Configuration binaries
         $gcBinPath = Get-GuestConfigBinaryPath
+        $gcBinRootPath = Get-GuestConfigBinaryRootPath
         if(-not (Test-Path $gcBinPath)) {
+            # Clean the bin folder
+            Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
+
             $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
             if($(Get-OSPlatform) -eq 'Windows') {
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
@@ -459,8 +467,8 @@ function New-GuestConfigurationPolicy
         New-Item -ItemType Directory -Force -Path $policyDefinitionsPath | Out-Null
 
         # Check if ContentUri is a valid web Uri
-	    $uri = $ContentUri -as [System.URI]
-	    if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
+        $uri = $ContentUri -as [System.URI]
+        if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
             Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
         }
 

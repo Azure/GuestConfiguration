@@ -58,12 +58,13 @@ function New-TestCertificate {
     $certificatePath = "Cert:\LocalMachine\My"
     $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
     if ($null -eq $certificate) {
-        Import-Module -Name 'PSPKI' -Force
+        $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'New-SelfSignedCertificateEx.ps1'
+        Import-Module -Name $selfSignedCertModulePath -Force 
         $null = New-SelfsignedCertificateEx `
             -Subject "CN=testcert" `
             -EKU 'Code Signing' `
             -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
-            -SAN "dns:$env:ComputerName" `
+            -SAN $env:ComputerName `
             -FriendlyName 'DSC Credential Encryption certificate' `
             -Exportable `
             -StoreLocation 'LocalMachine' `
@@ -123,53 +124,13 @@ function Initialize-PackageESMachineForGCTesting {
     Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-    
-    Install-Module -Name 'PSPKI' -AllowClobber -Force
 
-    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    if (Test-CurrentMachineIsWindows) {
-        $delimiter = ";"
-    } else {
-        $delimiter = ":"
-    }
-    $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
-
-    $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
-    Import-Module $gcModulePath
+    Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
+    Import-Module -Name 'GuestConfiguration'
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
     Install-AzLibraries
     Login-ToTestAzAccount
-}
-
-function Initialize-MachineForGCTesting {
-    [CmdletBinding()]
-    param ()
-
-    Write-Verbose -Message 'Setting up Azure DevOps machine for Guest Configuration module testing...' -Verbose
-
-    # Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    
-    if (Test-CurrentMachineIsWindows) {
-        Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
-    }
-
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-
-    Install-Module -Name 'PSPKI' -AllowClobber -Force
-
-    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    if (Test-CurrentMachineIsWindows) {
-        $delimiter = ";"
-    } else {
-        $delimiter = ":"
-    }
-    $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
-
-    $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
-    Import-Module $gcModulePath
-    Write-ModuleInfo -ModuleName 'GuestConfiguration'
 }
 
 function Write-ModuleInfo {
@@ -216,11 +177,12 @@ function Write-EnvironmentInfo {
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT', 'GCModule') {
     BeforeAll {
-        if ('true' -eq $Env:RELEASEBUILD) {
+        Write-EnvironmentInfo
+
+        if ($true -eq $Env:releaseBuild) {
             # Import the AzHelper module
-            $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'helpers'
-            $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
+            $gcModuleTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+            $azHelperModulePath = Join-Path -Path $gcModuleTestsFolderPath -ChildPath 'AzHelper.psm1'
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
@@ -237,12 +199,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 throw 'Current machine is not running Windows. The Guest Configuration module is currently only supported on Windows.'
             }
         }
-
-        if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD) {
-            Initialize-MachineForGCTesting
-        }
-
-        Write-EnvironmentInfo
 
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
@@ -295,33 +251,38 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 }
             }
         }
+        
+        if ($false -eq (Test-CurrentMachineIsWindows)) {
+            Import-Module 'PSDesiredStateConfiguration'
+        }
+        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+
+        It 'Validate overall compliance status' {
+            $testPackageResult.complianceStatus | Should Be $false
+        }
+
+        It 'Validate that the resource compliance results are as expected' {
+            $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
+            $testPackageResult.resources[0].complianceStatus | Should Be $false
+            $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
+            $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
+        }
 
         if (Test-CurrentMachineIsWindows) {
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
-
-            It 'Validate overall compliance status' {
-                $testPackageResult.complianceStatus | Should Be $false
-            }
-
-            It 'Validate that the resource compliance results are as expected' {
-                $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-                $testPackageResult.resources[0].complianceStatus | Should Be $false
-                $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
-                $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
-            }
-
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
+        }
         
-            It 'Signed package should exist at output path' {
-                Test-Path -Path $protectPackageResult.Path | Should Be $true
-            }
-    
-            It 'Package should be extractable' {
-                { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
-            }
+        It 'Signed package should exist at output path' {
+            Test-Path -Path $protectPackageResult.Path | Should Be $true
+        }
 
+        It 'Package should be extractable' {
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
+        }
+
+        If (Test-CurrentMachineIsWindows) {
             $catFileName = "$policyName.cat"
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
         
@@ -333,6 +294,59 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
                 $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
             }
+        }
+    }
+
+    Context 'Guest Configuration policy definitions' {
+        $testPolicyName = 'AuditWindowsService'
+        $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+        if (Test-CurrentMachineIsWindows) {
+            $computerInfo = Get-ComputerInfo
+            $currentWindowsOSString = $computerInfo.WindowsProductName
+        }
+        else {
+            $currentWindowsOSString = 'Non-Windows'
+        }
+        $expectedPolicyType = 'Custom'
+        $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+
+        $newGCPolicyParameters = @{
+            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            Description = 'Policy to audit a Windows service'
+            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+            Version     = '1.0.0.0'
+        }
+
+        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+
+        It 'New-GuestConfigurationPolicy should output path to generated policies' {
+            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
+        }
+
+        It 'Generated definition output path should exist' {
+            Test-Path -Path $newGCPolicyResult.Path | Should Be $true
+        }
+
+        $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
+
+        It 'Generated Audit policy file should exist' {
+            Test-Path -Path $auditPolicyFile | Should Be $true
+        }
+
+        $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
+
+        It 'Audit policy should contain expected content' {
+            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+            $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
+            $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
+        }
+
+        $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
+
+        It 'Generated Deploy policy file should exist' {
+            Test-Path -Path $deployPolicyFile | Should Be $true
         }
     }
 
@@ -368,38 +382,18 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 Test-Path -Path $newGCPolicyResult.Path | Should Be $true
             }
 
-            $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
+        $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
 
-            It 'Generated Audit policy file should exist' {
-                Test-Path -Path $auditPolicyFile | Should Be $true
-            }
+        It 'Deploy policy should contain expected content' {
+            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+            $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
+        }
 
-            $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
-            It 'Audit policy should contain expected content' {
-                $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-                $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-                $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
-                $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
-            }
-
-            $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
-
-            It 'Generated Deploy policy file should exist' {
-                Test-Path -Path $deployPolicyFile | Should Be $true
-            }
-
-            $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
-            It 'Deploy policy should contain expected content' {
-                $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-                $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-                $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
-            }
-
+        if ($true -eq $Env:releaseBuild) {
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
 
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })

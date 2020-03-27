@@ -9,6 +9,7 @@ $ErrorActionPreference = 'Stop'
 Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT') {
     BeforeAll {
         $dscConfigScriptPath = "$PSScriptRoot/DSCConfig.ps1"
+        $dscConfigFolderPath = "$PSScriptRoot/DSCConfig"
 
         if ($env:ReleaseBuild -eq 'true') {
             Import-Module "$PSScriptRoot/../../Common/AzHelper.psm1"

@@ -246,6 +246,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
 
         Write-EnvironmentInfo
 
+        if ($null -eq $Env:releaseBuild -OR $false -eq $Env:releaseBuild) {
+            Initialize-MachineForGCTesting
+        }
+
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'

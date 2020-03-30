@@ -2,6 +2,7 @@
 
 ## v1.19.3
 
+- Bug fix for New-GuestConfigurationPolicy not generating correct Linux audit IF
 - Bug fix for New-GuestConfigurationPackage to only copy native resources if needed
 - Bug fix for Test-GuestConfigurationPackage error when only one resource
 

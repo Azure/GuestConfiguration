@@ -63,7 +63,7 @@ function New-TestCertificate {
             -Subject "CN=testcert" `
             -EKU 'Code Signing' `
             -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
-            -SAN $env:ComputerName `
+            -SAN "dns:$env:ComputerName" `
             -FriendlyName 'DSC Credential Encryption certificate' `
             -Exportable `
             -StoreLocation 'LocalMachine' `

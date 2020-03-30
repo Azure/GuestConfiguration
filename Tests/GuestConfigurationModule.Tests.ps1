@@ -278,35 +278,32 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
         
         if ($false -eq (Test-CurrentMachineIsWindows)) {
             Import-Module 'PSDesiredStateConfiguration'
-        }
-        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+        
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
-        It 'Validate overall compliance status' {
-            $testPackageResult.complianceStatus | Should Be $false
-        }
+            It 'Validate overall compliance status' {
+                $testPackageResult.complianceStatus | Should Be $false
+            }
 
-        It 'Validate that the resource compliance results are as expected' {
-            $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-            $testPackageResult.resources[0].complianceStatus | Should Be $false
-            $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
-            $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
-        }
+            It 'Validate that the resource compliance results are as expected' {
+                $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
+                $testPackageResult.resources[0].complianceStatus | Should Be $false
+                $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
+                $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
+            }
 
-        if (Test-CurrentMachineIsWindows) {
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
-        }
         
-        It 'Signed package should exist at output path' {
-            Test-Path -Path $protectPackageResult.Path | Should Be $true
-        }
+            It 'Signed package should exist at output path' {
+                Test-Path -Path $protectPackageResult.Path | Should Be $true
+            }
+    
+            It 'Package should be extractable' {
+                { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
+            }
 
-        It 'Package should be extractable' {
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
-        }
-
-        If (Test-CurrentMachineIsWindows) {
             $catFileName = "$policyName.cat"
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
         

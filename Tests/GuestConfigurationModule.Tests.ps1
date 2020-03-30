@@ -58,8 +58,7 @@ function New-TestCertificate {
     $certificatePath = "Cert:\LocalMachine\My"
     $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
     if ($null -eq $certificate) {
-        $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'New-SelfSignedCertificateEx.ps1'
-        Import-Module -Name $selfSignedCertModulePath -Force 
+        Import-Module -Name 'PSPKI' -Force
         $null = New-SelfsignedCertificateEx `
             -Subject "CN=testcert" `
             -EKU 'Code Signing' `
@@ -124,6 +123,8 @@ function Initialize-PackageESMachineForGCTesting {
     Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+    
+    Install-Module -Name 'PSPKI' -AllowClobber -Force
 
     Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
     Import-Module -Name 'GuestConfiguration'
@@ -147,6 +148,8 @@ function Initialize-MachineForGCTesting {
     }
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
+    Install-Module -Name 'PSPKI' -AllowClobber -Force
 
     Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
     Import-Module -Name 'GuestConfiguration'

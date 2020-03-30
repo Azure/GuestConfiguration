@@ -276,7 +276,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
             }
         }
         
-        if ($false -eq (Test-CurrentMachineIsWindows)) {
+        if (Test-CurrentMachineIsWindows) {
             Import-Module 'PSDesiredStateConfiguration'
         
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path

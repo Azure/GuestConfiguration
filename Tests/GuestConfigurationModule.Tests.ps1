@@ -126,6 +126,14 @@ function Initialize-PackageESMachineForGCTesting {
     
     Install-Module -Name 'PSPKI' -AllowClobber -Force
 
+    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    if (Test-CurrentMachineIsWindows) {
+        $delimiter = ";"
+    } else {
+        $delimiter = ":"
+    }
+    $Env:PSModulePath += "$delimiter$gcModuleFolderPath"
+    
     Import-Module -Name 'GuestConfiguration'
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
@@ -149,6 +157,14 @@ function Initialize-MachineForGCTesting {
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
 
     Install-Module -Name 'PSPKI' -AllowClobber -Force
+
+    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    if (Test-CurrentMachineIsWindows) {
+        $delimiter = ";"
+    } else {
+        $delimiter = ":"
+    }
+    $Env:PSModulePath += "$delimiter$gcModuleFolderPath"
 
     Import-Module -Name 'GuestConfiguration'
     Write-ModuleInfo -ModuleName 'GuestConfiguration'

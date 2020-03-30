@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.19.5
+
+- Bug fix for New-GuestConfigurationPolicy not generating correct Linux audit IF
+
 ## v1.19.2
 
 - Bug fix for Test-GuestConfigurationPackage

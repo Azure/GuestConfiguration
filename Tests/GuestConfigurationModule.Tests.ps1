@@ -68,10 +68,8 @@ function New-TestCertificate {
             -FriendlyName 'Credential Encryption certificate' `
             -Exportable `
             -StoreLocation 'LocalMachine' `
-            -KeyLength 2048 `
-            -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
-            -AlgorithmName 'RSA' `
-            -SignatureAlgorithm 'SHA256'
+            -SignatureAlgorithm 'SHA256' `
+            -Path "$TestDrive\cert.pfx"
     }
 }
 
@@ -311,9 +309,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
             }
 
-            $certificatePath = "Cert:\LocalMachine\My"
-            $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
+            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate "$TestDrive\cert.pfx"
         
             It 'Signed package should exist at output path' {
                 Test-Path -Path $protectPackageResult.Path | Should Be $true

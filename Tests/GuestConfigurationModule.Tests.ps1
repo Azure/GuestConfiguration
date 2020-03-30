@@ -55,22 +55,19 @@ function New-TestCertificate {
     param ()
 
     # Create self signed certificate
-    $certificatePath = "Cert:\LocalMachine\My"
-    $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-    if ($null -eq $certificate) {
-        Import-Module -Name 'PSPKI' -Force
-        $null = New-SelfsignedCertificateEx `
-            -Subject "CN=testcert" `
-            -EKU 'Code Signing' `
-            -KeySpec "Signature" `
-            -KeyUsage 'DigitalSignature' `
-            -SAN "dns:$env:ComputerName" `
-            -FriendlyName 'Credential Encryption certificate' `
-            -Exportable `
-            -StoreLocation 'LocalMachine' `
-            -SignatureAlgorithm 'SHA256' `
-            -Path "$TestDrive\cert.pfx"
-    }
+    Import-Module -Name 'PSPKI' -Force
+    $null = New-SelfsignedCertificateEx `
+        -Subject "CN=testcert" `
+        -EKU 'Code Signing' `
+        -KeySpec "Signature" `
+        -KeyUsage 'DigitalSignature' `
+        -SAN "dns:$env:ComputerName" `
+        -FriendlyName 'Credential Encryption certificate' `
+        -Exportable `
+        -SignatureAlgorithm 'SHA256' `
+        -Password $Env:SYSTEM_JOBID `
+        -Path "$TestDrive\cert.pfx"
+    
 }
 
 function New-TestDscConfiguration {
@@ -128,7 +125,8 @@ function Initialize-PackageESMachineForGCTesting {
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
         $delimiter = ";"
-    } else {
+    }
+    else {
         $delimiter = ":"
     }
     $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
@@ -161,7 +159,8 @@ function Initialize-MachineForGCTesting {
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
         $delimiter = ";"
-    } else {
+    }
+    else {
         $delimiter = ":"
     }
     $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"

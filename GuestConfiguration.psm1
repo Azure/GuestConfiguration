@@ -209,29 +209,18 @@ function Test-GuestConfigurationPackage
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for($i = 0; $i -lt $getResult.Count; $i++) {
-                    if($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
-                    }
+            for($i = 0; $i -lt $getResult.Count; $i++) {
+                if($getResult[$i].ResourceId -ieq $resourceId) {
+                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
                 }
-            }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
             }
         }
-
         $testResult.resources_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for($i = 0; $i -lt $getResult.Count; $i++) {
-                    if($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
-                    }
+            for($i = 0; $i -lt $getResult.Count; $i++) {
+                if($getResult[$i].ResourceId -ieq $resourceId) {
+                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
                 }
-            }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 

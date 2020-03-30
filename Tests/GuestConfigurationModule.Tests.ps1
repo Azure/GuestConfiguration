@@ -73,6 +73,13 @@ function New-TestCertificate {
             -AlgorithmName 'RSA' `
             -SignatureAlgorithm 'SHA256'
     }
+
+    $command = @'
+$Cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { ($_.Subject -eq 'CN=testcert') } | Select-Object -First 1
+Export-Certificate -FilePath "$TestDrive/exported.cer" -Cert $Cert
+Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\LocalMachine\Root
+'@                
+    powershell.exe -NoProfile -NonInteractive -Command $command
 }
 
 function New-TestDscConfiguration {

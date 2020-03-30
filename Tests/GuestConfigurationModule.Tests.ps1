@@ -65,7 +65,7 @@ function New-TestCertificate {
         -FriendlyName 'Credential Encryption certificate' `
         -Exportable `
         -SignatureAlgorithm 'SHA256' `
-        -Password $Env:SYSTEM_JOBID `
+        -Password $($Env:SYSTEM_JOBID | ConvertTo-SecureString -AsPlainText -Force) `
         -Path "$TestDrive\cert.pfx"
     
 }

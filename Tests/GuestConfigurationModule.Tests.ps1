@@ -142,7 +142,9 @@ function Initialize-MachineForGCTesting {
     # Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     
-    Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
+    if (Test-CurrentMachineIsWindows) {
+        Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
+    }
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
 

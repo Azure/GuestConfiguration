@@ -132,9 +132,10 @@ function Initialize-PackageESMachineForGCTesting {
     } else {
         $delimiter = ":"
     }
-    $Env:PSModulePath += "$delimiter$gcModuleFolderPath"
-    
-    Import-Module -Name 'GuestConfiguration'
+    $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
+
+    $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
+    Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
     Install-AzLibraries
@@ -164,9 +165,10 @@ function Initialize-MachineForGCTesting {
     } else {
         $delimiter = ":"
     }
-    $Env:PSModulePath += "$delimiter$gcModuleFolderPath"
+    $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
 
-    Import-Module -Name 'GuestConfiguration'
+    $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
+    Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 }
 

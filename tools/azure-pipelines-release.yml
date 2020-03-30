@@ -23,10 +23,9 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        #Ubuntu18:
+        # comment out until bugs are resolved in PSDesiredStateConfiguration
+        #Ubuntu:
         #  imageName: ubuntu-latest
-        #Ubuntu16:
-        #  imageName: ubuntu-16.04
         MacOSMojave:
           imageName: macOS-10.14
         MacOSCatalina:

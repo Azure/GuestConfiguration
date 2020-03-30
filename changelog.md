@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.19.3
+
+- Big fix for Test-GuestConfigurationPackage error when only one resource
+
 ## v1.19.2
 
 - Bug fix for Test-GuestConfigurationPackage

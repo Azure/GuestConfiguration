@@ -55,19 +55,24 @@ function New-TestCertificate {
     param ()
 
     # Create self signed certificate
-    Import-Module -Name 'PSPKI' -Force
-    $null = New-SelfsignedCertificateEx `
-        -Subject "CN=testcert" `
-        -EKU 'Code Signing' `
-        -KeySpec "Signature" `
-        -KeyUsage 'DigitalSignature' `
-        -SAN "dns:$env:ComputerName" `
-        -FriendlyName 'Credential Encryption certificate' `
-        -Exportable `
-        -SignatureAlgorithm 'SHA256' `
-        -Password $($Env:SYSTEM_JOBID | ConvertTo-SecureString -AsPlainText -Force) `
-        -Path "$TestDrive\cert.pfx"
-    
+    $certificatePath = "Cert:\LocalMachine\My"
+    $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+    if ($null -eq $certificate) {
+        $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'New-SelfSignedCertificateEx.ps1'
+        Import-Module -Name $selfSignedCertModulePath -Force 
+        $null = New-SelfsignedCertificateEx `
+            -Subject "CN=testcert" `
+            -EKU 'Code Signing' `
+            -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
+            -SAN $env:ComputerName `
+            -FriendlyName 'DSC Credential Encryption certificate' `
+            -Exportable `
+            -StoreLocation 'LocalMachine' `
+            -KeyLength 2048 `
+            -ProviderName 'Microsoft Enhanced Cryptographic Provider v1.0' `
+            -AlgorithmName 'RSA' `
+            -SignatureAlgorithm 'SHA256'
+    }
 }
 
 function New-TestDscConfiguration {
@@ -120,8 +125,6 @@ function Initialize-PackageESMachineForGCTesting {
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
     
-    Install-Module -Name 'PSPKI' -AllowClobber -Force
-
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
         $delimiter = ";"
@@ -153,8 +156,6 @@ function Initialize-MachineForGCTesting {
     }
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-
-    Install-Module -Name 'PSPKI' -AllowClobber -Force
 
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
@@ -308,7 +309,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
             }
 
-            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate "$TestDrive\cert.pfx"
+            $certificatePath = "Cert:\LocalMachine\My"
+            $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
         
             It 'Signed package should exist at output path' {
                 Test-Path -Path $protectPackageResult.Path | Should Be $true

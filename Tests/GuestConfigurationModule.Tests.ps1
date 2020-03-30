@@ -126,7 +126,6 @@ function Initialize-PackageESMachineForGCTesting {
     
     Install-Module -Name 'PSPKI' -AllowClobber -Force
 
-    Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
     Import-Module -Name 'GuestConfiguration'
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
@@ -151,7 +150,6 @@ function Initialize-MachineForGCTesting {
 
     Install-Module -Name 'PSPKI' -AllowClobber -Force
 
-    Install-Module -Name 'GuestConfiguration' -AllowClobber -Force
     Import-Module -Name 'GuestConfiguration'
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 }

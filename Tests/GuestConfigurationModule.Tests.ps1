@@ -62,9 +62,10 @@ function New-TestCertificate {
         $null = New-SelfsignedCertificateEx `
             -Subject "CN=testcert" `
             -EKU 'Code Signing' `
-            -KeyUsage 'KeyEncipherment, DataEncipherment, DigitalSignature' `
+            -KeySpec "Signature" `
+            -KeyUsage 'DigitalSignature' `
             -SAN "dns:$env:ComputerName" `
-            -FriendlyName 'DSC Credential Encryption certificate' `
+            -FriendlyName 'Credential Encryption certificate' `
             -Exportable `
             -StoreLocation 'LocalMachine' `
             -KeyLength 2048 `

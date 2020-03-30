@@ -24,10 +24,8 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        #Ubuntu18:
-        #  imageName: ubuntu-latest
-        #Ubuntu16:
-        #  imageName: ubuntu-16.04
+        Ubuntu:
+          imageName: ubuntu-latest
         MacOSMojave:
           imageName: macOS-10.14
         MacOSCatalina:

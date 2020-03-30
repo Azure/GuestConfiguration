@@ -79,9 +79,11 @@ function New-GuestConfigurationPackage
         # Copy DSC resources
         Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
 
-        # Copy Chef resource and profiles.
-        Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
-
+        if ($null -ne $ChefInspecProfilePath) {
+            # Copy Chef resource and profiles.
+            Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
+        }
+        
         # Create Guest Configuration Package.
         $packagePath = Join-Path $Path $Name
         New-Item -ItemType Directory -Force -Path $packagePath | Out-Null

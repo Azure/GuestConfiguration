@@ -246,7 +246,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
 
         Write-EnvironmentInfo
 
-        if ($null -eq $Env:releaseBuild -OR $false -eq $Env:releaseBuild) {
+        if ($null -eq $Env:RELEASEBUILD -OR $false -eq $Env:RELEASEBUILD) {
             Initialize-MachineForGCTesting
         }
 

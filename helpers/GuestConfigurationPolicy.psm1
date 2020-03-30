@@ -762,7 +762,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
                         field = $RPName + '/imagePublisher'
                         in    = @(
                             'microsoft-aks',
-                            'AzureDatabricks',
                             'qubole-inc',
                             'datastax',
                             'couchbase',
@@ -1308,7 +1307,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                         field = $RPName + '/imagePublisher'
                         in    = @(
                             'microsoft-aks',
-                            'AzureDatabricks',
                             'qubole-inc',
                             'datastax',
                             'couchbase',

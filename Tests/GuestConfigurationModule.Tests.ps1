@@ -199,10 +199,11 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
     BeforeAll {
         Write-EnvironmentInfo
 
-        if ($true -eq $Env:releaseBuild) {
+        if ('true' -eq $Env:RELEASEBUILD) {
             # Import the AzHelper module
-            $gcModuleTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $azHelperModulePath = Join-Path -Path $gcModuleTestsFolderPath -ChildPath 'AzHelper.psm1'
+            $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
+            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'helpers'
+            $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
@@ -220,7 +221,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
             }
         }
 
-        if ($null -eq $Env:releaseBuild -OR $false -eq $Env:releaseBuild) {
+        if ($null -eq $Env:RELEASEBUILD -OR $false -eq $Env:RELEASEBUILD) {
             Initialize-MachineForGCTesting
         }
 
@@ -275,10 +276,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
                 }
             }
         }
-        
+
         if (Test-CurrentMachineIsWindows) {
-            Import-Module 'PSDesiredStateConfiguration'
-        
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
             It 'Validate overall compliance status' {
@@ -318,70 +317,70 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
         }
     }
 
-    Context 'Guest Configuration policy definitions' {
-        $testPolicyName = 'AuditWindowsService'
-        $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
-        if (Test-CurrentMachineIsWindows) {
-            $computerInfo = Get-ComputerInfo
-            $currentWindowsOSString = $computerInfo.WindowsProductName
-        }
-        else {
-            $currentWindowsOSString = 'Non-Windows'
-        }
-        $expectedPolicyType = 'Custom'
-        $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+    if ('true' -eq $Env:RELEASEBUILD) {
+        Context 'Guest Configuration policy definitions' {
+            $testPolicyName = 'AuditWindowsService'
+            $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+            if (Test-CurrentMachineIsWindows) {
+                $computerInfo = Get-ComputerInfo
+                $currentWindowsOSString = $computerInfo.WindowsProductName
+            }
+            else {
+                $currentWindowsOSString = 'Non-Windows'
+            }
+            $expectedPolicyType = 'Custom'
+            $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
 
-        $newGCPolicyParameters = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-            Version     = '1.0.0.0'
-        }
+            $newGCPolicyParameters = @{
+                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+                Description = 'Policy to audit a Windows service'
+                Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+                Version     = '1.0.0.0'
+            }
 
-        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
 
-        It 'New-GuestConfigurationPolicy should output path to generated policies' {
-            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
-        }
+            It 'New-GuestConfigurationPolicy should output path to generated policies' {
+                $newGCPolicyResult.Path | Should Not BeNullOrEmpty
+            }
 
-        It 'Generated definition output path should exist' {
-            Test-Path -Path $newGCPolicyResult.Path | Should Be $true
-        }
+            It 'Generated definition output path should exist' {
+                Test-Path -Path $newGCPolicyResult.Path | Should Be $true
+            }
 
-        $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
 
-        It 'Generated Audit policy file should exist' {
-            Test-Path -Path $auditPolicyFile | Should Be $true
-        }
+            It 'Generated Audit policy file should exist' {
+                Test-Path -Path $auditPolicyFile | Should Be $true
+            }
 
-        $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
+            $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
 
-        It 'Audit policy should contain expected content' {
-            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-            $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
-            $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
-        }
+            It 'Audit policy should contain expected content' {
+                $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+                $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+                $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
+                $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
+            }
 
-        $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
+            $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
 
-        It 'Generated Deploy policy file should exist' {
-            Test-Path -Path $deployPolicyFile | Should Be $true
-        }
+            It 'Generated Deploy policy file should exist' {
+                Test-Path -Path $deployPolicyFile | Should Be $true
+            }
 
-        $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
+            $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
 
-        It 'Deploy policy should contain expected content' {
-            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-            $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
-        }
+            It 'Deploy policy should contain expected content' {
+                $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+                $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+                $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
+                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
+                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
+                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
+            }
 
-        if ($true -eq $Env:releaseBuild) {
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
 
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })

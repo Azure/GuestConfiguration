@@ -4,6 +4,10 @@
 
 - Bug fix for New-GuestConfigurationPackage to only copy native resources if needed
 
+## v1.19.3
+
+- Bug fix for Test-GuestConfigurationPackage error when only one resource
+
 ## v1.19.2
 
 - Bug fix for Test-GuestConfigurationPackage

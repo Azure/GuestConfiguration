@@ -1,7 +1,7 @@
 $AZURE_AUTOMATION_TEST_SUBSCRIPTION = 'Guest Configuration Automation Test'
 $Azure_API_TOKEN_EXPIRATION_HR = 1
 $Azure_SUBSCRIPTION_ID = $Env:Azure_SUBSCRIPTION_ID
-if ((Test-Path Env:\DSC_APPVEYOR_ENVIRONMENT_TEST_REGION) -and ($env:DSC_APPVEYOR_ENVIRONMENT_TEST_REGION -eq 'Test'))
+if ((Test-Path Env:\DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION) -and ($env:DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION -eq 'Test'))
 {
     # For adhoc testing in test region use a different subscription 
     $Azure_SUBSCRIPTION_ID = $Env:Azure_Test_SUBSCRIPTION_ID
@@ -31,9 +31,9 @@ function Install-AzLibraries{
 
 <#
 .Synopsis
-   Test if current enviroment is Appveyor worker enviroment.
+   Test if current enviroment is Azure DevOps worker enviroment.
 .DESCRIPTION
-   If the current enviroment is Appveyor worker enviroment the varaibles defined in the projects Appveyor.yml will be availabe.
+   If the current enviroment is Azure DevOps worker enviroment the varaibles defined in the projects Azure DevOps.yml will be availabe.
 .EXAMPLE
    Test-ServicePrincipalAccountInEnviroment 
 #>
@@ -59,7 +59,7 @@ function Login-ToAzure
         [string]
         $SubscriptionID=$Azure_SUBSCRIPTION_ID
     )
-    if((Test-Path env:\APPVEYOR) -or (Test-Path env:\PKGES)){
+    if((Test-Path env:\AZUREDEVOPS) -or (Test-Path env:\PKGES)){
       
         Login-ToTestAzAccount -SubscriptionID $SubscriptionID
     }
@@ -87,7 +87,7 @@ function Login-ToTestAzAccount
        
       if (-not(Test-ServicePrincipalAccountInEnviroment))
       {
-          throw "Test Service Principal account is only availabe under the appveyor worker context"
+          throw "Test Service Principal account is only availabe under the Azure DevOps worker context"
       }
 
     
@@ -103,14 +103,14 @@ function Login-ToTestAzAccount
 .DESCRIPTION
    This token will be generated using the test service principal account and will have 1 hr duration for expriation and will be used to invoke Azure REST APIs
 .EXAMPLE
-   Get-AzureAccessTokenInAppveyor
+   Get-AzureAccessTokenInAzureDevOps
 #>
-function Get-AzureAccessTokenInAppveyor
+function Get-AzureAccessTokenInAzureDevOps
 {
     param()
     if (-not(Test-ServicePrincipalAccountInEnviroment))
     {
-      throw "Test Service Principal account is only availabe under the appveyor worker context"
+      throw "Test Service Principal account is only availabe under the Azure DevOps worker context"
     }
   
     $TokenEndpoint = {https://login.windows.net/{0}/oauth2/token} -f $env:AzureTenantID
@@ -188,7 +188,7 @@ function Get-AzureApiToken
     } 
     if (Test-ServicePrincipalAccountInEnviroment)
     {
-        $apiToken = Get-AzureAccessTokenInAppveyor
+        $apiToken = Get-AzureAccessTokenInAzureDevOps
         $token = $apiToken.access_token
         Set-EnvAzureApiToken -Token $token
     }
@@ -207,7 +207,7 @@ function Get-configurationAssignment{
     $resourceGroup = $env:TestAzureResourceGroupName
     )
 
-    $token = Get-AzureAccessTokenInAppveyor 
+    $token = Get-AzureAccessTokenInAzureDevOps 
     $headers = @{
                 'Authorization'="Bearer $($token.access_token)"
                 'Content-Type'= 'application/json'
@@ -234,7 +234,7 @@ function Get-AllConfigurationAssignmentBySubscription{
     
     )
 
-    $token = Get-AzureAccessTokenInAppveyor 
+    $token = Get-AzureAccessTokenInAzureDevOps 
     $headers = @{
                 'Authorization'="Bearer $($token.access_token)"
                 'Content-Type'= 'application/json'
@@ -263,7 +263,7 @@ function Get-AllConfigurationAssignmentByResourceGroup{
         $resourceGroup = $env:TestAzureResourceGroupName
     )
 
-    $token = Get-AzureAccessTokenInAppveyor 
+    $token = Get-AzureAccessTokenInAzureDevOps 
     $headers = @{
                 'Authorization'="Bearer $($token.access_token)"
                 'Content-Type'= 'application/json'
@@ -399,9 +399,9 @@ function Deploy-SetupTemplate {
     [System.Environment]::SetEnvironmentVariable('TestAzureResourceGroupName', $rgName, [System.EnvironmentVariableTarget]::Machine)
     [System.Environment]::SetEnvironmentVariable('TestAzureResourceGroupName', $rgName, [System.EnvironmentVariableTarget]::Process)
 
-    if (Test-Path Env:\DSC_APPVEYOR_ENVIRONMENT_TEST_REGION)
+    if (Test-Path Env:\DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION)
     {
-       if ($env:DSC_APPVEYOR_ENVIRONMENT_TEST_REGION -eq 'Test')
+       if ($env:DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION -eq 'Test')
        {
             $DeploymentLocation = 'centraluseuap'
             $imageinfo = Get-Content (Join-Path $basePath 'template\all_test_vm.json')

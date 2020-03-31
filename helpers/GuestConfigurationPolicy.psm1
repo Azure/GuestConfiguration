@@ -1344,12 +1344,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration',
 
@@ -1378,7 +1378,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
-            policyType  = 'Custom'
+            policyType  = 'BuiltIn'
             mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{
@@ -1398,6 +1398,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
     }
+     
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
@@ -1576,14 +1577,50 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                                 notLike = 'SQL2008*'
                             }
                         )
-                    }
-                )
-            }
-        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        exists = 'true'
+                                    },
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        like  = 'Windows*'
+                                    }
+                                )
+                            },
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/imageSKU"
+                                        exists = 'false'
+                                    },
+                                    [Ordered]@{
+                                        allOf = @(
+                                            [Ordered]@{ 
+                                                field   = "Microsoft.Compute/imageSKU"
+                                                notLike = '2008*'
+                                            },
+                                            [Ordered]@{
+                                                field   = "Microsoft.Compute/imageOffer"
+                                                notLike = 'SQL2008*'
+                                            }
+                                        )
+                                    }
+                                )
                             }
                         )
                     }
                 )
+            }
+        )
+                    }
+                )
+            }
+        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
@@ -1861,9 +1898,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     $existenceConditionList = [Ordered]@{
-        field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
-        equals = 'Compliant'
+        allOf = [System.Collections.ArrayList]@()
     }
+    $existenceConditionList['allOf'].Add([Ordered]@{
+            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+            equals = 'Compliant'
+        })
+    $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
+    $existenceConditionList['allOf'].Add($parametersExistenceCondition)
 
     $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 

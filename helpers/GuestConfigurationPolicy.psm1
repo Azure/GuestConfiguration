@@ -115,15 +115,42 @@ function Copy-DscResources {
     catch {
         write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
     }
-    Copy-Item "$($latestModule.ModuleBase)/*" $guestConfigModulePath -Recurse -Force
-
+    Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
+    
+    # Copies DSC resource modules
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
-        # if resource is not a GuestConfiguration module resource.
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            if ($_.ModuleName -ne 'GuestConfiguration') {
+                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            }
         }
     }
+
+    # PowerShell modules required by DSC resource module
+    $powershellModulesToCopy = @{ }
+    $modulesToCopy.Values | ForEach-Object {
+        if ($_.ModuleName -ne 'GuestConfiguration') {
+            $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
+                $requiredModule.RequiredModules | ForEach-Object {
+                    if ($null -ne $_.Version) {
+                        $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+                        Write-Verbose "$($_.Name) is a required PowerShell module"
+                    }
+                    else {
+                        Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
+                    }
+                }
+            }
+        }
+    }
+
+    $modulesToCopy += $powershellModulesToCopy
+
     $modulesToCopy.Values | ForEach-Object {
         $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
         if ($null -ne $moduleToCopy) {
@@ -146,7 +173,7 @@ function Copy-DscResources {
         }
     }
 
-    # Remove DSC binaries from package.
+    # Remove DSC binaries from package (just a safeguard).
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
     Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
 }
@@ -190,6 +217,7 @@ function Copy-ChefInspecDependencies {
             }
 
             $chefResourcePath = Join-Path $nativeResourcePath 'MSFT_ChefInSpecResource'
+            Convert-FileToUnixLineEndings -FilePath $chefResourcePath/install_inspec.sh
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }
@@ -762,7 +790,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
                         field = $RPName + '/imagePublisher'
                         in    = @(
                             'microsoft-aks',
-                            'AzureDatabricks',
                             'qubole-inc',
                             'datastax',
                             'couchbase',
@@ -1308,7 +1335,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                         field = $RPName + '/imagePublisher'
                         in    = @(
                             'microsoft-aks',
-                            'AzureDatabricks',
                             'qubole-inc',
                             'datastax',
                             'couchbase',

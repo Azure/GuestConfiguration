@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- Include PowerShell modules when they are required for DSC modules in packages
 - More target file copy when creating custom packages
 - Remove DataBricks from policy IF statements
 - Support for custom Policy categories

@@ -1940,7 +1940,11 @@ function New-GuestConfigurationPolicyDefinition {
         [Hashtable]
         $AuditIfNotExistsInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
+        [Hashtable]
+        $AuditIfNotExistsInfo,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows'

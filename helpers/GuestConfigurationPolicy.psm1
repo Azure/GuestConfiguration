@@ -217,6 +217,7 @@ function Copy-ChefInspecDependencies {
             }
 
             $chefResourcePath = Join-Path $nativeResourcePath 'MSFT_ChefInSpecResource'
+            Convert-FileToUnixLineEndings -FilePath $chefResourcePath/install_inspec.sh
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }

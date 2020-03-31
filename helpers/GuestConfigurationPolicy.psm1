@@ -1890,24 +1890,21 @@ function New-CustomGuestConfigPolicy {
         [Hashtable]
         $AuditPolicyInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [Hashtable]
-        $ParameterInfo
+        $AuditIfNotExistsInfo,
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Windows', 'Linux')]
+        [String]
+        $Platform = 'Windows'
     )
-    if ($ParameterInfo.ContainsKey('ConfigurationValue'))
-    {
-        if ($ParameterInfo.ConfigurationValue.StartsWith('[') -and $ParameterInfo.ConfigurationValue.EndsWith(']'))
-        {
-            $assignmentParameterStringValue = $ParameterInfo.ConfigurationValue.Substring(1, $ParameterInfo.ConfigurationValue.Length - 2)
-        }
-        else
-        {
-            $assignmentParameterStringValue = "'$($ParameterInfo.ConfigurationValue)'"
-        }
+
+    $existingPolicies = Get-AzPolicyDefinition
+    
+    $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditIfNotExistsInfo.DisplayName) }
+    if ($null -ne $existingAuditPolicy) {
+        Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
+        $AuditIfNotExistsInfo['Guid'] = $existingAuditPolicy.Name
     }
-    else
-    {
-        $assignmentParameterStringValue = "parameters('$($ParameterInfo.ReferenceName)')"
-    }
-    return $assignmentParameterStringValue
 }

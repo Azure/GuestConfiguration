@@ -1944,7 +1944,7 @@ function New-GuestConfigurationPolicyDefinition {
         [Hashtable]
         $AuditIfNotExistsInfo,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter()]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows'
@@ -2244,6 +2244,7 @@ function Get-GuestConfigurationAssignmentParametersExistenceConditionSection
     }
     return $existenceConditionHashtable
 }
+
 <#
     .SYNOPSIS
         Retrieves the name of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment.
@@ -2265,6 +2266,7 @@ function Get-GuestConfigurationAssignmentParameterName
     $assignmentParameterName = "$($ParameterInfo.MofResourceReference);$($ParameterInfo.MofParameterName)"
     return $assignmentParameterName
 }
+
 <#
     .SYNOPSIS
         Retrieves the string value of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment as part of the parameter hash.

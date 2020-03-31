@@ -1528,6 +1528,10 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
 
         [Parameter()]
         [String]
+        $Category,
+
+        [Parameter()]
+        [String]
         $Guid
     )
 
@@ -1547,7 +1551,7 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
             policyType  = 'Custom'
             description = $Description
             metadata    = [Ordered]@{
-                category = 'Guest Configuration'
+                category = $Category
             }
         }
     }

@@ -528,11 +528,13 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."

@@ -1290,52 +1290,85 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
 <#
     .SYNOPSIS
-        Creates a new audit policy definition for a guest configuration policy definition set.
+        Creates a new policy for guest configuration.
 #>
-function New-GuestConfigurationAuditPolicyDefinition {
+function New-GuestConfigurationPolicyDefinition {
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
         [String]
-        $FileName,
+        $PolicyFolderPath,
 
         [Parameter(Mandatory = $true)]
-        [String]
-        $FolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $DisplayName,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $Description,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $ConfigurationName,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $ReferenceId,
+        [Hashtable]
+        $AuditIfNotExistsInfo,
 
         [Parameter()]
+        [ValidateSet('Windows', 'Linux')]
+        [String]
+        $Platform = 'Windows'
+    )
+
+    if (Test-Path -Path $PolicyFolderPath) {
+        $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
+    }
+
+    $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
+    
+    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
+        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+    }
+    
+}
+
+function New-CustomGuestConfigPolicy {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $PolicyFolderPath,
+
+        [Parameter(Mandatory = $false)]
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
 
         [Parameter(Mandatory = $false)]
+        [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
+        [String]
+        $RPName = 'Microsoft.Compute',
+
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('virtualMachines', 'machines')]
+        [String]
+        $ResourceName = 'virtualMachines',
+
+        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration',
-
+        
         [Parameter()]
         [Hashtable[]]
-        $Tag
+        $ParameterInfo,
+
+        [Parameter()]
+        [String]
+        $ContentUri,
+
+        [Parameter()]
+        [String]
+        $ContentHash,
+
+        [Parameter()]
+        [String]
+        $Version = '1.*'
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1380,22 +1413,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
-            anyOf = @(
+            allOf = @(
                 [Ordered]@{
-                    allOf = @(
-                        [Ordered]@{
-                            field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                        }
-                    )
-                },
-                [Ordered]@{
-                    allOf = @(
-                        [Ordered]@{
-                            field  = "type"
-                            equals = "Microsoft.HybridCompute/machines"
-                        }
-                    )
+                    field  = 'type'
+                    equals = $RPName + '/' + $ResourceName
                 }
             )
         }
@@ -1406,10 +1427,29 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 name = $ConfigurationName
             }
         }
+
+    }
+
+    $computeSection = [Ordered]@{
+        allOf = @(
+            [Ordered]@{
+                field  = "type"
+                equals = "Microsoft.Compute/virtualMachines"
+            }
+        )
+    }
+
+    $hybridSection = [Ordered]@{
+        allOf = @(
+            [Ordered]@{
+                field  = "type"
+                equals = "Microsoft.HybridCompute/machines"
+            }
+        )
     }
 
     if ($Platform -ieq 'Windows') {
-        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
+        $computeSection['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1558,48 +1598,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                 )
                             }
                         )
-                    },
-                    [Ordered]@{
-                        allOf = @(
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
-                                        exists = 'true'
-                                    },
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like  = 'Windows*'
-                                    }
-                                )
-                            },
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/imageSKU"
-                                        exists = 'false'
-                                    },
-                                    [Ordered]@{
-                                        allOf = @(
-                                            [Ordered]@{ 
-                                                field   = "Microsoft.Compute/imageSKU"
-                                                notLike = '2008*'
-                                            },
-                                            [Ordered]@{
-                                                field   = "Microsoft.Compute/imageOffer"
-                                                notLike = 'SQL2008*'
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
                     }
                 )
             }
         )
 
-        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
+        $hybridSection['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like  = "windows*"
@@ -1607,7 +1611,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         )
     }
     elseif ($Platform -ieq 'Linux') {
-        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
+        $computeSection['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -1846,34 +1850,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
-    # if there is atleast one tag
-    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
-        # capture existing 'anyOf' section
-        $anyOf = $policyRuleHashtable['if']
-        # replace with new 'allOf' at top order
-        $policyRuleHashtable['if'] = [Ordered]@{
-            allOf = @(
-            )
-        }
-        # add tags section under new 'allOf'
-        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-            allOf = @(
-            )
-        }
-        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
-        $policyRuleHashtable['if']['allOf'] += $anyOf
-        # add each tag individually to tags 'allOf'
-        for ($i = 0; $i -lt $Tag.count; $i++) {
-            # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
-                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
-                    field  = "tags.$($Tag[$i].Keys)"
-                    equals = "$($Tag[$i].Values)"
-                }
-            }
-        }
-    }
-
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }
@@ -1901,43 +1877,9 @@ function New-GuestConfigurationAuditPolicyDefinition {
     return $auditPolicyGuid
 }
 
-<#
-    .SYNOPSIS
-        Creates a new policy for guest configuration.
-#>
-function New-GuestConfigurationPolicyDefinition {
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $PolicyFolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $AuditIfNotExistsInfo,
-
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows'
-    )
-
-    if (Test-Path -Path $PolicyFolderPath) {
-        $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
-    }
-
-    $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
-    
-    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
-    }
-    
-}
-
 function New-CustomGuestConfigPolicy {
     [CmdletBinding()]
+    [OutputType([String])]
     param
     (
         [Parameter(Mandatory = $true)]
@@ -1946,162 +1888,8 @@ function New-CustomGuestConfigPolicy {
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditIfNotExistsInfo,
+        $AuditPolicyInfo,
 
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows',
-
-        [Parameter()]
-        [string]
-        $Category = 'Guest Configuration'
-    )
-
-    $existingPolicies = Get-AzPolicyDefinition
-    
-    $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditIfNotExistsInfo.DisplayName) }
-    if ($null -ne $existingAuditPolicy) {
-        Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
-        $AuditIfNotExistsInfo['Guid'] = $existingAuditPolicy.Name
-    }
-
-    New-GuestConfigurationPolicyDefinition @PSBoundParameters
-}
-
-<#
-    .SYNOPSIS
-        Define the policy parameter mapping to the parameters of the MOF file. 
-    .PARAMETER ParameterInfo
-        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
-#>
-function  Get-ParameterMappingForAINE
-{
-    [CmdletBinding()]
-    [OutputType([System.Collections.Specialized.OrderedDictionary])]
-    param
-    (
-        [Parameter(Mandatory = $true)]   
-        [array]     
-        $ParameterInfo
-    )
-    $paramMapping =  @{}
-    foreach($item in $ParameterInfo)
-    {
-        $paramMapping[$item.ReferenceName] = ("{0};{1}" -f $item.MofResourceReference, $item.MofParameterName)
-    }
-    return $paramMapping
-}
-
-<#
-    .SYNOPSIS
-        Define the parmameters of AINE policy for AuditWithout DINE scenario.
-    .PARAMETER ParameterInfo
-        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
-#>
-function Get-ParameterDefinitionsAINE
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]   
-        [Hashtable[]]$ParameterInfo
-    )
-    
-    $paramDefinition = [Ordered]@{}
-    foreach($item in $ParameterInfo)
-    {
-        $paramDefinition[$($item.ReferenceName)] = @{
-                type = $item.Type 
-                metadata = [Ordered]@{
-                    displayName = $item.DisplayName
-                    description = $item.Description
-                }
-         }
-         if ($item.ContainsKey('AllowedValues'))
-         {
-            $paramDefinition[$($item.ReferenceName)]['allowedValues'] = $item.AllowedValues
-         }
-         if ($item.ContainsKey('DefaultValue'))
-         {
-            $paramDefinition[$($item.ReferenceName)]['defaultValue'] = $item.DefaultValue  
-         }
-    }
-    return $paramDefinition
-}
-
-<#
-    .SYNOPSIS
-        Retrieves a policy section check for the existence of a Guest Configuration Assignment with the specified parameters.
-    .PARAMETER ParameterInfo
-        A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
-    .EXAMPLE
-        Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $parameterInfo
-#>
-function Get-GuestConfigurationAssignmentParametersExistenceConditionSection
-{
-    [CmdletBinding()]
-    [OutputType([System.Collections.Specialized.OrderedDictionary])]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [Hashtable[]]
-        $ParameterInfo
-    )
-    $parameterValueConceatenatedStringList = @()
-    foreach ($currentParameterInfo in $ParameterInfo)
-    {
-        $assignmentParameterName = Get-GuestConfigurationAssignmentParameterName -ParameterInfo $currentParameterInfo
-        $assignmentParameterStringValue = Get-GuestConfigurationAssignmentParameterStringValue -ParameterInfo $currentParameterInfo
-        $currentParameterValueConcatenatedString = "'$assignmentParameterName', '=', $assignmentParameterStringValue"
-        $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
-    }
-    $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
-    $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
-    $existenceConditionHashtable = [Ordered]@{
-        field = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
-        equals = $parameterExistenceConditionEqualsValue
-    }
-    return $existenceConditionHashtable
-}
-
-<#
-    .SYNOPSIS
-        Retrieves the name of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment.
-    .PARAMETER ParameterInfo
-        A single hashtable indicating the necessary parameter info from which to retrieve the parameter name.
-    .EXAMPLE
-        Get-GuestConfigurationAssignmentParameterName -ParameterInfo $currentParameterInfo
-#>
-function Get-GuestConfigurationAssignmentParameterName
-{
-    [CmdletBinding()]
-    [OutputType([String])]
-    param
-    (
-        [Parameter()]
-        [Hashtable]
-        $ParameterInfo
-    )
-    $assignmentParameterName = "$($ParameterInfo.MofResourceReference);$($ParameterInfo.MofParameterName)"
-    return $assignmentParameterName
-}
-
-<#
-    .SYNOPSIS
-        Retrieves the string value of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment as part of the parameter hash.
-    .PARAMETER ParameterInfo
-        A single hashtable indicating the necessary parameter info from which to retrieve the parameter string value.
-    .EXAMPLE
-        Get-GuestConfigurationAssignmentParameterStringValue -ParameterInfo $currentParameterInfo
-#>
-function Get-GuestConfigurationAssignmentParameterStringValue
-{
-    [CmdletBinding()]
-    [OutputType([String])]
-    param
-    (
         [Parameter()]
         [Hashtable]
         $ParameterInfo

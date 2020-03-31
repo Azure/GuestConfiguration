@@ -135,7 +135,7 @@ function Copy-DscResources {
     $modulesToCopy.Values | ForEach-Object {
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
-            if (($requiredModule | Get-Member -PropertyType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
+            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
                 $requiredModule.RequiredModules | ForEach-Object {
                     if ($null -ne $_.Version) {
                         $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }

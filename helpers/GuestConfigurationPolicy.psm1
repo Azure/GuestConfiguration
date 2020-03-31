@@ -7,8 +7,9 @@ function Update-PolicyParameter {
     [CmdletBinding()]
     param
     (
-        [Parameter()]
-        [Hashtable[]] $Parameter
+        [parameter()]
+        [Hashtable[]]
+        $Parameter
     )
     $updatedParameterInfo = @()
 
@@ -262,7 +263,7 @@ function Update-MofDocumentParameters {
         [String]
         $Path,
 
-        [Parameter()]
+        [parameter()]
         [Hashtable[]] $Parameter
     )
 
@@ -1319,11 +1320,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [String]
         $ReferenceId,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter()]
         [String]
         $Guid,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter()]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
@@ -1900,6 +1901,45 @@ function New-GuestConfigurationAuditPolicyDefinition {
     return $auditPolicyGuid
 }
 
+<#
+    .SYNOPSIS
+        Creates a new policy for guest configuration.
+#>
+function New-GuestConfigurationPolicyDefinition {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $PolicyFolderPath,
+
+        [Parameter(Mandatory = $true)]
+        [Hashtable[]]
+        $AuditPolicyInfo,
+
+        [Parameter(Mandatory = $true)]
+        [Hashtable]
+        $AuditIfNotExistsInfo,
+
+        [Parameter()]
+        [ValidateSet('Windows', 'Linux')]
+        [String]
+        $Platform = 'Windows'
+    )
+
+    if (Test-Path -Path $PolicyFolderPath) {
+        $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
+    }
+
+    $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
+    
+    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
+        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+    }
+    
+}
+
 function New-CustomGuestConfigPolicy {
     [CmdletBinding()]
     param
@@ -1909,10 +1949,14 @@ function New-CustomGuestConfigPolicy {
         $PolicyFolderPath,
 
         [Parameter(Mandatory = $true)]
+        [Hashtable[]]
+        $AuditPolicyInfo,
+
+        [Parameter(Mandatory = $true)]
         [Hashtable]
         $AuditIfNotExistsInfo,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter()]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
@@ -2029,6 +2073,7 @@ function Get-GuestConfigurationAssignmentParametersExistenceConditionSection
     }
     return $existenceConditionHashtable
 }
+
 <#
     .SYNOPSIS
         Retrieves the name of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment.
@@ -2050,6 +2095,7 @@ function Get-GuestConfigurationAssignmentParameterName
     $assignmentParameterName = "$($ParameterInfo.MofResourceReference);$($ParameterInfo.MofParameterName)"
     return $assignmentParameterName
 }
+
 <#
     .SYNOPSIS
         Retrieves the string value of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment as part of the parameter hash.

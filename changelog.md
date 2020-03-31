@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- Support for custom Policy categories
 - Return error when attempting to protect package using invalid certificate
 
 ## v1.19.3

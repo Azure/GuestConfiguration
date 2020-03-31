@@ -545,9 +545,8 @@ function New-GuestConfigurationPolicy {
             UseCertificateValidation = $packageIsSigned
             Category                 = $Category
             Tag                      = $Tag
+            Version                  = $Version
         }
-
-        Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."
         New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Platform $Platform -Verbose:$verbose | Out-Null
             
         $result = [pscustomobject]@{

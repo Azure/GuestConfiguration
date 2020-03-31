@@ -119,14 +119,38 @@ function Copy-DscResources {
     Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
     Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
     Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
-
+    
+    # Copies DSC resource modules
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
-        # if resource is not a GuestConfiguration module resource.
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            if ($_.ModuleName -ne 'GuestConfiguration') {
+                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            }
         }
     }
+
+    # PowerShell modules required by DSC resource module
+    $powershellModulesToCopy = @{ }
+    $modulesToCopy.Values | ForEach-Object {
+        if ($_.ModuleName -ne 'GuestConfiguration') {
+            $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            if (($requiredModule | Get-Member -PropertyType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
+                $requiredModule.RequiredModules | ForEach-Object {
+                    if ($null -ne $_.Version) {
+                        $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+                        Write-Verbose "$($_.Name) is a required PowerShell module"
+                    }
+                    else {
+                        Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
+                    }
+                }
+            }
+        }
+    }
+
+    $modulesToCopy += $powershellModulesToCopy
+
     $modulesToCopy.Values | ForEach-Object {
         $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
         if ($null -ne $moduleToCopy) {
@@ -149,7 +173,7 @@ function Copy-DscResources {
         }
     }
 
-    # Remove DSC binaries from package.
+    # Remove DSC binaries from package (just a safeguard).
     $binaryPath = Join-Path $guestConfigModulePath 'bin'
     Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
 }

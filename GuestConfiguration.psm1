@@ -79,9 +79,11 @@ function New-GuestConfigurationPackage
         # Copy DSC resources
         Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
 
-        # Copy Chef resource and profiles.
-        Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
-
+        if ($null -ne $ChefInspecProfilePath) {
+            # Copy Chef resource and profiles.
+            Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
+        }
+        
         # Create Guest Configuration Package.
         $packagePath = Join-Path $Path $Name
         New-Item -ItemType Directory -Force -Path $packagePath | Out-Null
@@ -209,18 +211,29 @@ function Test-GuestConfigurationPackage
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
+                    }
                 }
             }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
+            }
         }
+
         $testResult.resources_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            for($i = 0; $i -lt $getResult.Count; $i++) {
-                if($getResult[$i].ResourceId -ieq $resourceId) {
-                    $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+            if ($getResult.count -gt 1) {
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
+                    }
                 }
+            }
+            elseif ($getResult.ResourceId -ieq $resourceId) {
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 

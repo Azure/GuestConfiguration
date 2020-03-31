@@ -1676,7 +1676,7 @@ function New-GuestConfigurationPolicyDefinitionSet {
 
     foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
         $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform
         $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
     }
 

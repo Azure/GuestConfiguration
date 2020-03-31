@@ -1,5 +1,10 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.0
+
+- Support custom VM images
+- Support Arc machines
+
 ## v1.19.3
 
 - Bug fix for New-GuestConfigurationPolicy not generating correct Linux audit IF

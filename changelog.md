@@ -3,6 +3,7 @@
 ## v1.20.0
 
 - Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact
+- Remove DataBricks from policy IF statements
 
 ## v1.19.3
 

@@ -1910,10 +1910,6 @@ function New-CustomGuestConfigPolicy {
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
         $AuditIfNotExistsInfo,
 
         [Parameter(Mandatory = $false)]

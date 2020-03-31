@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.0
+
+- Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact
+
 ## v1.19.3
 
 - Bug fix for New-GuestConfigurationPolicy not generating correct Linux audit IF

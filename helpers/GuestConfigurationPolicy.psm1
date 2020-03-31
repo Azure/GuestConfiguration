@@ -1974,7 +1974,7 @@ function New-CustomGuestConfigPolicy {
         $AuditIfNotExistsInfo['Guid'] = $existingAuditPolicy.Name
     }
 
-     New-GuestConfigurationPolicyDefinition @PSBoundParameters
+    New-GuestConfigurationPolicyDefinition @PSBoundParameters
 }
 
 <#

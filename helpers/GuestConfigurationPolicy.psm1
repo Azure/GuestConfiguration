@@ -1340,6 +1340,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [bool]
         $UseCertificateValidation = $false,
 
+        [Parameter(Mandatory = $false)]
+        [String]
+        $Category = 'Guest Configuration',
+        
+        [Parameter()]
+        [Hashtable[]]
+        $ParameterInfo,
+
         [Parameter()]
         [String]
         $Guid,
@@ -1575,6 +1583,42 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                             [Ordered]@{
                                                 field = "Microsoft.Compute/imageOffer"
                                                 notLike = 'SQL2008*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        exists = 'true'
+                                    },
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        like  = 'Windows*'
+                                    }
+                                )
+                            },
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/imageSKU"
+                                        exists = 'false'
+                                    },
+                                    [Ordered]@{
+                                        allOf = @(
+                                            [Ordered]@{ 
+                                                field   = "Microsoft.Compute/imageSKU"
+                                                notLike = '2008*'
+                                            },
+                                            [Ordered]@{
+                                                field   = "Microsoft.Compute/imageOffer"
+                                                notLike = 'SQL2008*'
+                                            }
+                                        )
+                                    }
+                                )
                             }
                         )
                     },
@@ -1861,6 +1905,13 @@ function New-GuestConfigurationAuditPolicyDefinition {
             [Ordered]@{
                 field = 'Microsoft.HybridCompute/imageOffer'
                 like  = 'linux*'
+            }
+        )
+
+        $hybridSection['allOf'] += @(
+            [Ordered]@{
+                field = "Microsoft.HybridCompute/imageOffer"
+                like  = "linux*"
             }
         )
     }

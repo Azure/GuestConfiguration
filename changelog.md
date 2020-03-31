@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.0
+
+- Support for custom Policy categories
+
 ## v1.19.3
 
 - Bug fix for New-GuestConfigurationPolicy not generating correct Linux audit IF

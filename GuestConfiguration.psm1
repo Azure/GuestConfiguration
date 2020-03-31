@@ -333,9 +333,12 @@ function Protect-GuestConfigurationPackage
             Write-Verbose "Signing catalog file : $catalogFilePath."
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
-            if ($CodeSignOutput.Status -match 'Error') {
-                Write-Error $CodeSignOutput.StatusMessage
-            }
+            $Signature = Get-AuthenticodeSignature $catalogFilePath
+            if ($null -ne $Signature.SignerCertificate) {
+                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                    throw $CodeSignOutput.StatusMessage
+                }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if($osPlatform -eq "Windows") {
@@ -525,11 +528,13 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."

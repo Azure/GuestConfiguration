@@ -115,7 +115,10 @@ function Copy-DscResources {
     catch {
         write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
     }
-    Copy-Item "$($latestModule.ModuleBase)/*" $guestConfigModulePath -Recurse -Force
+    Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
+    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
 
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {

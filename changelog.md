@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- More target file copy when creating custom packages
 - Remove DataBricks from policy IF statements
 - Support for custom Policy categories
 - Return error when attempting to protect package using invalid certificate

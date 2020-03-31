@@ -590,61 +590,36 @@ function Publish-GuestConfigurationPolicy {
 
     # Publish policies
     $subscriptionId = $rmContext.Subscription.Id
-    foreach ($policy in @("AuditIfNotExists.json", "DeployIfNotExists.json")) {
-        $policyFile = join-path $Path $policy
-        $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
-        $definitionContent = $jsonDefinition.Properties
+    $policyFile = join-path $Path "AuditIfNotExists.json"
+    $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
+    $definitionContent = $jsonDefinition.Properties
 
-        $newAzureRmPolicyDefinitionParameters = @{
-            Name        = $jsonDefinition.name
-            DisplayName = $($definitionContent.DisplayName | ConvertTo-Json -Depth 20).replace('"', '')
-            Description = $($definitionContent.Description | ConvertTo-Json -Depth 20).replace('"', '')
-            Policy      = $($definitionContent.policyRule | ConvertTo-Json -Depth 20)
-            Metadata    = $($definitionContent.Metadata | ConvertTo-Json -Depth 20)
-            ApiVersion  = '2018-05-01'
-            Verbose     = $true
-        }
-
-        if ($definitionContent.PSObject.Properties.Name -contains 'parameters') {
-            $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
-        }
-
-        if ($ManagementGroupName) {
-            $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
-        }
-
-        Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
-        New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
-        {
-            $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
-        }
-
-        New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters
+    $newAzureRmPolicyDefinitionParameters = @{
+        Name        = $jsonDefinition.name
+        DisplayName = $($definitionContent.DisplayName | ConvertTo-Json -Depth 20).replace('"', '')
+        Description = $($definitionContent.Description | ConvertTo-Json -Depth 20).replace('"', '')
+        Policy      = $($definitionContent.policyRule | ConvertTo-Json -Depth 20)
+        Metadata    = $($definitionContent.Metadata | ConvertTo-Json -Depth 20)
+        ApiVersion  = '2018-05-01'
+        Verbose     = $true
     }
+
+    if ($definitionContent.PSObject.Properties.Name -contains 'parameters') {
+        $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
+    }
+
+    if ($ManagementGroupName) {
+        $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+    }
+
+    Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
+    New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
 
     Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
         $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
     }
 
     Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
-    $initiativeContent = $jsonDefinition.Properties
-
-    $newAzureRmPolicySetDefinitionParameters = @{
-        Name = $jsonDefinition.name
-        DisplayName = $($initiativeContent.DisplayName | ConvertTo-Json -Depth 20).replace('"','')
-        Description = $($initiativeContent.Description | ConvertTo-Json -Depth 20).replace('"','')
-        PolicyDefinition = $($initiativeContent.policyDefinitions | ConvertTo-Json -Depth 20)
-        Metadata = $($initiativeContent.Metadata | ConvertTo-Json -Depth 20)
-        ApiVersion = '2018-05-01'
-        Verbose = $true
-    }
-
-    if ($initiativeContent.PSObject.Properties.Name -contains 'parameters')
-    {
-        $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
-    }
-
-    New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters
 }
 
 Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

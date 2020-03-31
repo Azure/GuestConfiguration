@@ -1912,7 +1912,11 @@ function New-CustomGuestConfigPolicy {
         [Hashtable]
         $AuditPolicyInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
+        [Hashtable]
+        $AuditIfNotExistsInfo,
+
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
@@ -1923,9 +1927,12 @@ function New-CustomGuestConfigPolicy {
     )
 
     $existingPolicies = Get-AzPolicyDefinition
-    $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditPolicyInfo.DisplayName) }
+    
+    $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditIfNotExistsInfo.DisplayName) }
     if ($null -ne $existingAuditPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
-        $AuditPolicyInfo['Guid'] = $existingAuditPolicy.Name.ToString()
+        $AuditIfNotExistsInfo['Guid'] = $existingAuditPolicy.Name
     }
+
+     New-GuestConfigurationPolicyDefinition @PSBoundParameters
 }

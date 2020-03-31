@@ -1319,16 +1319,16 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [String]
         $ReferenceId,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
 
-        [Parameter()]
+        [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration',
 
@@ -1345,21 +1345,37 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
-
+    $ParameterMapping = @{ }
+    $ParameterDefinitions = @{ }
+    $auditPolicyContentHashtable = [Ordered]@{ }
+    
+    if ($null -ne $ParameterInfo) {
+        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+    }
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
-            policyType  = 'Custom'
+            policyType  = 'BuiltIn'
             mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{
-                category = $Category
+                category           = $Category
+                guestConfiguration = [Ordered]@{
+                    configurationParameter = $ParameterMapping
+                    name                   = $ConfigurationName
+                    version                = $Version
+                    contentType            = "Custom"
+                    contentUri             = $ContentUri
+                    contentHash            = $ContentHash
+                }
             }
-            
+            parameters  = $ParameterDefinitions
         }
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
     }
+     
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
@@ -1503,6 +1519,42 @@ function New-GuestConfigurationAuditPolicyDefinition {
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageOffer"
                                 like  = 'ad*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        exists = 'true'
+                                    },
+                                    [Ordered]@{
+                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        like  = 'Windows*'
+                                    }
+                                )
+                            },
+                            [Ordered]@{ 
+                                anyOf = @(
+                                    [Ordered]@{ 
+                                        field  = "Microsoft.Compute/imageSKU"
+                                        exists = 'false'
+                                    },
+                                    [Ordered]@{
+                                        allOf = @(
+                                            [Ordered]@{ 
+                                                field   = "Microsoft.Compute/imageSKU"
+                                                notLike = '2008*'
+                                            },
+                                            [Ordered]@{
+                                                field   = "Microsoft.Compute/imageOffer"
+                                                notLike = 'SQL2008*'
+                                            }
+                                        )
+                                    }
+                                )
                             }
                         )
                     },
@@ -1822,9 +1874,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     $existenceConditionList = [Ordered]@{
-        field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
-        equals = 'Compliant'
+        allOf = [System.Collections.ArrayList]@()
     }
+    $existenceConditionList['allOf'].Add([Ordered]@{
+            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+            equals = 'Compliant'
+        })
+    $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
+    $existenceConditionList['allOf'].Add($parametersExistenceCondition)
 
     $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 
@@ -1843,206 +1900,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
     return $auditPolicyGuid
 }
 
-<#
-    .SYNOPSIS
-        Creates a new policy initiative definition for a guest configuration policy definition set.
-#>
-function New-GuestConfigurationPolicyInitiativeDefinition {
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $FileName,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $FolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $DeployPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $AuditPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $DisplayName,
-
-        [Parameter(Mandatory = $true)]
-        [String]
-        $Description,
-
-        [Parameter()]
-        [String]
-        $Category,
-
-        [Parameter()]
-        [String]
-        $Guid
-    )
-
-    if (-not [String]::IsNullOrEmpty($Guid)) {
-        $initiativeGuid = $Guid
-    }
-    else {
-        $initiativeGuid = [Guid]::NewGuid()
-    }
-
-    $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
-    $policyDefinitions = @()
-
-    $initiativeContentHashtable = [Ordered]@{
-        properties = [Ordered]@{
-            displayName = $DisplayName
-            policyType  = 'Custom'
-            description = $Description
-            metadata    = [Ordered]@{
-                category = $Category
-            }
-        }
-    }
-
-    foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
-        $deployPolicyContentHash = [Ordered]@{
-            policyDefinitionId          = "/providers/Microsoft.Authorization/policyDefinitions/$($currentDeployPolicyInfo.Guid)"
-            policyDefinitionReferenceId = $currentDeployPolicyInfo.ReferenceId
-        }
-
-        if ($currentDeployPolicyInfo.ContainsKey('ParameterInfo')) {
-            if (-not $initiativeContentHashtable['properties'].Contains('parameters')) {
-                $initiativeContentHashtable['properties']['parameters'] = [Ordered]@{ }
-            }
-
-            if (-not $deployPolicyContentHash.Contains('parameters')) {
-                $deployPolicyContentHash['parameters'] = [Ordered]@{ }
-            }
-
-            foreach ($currentParameterInfo in $currentDeployPolicyInfo.ParameterInfo) {
-                $initiativeContentHashtable['properties']['parameters'] += [Ordered]@{
-                    $currentParameterInfo.ReferenceName = [Ordered]@{
-                        type     = $currentParameterInfo.Type
-                        metadata = [Ordered]@{
-                            displayName = $currentParameterInfo.DisplayName
-                        }
-                    }
-                }
-
-                if ($currentParameterInfo.ContainsKey('Description')) {
-                    $initiativeContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName]['metadata']['description'] = $currentParameterInfo['Description']
-                }
-
-                if ($currentParameterInfo.ContainsKey('DefaultValue')) {
-                    $initiativeContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-                        defaultValue = $currentParameterInfo.DefaultValue
-                    }
-                }
-
-                if ($currentParameterInfo.ContainsKey('AllowedValues')) {
-                    $initiativeContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-                        allowedValues = $currentParameterInfo.AllowedValues
-                    }
-                }
-
-                $deployPolicyContentHash['parameters'] += [Ordered]@{
-                    $currentParameterInfo.ReferenceName = [Ordered]@{
-                        value = "[parameters('$($currentParameterInfo.ReferenceName)')]"
-                    }
-                }
-            }
-        }
-
-        $policyDefinitions += $deployPolicyContentHash
-    }
-
-    foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
-        $auditPolicyContentHash = [Ordered]@{
-            policyDefinitionId          = "/providers/Microsoft.Authorization/policyDefinitions/$($currentAuditPolicyInfo.Guid)"
-            policyDefinitionReferenceId = $currentAuditPolicyInfo.ReferenceId
-        }
-
-        $policyDefinitions += $auditPolicyContentHash
-    }
-
-    $initiativeContentHashtable['properties']['policyDefinitions'] = $policyDefinitions
-    $initiativeContentHashtable += [Ordered]@{
-        id   = "/providers/Microsoft.Authorization/policySetDefinitions/$initiativeGuid"
-        name = $initiativeGuid
-    }
-
-    $initiativeContent = ConvertTo-Json -InputObject $initiativeContentHashtable -Depth 100 | ForEach-Object { [System.Text.RegularExpressions.Regex]::Unescape($_) }
-    $formattedInitiativeContent = Format-Json -Json $initiativeContent
-
-    if (Test-Path -Path $filePath) {
-        Write-Error -Message "A file at the initiative destination path '$filePath' already exists. Please remove this file or specify a different destination path."
-    }
-    else {
-        $null = New-Item -Path $filePath -ItemType 'File' -Value $formattedInitiativeContent
-    }
-
-    return $initiativeGuid
-}
-
-<#
-    .SYNOPSIS
-        Creates a new policy set for guest configuration. This set should include at least one
-        audit policy definition, at least one deploy policy definition, and only one policy
-        initiative definition.
-#>
-function New-GuestConfigurationPolicyDefinitionSet {
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $PolicyFolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $DeployPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $AuditPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $InitiativeInfo,
-
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows'
-    )
-
-    if (Test-Path -Path $PolicyFolderPath) {
-        $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
-    }
-
-    $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
-
-    foreach ($currentDeployPolicyInfo in $DeployPolicyInfo) {
-        $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $deployPolicyGuid = New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo -Platform $Platform
-        $currentDeployPolicyInfo['Guid'] = $deployPolicyGuid
-    }
-
-    foreach ($currentAuditPolicyInfo in $AuditPolicyInfo) {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        $auditPolicyGuid = New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo -Platform $Platform
-        $currentAuditPolicyInfo['Guid'] = $auditPolicyGuid
-    }
-
-    $InitiativeInfo['FolderPath'] = $PolicyFolderPath
-    $InitiativeInfo['DeployPolicyInfo'] = $DeployPolicyInfo
-    $InitiativeInfo['AuditPolicyInfo'] = $AuditPolicyInfo
-
-    $initiativeGuid = New-GuestConfigurationPolicyInitiativeDefinition @InitiativeInfo
-    return $initiativeGuid
-}
-
 function New-CustomGuestConfigPolicy {
     [CmdletBinding()]
     param
@@ -2053,15 +1910,7 @@ function New-CustomGuestConfigPolicy {
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $DeployPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
         $AuditPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $InitiativeInfo,
 
         [Parameter()]
         [ValidateSet('Windows', 'Linux')]
@@ -2074,23 +1923,9 @@ function New-CustomGuestConfigPolicy {
     )
 
     $existingPolicies = Get-AzPolicyDefinition
-    $existingDeployPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $DeployPolicyInfo.DisplayName) }
-    if ($null -ne $existingDeployPolicy) {
-        Write-Verbose -Message "Found policy with name '$($existingDeployPolicy.Properties.displayName)' and guid '$($existingDeployPolicy.Name)'..."
-        $DeployPolicyInfo['Guid'] = $existingDeployPolicy.Name.ToString()
-    }
-
     $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditPolicyInfo.DisplayName) }
     if ($null -ne $existingAuditPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
         $AuditPolicyInfo['Guid'] = $existingAuditPolicy.Name.ToString()
     }
-
-    $existingInitiative = Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $InitiativeInfo.DisplayName) }
-    if ($null -ne $existingInitiative) {
-        Write-Verbose -Message "Found initiative with name '$($existingInitiative.Properties.displayName)' and guid '$($existingInitiative.Name)'..."
-        $InitiativeInfo['Guid'] = $existingInitiative.Name.ToString()
-    }
-
-    New-GuestConfigurationPolicyDefinitionSet @PSBoundParameters
 }

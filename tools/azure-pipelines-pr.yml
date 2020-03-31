@@ -18,7 +18,6 @@ pr:
         - .github/*
 variables:
   releaseBuild: false
-  prBuild: true
 
 jobs:
   - job: Test

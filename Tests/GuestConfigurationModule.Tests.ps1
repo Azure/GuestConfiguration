@@ -41,15 +41,6 @@ function Test-CurrentMachineIsWindows {
     return $currentMachineIsWindows
 }
 
-function Test-ShouldSkipTests {
-    [OutputType([Boolean])]
-    [CmdletBinding()]
-    param ()
-
-    $shouldSkip = Test-InPRTests -or -not Test-CurrentMachineIsWindows
-    return $shouldSkip
-}
-
 function New-TestCertificate {
     [CmdletBinding()]
     param ()
@@ -119,36 +110,6 @@ DSCConfig -OutputPath $DestinationFolderPath
     & $destinationScriptPath
 }
 
-function Initialize-PackageESMachineForGCTesting {
-    [CmdletBinding()]
-    param ()
-
-    Write-Verbose -Message 'Setting up Azure DevOps machine for Guest Configuration module testing...' -Verbose
-
-    # Make sure traffic is using TLS 1.2 as all Azure services reject connections below 1.2
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    
-    Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
-
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-    
-    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    if (Test-CurrentMachineIsWindows) {
-        $delimiter = ";"
-    }
-    else {
-        $delimiter = ":"
-    }
-    $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
-
-    $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
-    Import-Module $gcModulePath
-    Write-ModuleInfo -ModuleName 'GuestConfiguration'
-
-    Install-AzLibraries
-    Login-ToTestAzAccount
-}
-
 function Initialize-MachineForGCTesting {
     [CmdletBinding()]
     param ()
@@ -163,7 +124,7 @@ function Initialize-MachineForGCTesting {
     }
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-
+    
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
         $delimiter = ";"
@@ -176,6 +137,11 @@ function Initialize-MachineForGCTesting {
     $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
     Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
+
+    if ('true' -eq $Env:RELEASEBUILD) {
+        Install-AzLibraries
+        Login-ToTestAzAccount
+    }
 }
 
 function Write-ModuleInfo {
@@ -220,7 +186,7 @@ function Write-EnvironmentInfo {
     Write-EnvironmentVariableInfo
 }
 
-Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', 'BVT', 'GCModule') {
+Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
         if ('true' -eq $Env:RELEASEBUILD) {
             # Import the AzHelper module
@@ -233,7 +199,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' -Tags @('PSCoreBVT', '
             # Initialize the machine if needed
             if (Test-CurrentMachineIsWindows) {
                 if (Test-ServicePrincipalAccountInEnviroment) {
-                    Initialize-PackageESMachineForGCTesting
+                    Initialize-MachineForGCTesting
                 }
                 else {
                     Write-Verbose -Message "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose

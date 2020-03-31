@@ -17,7 +17,6 @@ trigger:
     - .github/*
 variables:
   releaseBuild: true
-  prBuild: false
 
 jobs:
   - job: Test

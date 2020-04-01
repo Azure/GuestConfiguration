@@ -1310,7 +1310,17 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 name = $ConfigurationName
             }
         }
+    }
 
+    if (-not [string]::IsNullOrEmpty($Tag)) {
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
+            field = "tags.$($Tag.Keys[0])"
+            equals = "$($Tag.Values[0])"
+        }
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
+            field = "tags.$($Tag.Keys[0])"
+            equals = "$($Tag.Values[0])"
+        }
     }
 
     if ($Platform -ieq 'Windows')

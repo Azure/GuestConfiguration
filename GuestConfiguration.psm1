@@ -472,10 +472,10 @@ function New-GuestConfigurationPolicy
         [ValidateNotNullOrEmpty()]
         [string] $Description,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [Hashtable[]] $Parameter,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [ValidateNotNullOrEmpty()]
         [version] $Version = '1.0.0.0',
 
@@ -488,7 +488,7 @@ function New-GuestConfigurationPolicy
         [string]
         $Platform = 'Windows',
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [string] $Category = 'Guest Configuration',
 
         [parameter()]

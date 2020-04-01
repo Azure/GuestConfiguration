@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact
 - Return error when attempting to protect package using invalid certificate
 - Ensures shell script to install Inspec has Linux line endings
 - Include PowerShell modules when they are required for DSC modules in packages

@@ -55,6 +55,9 @@ function New-GuestConfigurationPackage
         [ValidateNotNullOrEmpty()]
         [string] $ChefInspecProfilePath,
 
+        [ValidateNotNullOrEmpty()]
+        [string] $FilesToInclude,
+
         [string] $Path = '.'
     )
 
@@ -82,6 +85,16 @@ function New-GuestConfigurationPackage
         if ($null -ne $ChefInspecProfilePath) {
             # Copy Chef resource and profiles.
             Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
+        }
+
+        # Copy FilesToInclude
+        if(-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            if(Test-Path $FilesToInclude -PathType Leaf) {
+                Copy-Item "$FilesToInclude" $modulePath -Force -ErrorAction SilentlyContinue
+            }
+            else {
+                Copy-Item "$FilesToInclude\*" $modulePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
         
         # Create Guest Configuration Package.

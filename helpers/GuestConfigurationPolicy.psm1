@@ -530,7 +530,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [String]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1236,7 +1240,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [String]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {

@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.1
+
+- Resolve issue with publishing to Management Group
+
 ## v1.20.0
 
 - Update API version for Managed Service Identity

@@ -13,6 +13,7 @@ trigger:
     - CODE_OF_CONDUCT.md
     - SECURITY.md
     - LICENSE
+    - changelog.md
     - .gitignore
     - .github/*
 variables:

@@ -3,6 +3,10 @@
 ## v1.20.0
 
 - Return error when attempting to protect package using invalid certificate
+- Ensures shell script to install Inspec has Linux line endings
+- Include PowerShell modules when they are required for DSC modules in packages
+- More target file copy when creating custom packages
+- Remove DataBricks from policy IF statements
 
 ## v1.19.3
 

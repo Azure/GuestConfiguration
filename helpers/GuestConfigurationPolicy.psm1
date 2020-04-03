@@ -593,13 +593,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
 
     if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+        $tagValues = $Tag.Values[0]
+        $tagValuesWithQuotes = '"'+$tagValues.replace(',','","')+'"'
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            in = "[`n"+$tagValuesWithQuotes+"`n]"
         }
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            in = "[`n"+$tagValuesWithQuotes+"`n]"
         }
     }
 
@@ -1313,13 +1315,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+        $tagValues = $Tag.Values[0]
+        $tagValuesWithQuotes = '"'+$tagValues.replace(',','","')+'"'
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            in = "[`n"+$tagValuesWithQuotes+"`n]"
         }
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            in = "[`n"+$tagValuesWithQuotes+"`n]"
         }
     }
 

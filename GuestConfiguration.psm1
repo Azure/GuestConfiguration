@@ -663,7 +663,9 @@ function Publish-GuestConfigurationPolicy {
     if ($initiativeContent.PSObject.Properties.Name -contains 'parameters') {
         $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
     }
-
+if ($ManagementGroupName) {
+        $newAzureRmPolicySetDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+    }
     New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters
 }
 

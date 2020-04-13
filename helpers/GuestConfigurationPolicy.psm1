@@ -790,12 +790,35 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'Oracle'
+                            },
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imageOffer"
+                                equals = 'Oracle-Linux'
+                            },
+                            [Ordered]@{
+                                field = "Microsoft.Compute/imageSKU"
+                                notLike = '6*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
                                 field  = $RPName + '/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
                                 field  = $RPName + '/imageOffer'
-                                equals = 'RHEL'
+                                in = @(
+                                    'RHEL',
+                                    'RHEL-HA'
+                                    'RHEL-SAP',
+                                    'RHEL-SAP-APPS',
+                                    'RHEL-SAP-HA',
+                                    'RHEL-SAP-HANA'
+                                    )
                             },
                             [Ordered]@{
                                 field   = $RPName + '/imageSKU'
@@ -811,7 +834,39 @@ function New-GuestConfigurationDeployPolicyDefinition {
                             },
                             [Ordered]@{ 
                                 field  = $RPName + '/imageOffer'
-                                equals = 'osa'
+                                in = @(
+                                    'osa',
+                                    'rhel-byos'
+                                    )
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'center-for-internet-security-inc'
+                            },
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imageOffer"
+                                in = @(
+                                'cis-centos-7-l1',
+                                'cis-centos-7-v2-1-1-l1'
+                                'cis-centos-8-l1',
+                                'cis-debian-linux-8-l1',
+                                'cis-debian-linux-9-l1',
+                                'cis-nginx-centos-7-v1-1-0-l1',
+                                'cis-oracle-linux-7-v2-0-0-l1',
+                                'cis-oracle-linux-8-l1',
+                                'cis-postgresql-11-centos-linux-7-level-1',
+                                'cis-rhel-7-l2',
+                                'cis-rhel-7-v2-2-0-l1',
+                                'cis-rhel-8-l1',
+                                'cis-suse-linux-12-v2-0-0-l1',
+                                'cis-ubuntu-linux-1604-v1-0-0-l1',
+                                'cis-ubuntu-linux-1804-l1'
+
+                                )
                             }
                         )
                     },
@@ -1336,12 +1391,35 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'Oracle'
+                            },
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imageOffer"
+                                equals = 'Oracle-Linux'
+                            },
+                            [Ordered]@{
+                                field = "Microsoft.Compute/imageSKU"
+                                notLike = '6*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
                                 field  = $RPName + '/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
                                 field  = $RPName + '/imageOffer'
-                                equals = 'RHEL'
+                                in = @(
+                                    'RHEL',
+                                    'RHEL-HA'
+                                    'RHEL-SAP',
+                                    'RHEL-SAP-APPS',
+                                    'RHEL-SAP-HA',
+                                    'RHEL-SAP-HANA'
+                                    )
                             },
                             [Ordered]@{
                                 field   = $RPName + '/imageSKU'
@@ -1357,7 +1435,39 @@ function New-GuestConfigurationAuditPolicyDefinition {
                             },
                             [Ordered]@{ 
                                 field  = $RPName + '/imageOffer'
-                                equals = 'osa'
+                                in = @(
+                                    'osa',
+                                    'rhel-byos'
+                                    )
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'center-for-internet-security-inc'
+                            },
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imageOffer"
+                                in = @(
+                                'cis-centos-7-l1',
+                                'cis-centos-7-v2-1-1-l1'
+                                'cis-centos-8-l1',
+                                'cis-debian-linux-8-l1',
+                                'cis-debian-linux-9-l1',
+                                'cis-nginx-centos-7-v1-1-0-l1',
+                                'cis-oracle-linux-7-v2-0-0-l1',
+                                'cis-oracle-linux-8-l1',
+                                'cis-postgresql-11-centos-linux-7-level-1',
+                                'cis-rhel-7-l2',
+                                'cis-rhel-7-v2-2-0-l1',
+                                'cis-rhel-8-l1',
+                                'cis-suse-linux-12-v2-0-0-l1',
+                                'cis-ubuntu-linux-1604-v1-0-0-l1',
+                                'cis-ubuntu-linux-1804-l1'
+
+                                )
                             }
                         )
                     },

@@ -168,7 +168,7 @@ install_inspec_debian() {
     EXPECTED_SHA256_CHECKSUM="aa0f844e34f7b4ee8de7a209808a8921b496c945c8daca5ac4bc045be6b932b7"
 
     if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-        download_and_validate_inspec_package $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
+        download_and_validate_inspec_package_with_retries $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
 
         echo "Installing InSpec..."
         export DEBIAN_FRONTEND=noninteractive
@@ -183,14 +183,11 @@ install_inspec_debian() {
 install_inspec_rpm() {
     INSPEC_DOWNLOAD_PACKAGE_NAME=$1
     EXPECTED_SHA256_CHECKSUM=$2
-    INSPEC_DOWNLOAD_URL="$BASE_INSPEC_URL/$INSPEC_DOWNLOAD_PACKAGE_NAME"
 
     if rpm -qa | grep inspec >/dev/null 2>&1; then
         echo "InSpec is already installed."
     else
-        download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-        test_sha256_checksums_match "$INSPEC_DOWNLOAD_PACKAGE_NAME" "$EXPECTED_SHA256_CHECKSUM"
-        check_result $? "Installation of InSpec failed. Checksums do not match. InSpec package may be corrupted."
+        download_and_validate_inspec_package_with_retries $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
 
         echo "Installing InSpec..."
         rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1

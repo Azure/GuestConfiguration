@@ -1,10 +1,12 @@
 #!/bin/bash
 # 
-# This script installs Chef Inspec on Linux
+# This script installs Chef Inspec on Linux.
 # 
 
 DSC_HOME_PATH="$PWD"
 LINUX_DISTRO=""
+AZURE_STORAGE_URL="https://oaasguestconfigwcuss1.blob.core.windows.net/inspecpkgs"
+MAX_DOWNLOAD_RETRY_COUNT=5
 
 print_error() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
@@ -42,6 +44,29 @@ get_linux_distro() {
     echo "Linux distribution is $LINUX_DISTRO."
 }
 
+rotate_azure_storage_url() {
+    RETRY_NUM=$1
+
+    AVAILABLE_REGIONS=('WCUS'
+        'WE'
+        'ASE'
+        'BRS'
+        'CID'
+        'EUS2'
+        'NE'
+        'SCUS'
+        'UKS'
+        'WUS2')
+
+    NUM_AVAILABLE_REGIONS=${#AVAILABLE_REGIONS[@]}
+
+    CURRENT_REGION_INDEX=$RETRY_NUM % $NUM_AVAILABLE_REGIONS
+    CURRENT_REGION=${AVAILABLE_REGIONS[$CURRENT_REGION_INDEX]}
+
+    AZURE_STORAGE_ENDPOINT="oaasguestconfig$CURRENT_REGION" + "s1"
+    AZURE_STORAGE_URL="https://$AZURE_STORAGE_ENDPOINT.blob.core.windows.net/inspecpkgs"
+}
+
 download_package_with_curl() {
     PACKAGE_NAME=$1
     PACKAGE_URL=$2
@@ -76,91 +101,121 @@ download_package_with_curl() {
 
     if [ "$DOWNLOAD_SUCCEEDED" = true ]; then
         echo "Download of package '$PACKAGE_NAME' succeeded."
+        return 0
     else
         print_error "Download of package '$PACKAGE_NAME' failed after retrying for $RETRY_MAX_SEC seconds."
-        exit 1
+        return 1
+    fi
+}
+
+test_sha256_checksums_match() {
+    FILE_TO_CHECK=$1
+    EXPECTED_SHA256_CHECKSUM=$2
+
+    echo "Comparing checksums with sha256sum..."
+    ACTUAL_SHA256_CHECKSUM=`sha256sum $FILE_TO_CHECK | awk '{ print $1 }'`
+    CHECKSUM_RESULT=`test "x$ACTUAL_SHA256_CHECKSUM" = "x$EXPECTED_SHA256_CHECKSUM"`
+
+    if [ $CHECKSUM_RESULT -ne 0 ]; then
+        print_error "Package checksum does not match expected checksum."
+    else
+        echo "Package checksum matches expected checksum."
+    fi
+
+    return $CHECKSUM_RESULT
+}
+
+download_and_validate_inspec_package() {
+    INSPEC_DOWNLOAD_PACKAGE_NAME=$1
+    EXPECTED_SHA256_CHECKSUM=$2
+
+    INSPEC_DOWNLOAD_URL="$AZURE_STORAGE_URL/$INSPEC_DOWNLOAD_PACKAGE_NAME"
+
+    download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
+    if [ $? -ne 0 ]; then
+        return 1
+    else
+        test_sha256_checksums_match "$INSPEC_DOWNLOAD_PACKAGE_NAME" "$EXPECTED_SHA256_CHECKSUM"
+        if [ $? -ne 0 ]; then
+            return 2
+        fi
+    fi
+    
+    return 0
+}
+
+download_and_validate_inspec_package_with_retries() {
+    INSPEC_DOWNLOAD_PACKAGE_NAME=$1
+    EXPECTED_SHA256_CHECKSUM=$2
+
+    NUM_RETRIES=0
+    DOWNLOAD_RESULT=1
+ 
+    while [ $NUM_RETRIES -lt $MAX_DOWNLOAD_RETRY_COUNT ] && [ $DOWNLOAD_RESULT -ne 0 ]
+    do
+        rotate_azure_storage_url $NUM_RETRIES
+        echo "Attempting InSpec download from Azure storage URL '$AZURE_STORAGE_URL'..."
+        DOWNLOAD_RESULT=`download_and_validate_inspec_package $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM`
+        ((NUM_RETRIES++))
+    done
+
+    check_result $DOWNLOAD_RESULT "Download of InSpec failed."
+    echo "Download of InSpec succeeded."
+}
+
+install_inspec_debian() {
+    INSPEC_DOWNLOAD_PACKAGE_NAME="inspec_2.2.61-1_amd64.deb"
+    EXPECTED_SHA256_CHECKSUM="aa0f844e34f7b4ee8de7a209808a8921b496c945c8daca5ac4bc045be6b932b7"
+
+    if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+        download_and_validate_inspec_package $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
+
+        echo "Installing InSpec..."
+        export DEBIAN_FRONTEND=noninteractive
+        dpkg -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" >/dev/null 2>&1
+        check_result $? "Installation of InSpec failed."
+        echo "Installation of InSpec succeeded."
+    else
+        echo "InSpec is already installed."
+    fi
+}
+
+install_inspec_rpm() {
+    INSPEC_DOWNLOAD_PACKAGE_NAME=$1
+    EXPECTED_SHA256_CHECKSUM=$2
+    INSPEC_DOWNLOAD_URL="$BASE_INSPEC_URL/$INSPEC_DOWNLOAD_PACKAGE_NAME"
+
+    if rpm -qa | grep inspec >/dev/null 2>&1; then
+        echo "InSpec is already installed."
+    else
+        download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
+        test_sha256_checksums_match "$INSPEC_DOWNLOAD_PACKAGE_NAME" "$EXPECTED_SHA256_CHECKSUM"
+        check_result $? "Installation of InSpec failed. Checksums do not match. InSpec package may be corrupted."
+
+        echo "Installing InSpec..."
+        rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1
+        check_result $? "Installation of InSpec failed."
+        echo "Installation of InSpec succeeded."
     fi
 }
 
 install_inspec() {
     get_linux_distro
     echo "Checking for InSpec..."
-
+    
     case "$LINUX_DISTRO" in
-    "Ubuntu")
-        if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-            UBUNTU_VERSION=$(lsb_release -r -s)
-
-            INSPEC_DOWNLOAD_PACKAGE_NAME="inspec_2.2.61-1_amd64.deb"
-            INSPEC_DOWNLOAD_URL="https://packages.chef.io/files/stable/inspec/2.2.61/ubuntu/$UBUNTU_VERSION/$INSPEC_DOWNLOAD_PACKAGE_NAME"
-            download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-
-            echo "Installing InSpec..."
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" >/dev/null 2>&1
-            check_result $? "Installation of InSpec failed."
-            echo "Installation of InSpec succeeded."
-        else
-            echo "InSpec is already installed."
-        fi
+    "Ubuntu" | "Debian")
+        install_inspec_debian
         ;;
-    "Red Hat")
-        if rpm -qa | grep inspec >/dev/null 2>&1; then
-            echo "InSpec is already installed."
-        else
-            INSPEC_DOWNLOAD_PACKAGE_NAME="inspec-2.2.61-1.el7.x86_64.rpm"
-            INSPEC_DOWNLOAD_URL="https://packages.chef.io/files/stable/inspec/2.2.61/el/7/$INSPEC_DOWNLOAD_PACKAGE_NAME"
-            download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-
-            echo "Installing InSpec..."
-            rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1
-            check_result $? "Installation of InSpec failed."
-            echo "Installation of InSpec succeeded."
-        fi
+    "Red Hat" | "CentOS")
+        INSPEC_DOWNLOAD_PACKAGE_NAME="inspec-2.2.61-1.el7.x86_64.rpm"
+        EXPECTED_SHA256_CHECKSUM="b19bced48464a01864a4445bb189065ef3465f7ed88836384e6844a982d8c97a"
+        install_inspec_rpm $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
         ;;
     "SUSE")
-        if rpm -qa | grep inspec >/dev/null 2>&1; then
-            echo "InSpec is already installed."
-        else
-            INSPEC_DOWNLOAD_PACKAGE_NAME="inspec-2.2.61-1.sles12.x86_64.rpm"
-            INSPEC_DOWNLOAD_URL="https://packages.chef.io/files/stable/inspec/2.2.61/sles/12/$INSPEC_DOWNLOAD_PACKAGE_NAME"
-            download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-
-            echo "Installing InSpec..."
-            rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1
-            check_result $? "Installation of InSpec failed."
-            echo "Installation of InSpec succeeded."
-        fi
-        ;;
-    "CentOS")
-        if rpm -qa | grep inspec >/dev/null 2>&1; then
-            echo "InSpec is already installed."
-        else
-            INSPEC_DOWNLOAD_PACKAGE_NAME="inspec-2.2.61-1.el7.x86_64.rpm"
-            INSPEC_DOWNLOAD_URL="https://packages.chef.io/files/stable/inspec/2.2.61/el/7/$INSPEC_DOWNLOAD_PACKAGE_NAME"
-            download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-
-            echo "Installing InSpec..."
-            rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1
-            check_result $? "Installation of InSpec failed."
-            echo "Installation of InSpec succeeded."
-        fi
-        ;;
-    "Debian")
-        if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-            INSPEC_DOWNLOAD_PACKAGE_NAME="inspec_2.2.61-1_amd64.deb"
-            INSPEC_DOWNLOAD_URL="https://packages.chef.io/files/stable/inspec/2.2.61/ubuntu/14.04/$INSPEC_DOWNLOAD_PACKAGE_NAME"
-            download_package_with_curl "InSpec" $INSPEC_DOWNLOAD_URL $INSPEC_DOWNLOAD_PACKAGE_NAME
-
-            echo "Installing InSpec..."
-            export DEBIAN_FRONTEND=noninteractive
-            dpkg -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" >/dev/null 2>&1
-            check_result $? "Installation of InSpec failed."
-            echo "Installation of InSpec succeeded."
-            
-        else
-            echo "InSpec is already installed."
-        fi
+        INSPEC_DOWNLOAD_PACKAGE_NAME="inspec-2.2.61-1.sles12.x86_64.rpm"
+        EXPECTED_SHA256_CHECKSUM="07a96434173f7f4edd632c335284fc224b3d61f0f040364c8b31e258f9d46288"
+        install_inspec_rpm $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
         ;;
     *) echo "Could not install InSpec for unexpected Linux distribution '$LINUX_DISTRO'"
         exit 1

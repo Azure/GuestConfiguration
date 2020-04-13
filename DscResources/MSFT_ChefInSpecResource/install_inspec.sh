@@ -63,8 +63,8 @@ rotate_azure_storage_url() {
     CURRENT_REGION_INDEX=$RETRY_NUM % $NUM_AVAILABLE_REGIONS
     CURRENT_REGION=${AVAILABLE_REGIONS[$CURRENT_REGION_INDEX]}
 
-    AZURE_STORAGE_ENDPOINT="oaasguestconfig$CURRENT_REGION" + "s1"
-    AZURE_STORAGE_URL="https://$AZURE_STORAGE_ENDPOINT.blob.core.windows.net/inspecpkgs"
+    AZURE_STORAGE_ENDPOINT="oaasguestconfig${CURRENT_REGION}s1"
+    AZURE_STORAGE_URL="https://${AZURE_STORAGE_ENDPOINT}.blob.core.windows.net/inspecpkgs"
 }
 
 download_package_with_curl() {

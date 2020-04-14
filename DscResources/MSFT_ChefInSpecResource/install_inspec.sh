@@ -47,20 +47,20 @@ get_linux_distro() {
 rotate_azure_storage_url() {
     RETRY_NUM=$1
 
-    AVAILABLE_REGIONS=('WCUS'
-        'WE'
-        'ASE'
-        'BRS'
-        'CID'
-        'EUS2'
-        'NE'
-        'SCUS'
-        'UKS'
-        'WUS2')
+    AVAILABLE_REGIONS=('wcus'
+        'we'
+        'ase'
+        'brs'
+        'cid'
+        'eus2'
+        'ne'
+        'scus'
+        'uks'
+        'wus2')
 
     NUM_AVAILABLE_REGIONS=${#AVAILABLE_REGIONS[@]}
 
-    CURRENT_REGION_INDEX=$RETRY_NUM % $NUM_AVAILABLE_REGIONS
+    CURRENT_REGION_INDEX=$(( RETRY_NUM % NUM_AVAILABLE_REGIONS ))
     CURRENT_REGION=${AVAILABLE_REGIONS[$CURRENT_REGION_INDEX]}
 
     AZURE_STORAGE_ENDPOINT="oaasguestconfig${CURRENT_REGION}s1"
@@ -114,15 +114,16 @@ test_sha256_checksums_match() {
 
     echo "Comparing checksums with sha256sum..."
     ACTUAL_SHA256_CHECKSUM=`sha256sum $FILE_TO_CHECK | awk '{ print $1 }'`
-    CHECKSUM_RESULT=`test "x$ACTUAL_SHA256_CHECKSUM" = "x$EXPECTED_SHA256_CHECKSUM"`
+    test "x$ACTUAL_SHA256_CHECKSUM" = "x$EXPECTED_SHA256_CHECKSUM"
+    CHECKSUM_RESULT=$?
 
     if [ $CHECKSUM_RESULT -ne 0 ]; then
         print_error "Package checksum does not match expected checksum."
+        return 1
     else
         echo "Package checksum matches expected checksum."
+        return 0
     fi
-
-    return $CHECKSUM_RESULT
 }
 
 download_and_validate_inspec_package() {
@@ -137,6 +138,8 @@ download_and_validate_inspec_package() {
     else
         test_sha256_checksums_match "$INSPEC_DOWNLOAD_PACKAGE_NAME" "$EXPECTED_SHA256_CHECKSUM"
         if [ $? -ne 0 ]; then
+            echo "Removing downloaded InSpec file since checksums do not match..."
+            rm "$INSPEC_DOWNLOAD_PACKAGE_NAME"
             return 2
         fi
     fi
@@ -151,11 +154,10 @@ download_and_validate_inspec_package_with_retries() {
     NUM_RETRIES=0
     DOWNLOAD_RESULT=1
  
-    while [ $NUM_RETRIES -lt $MAX_DOWNLOAD_RETRY_COUNT ] && [ $DOWNLOAD_RESULT -ne 0 ]
-    do
+    while [ $NUM_RETRIES -lt $MAX_DOWNLOAD_RETRY_COUNT ] && [ $DOWNLOAD_RESULT -ne 0 ]; do
         rotate_azure_storage_url $NUM_RETRIES
-        echo "Attempting InSpec download from Azure storage URL '$AZURE_STORAGE_URL'..."
-        DOWNLOAD_RESULT=`download_and_validate_inspec_package $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM`
+        download_and_validate_inspec_package $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
+        DOWNLOAD_RESULT=$?
         ((NUM_RETRIES++))
     done
 
@@ -170,7 +172,7 @@ install_inspec_debian() {
     if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
         download_and_validate_inspec_package_with_retries $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
 
-        echo "Installing InSpec..."
+        echo "Installing InSpec via dpkg..."
         export DEBIAN_FRONTEND=noninteractive
         dpkg -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" >/dev/null 2>&1
         check_result $? "Installation of InSpec failed."
@@ -189,7 +191,7 @@ install_inspec_rpm() {
     else
         download_and_validate_inspec_package_with_retries $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
 
-        echo "Installing InSpec..."
+        echo "Installing InSpec via rpm from path '$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME'..."
         rpm -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" --nosignature >/dev/null 2>&1
         check_result $? "Installation of InSpec failed."
         echo "Installation of InSpec succeeded."

@@ -592,34 +592,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     }
 
-    # if there is atleast one tag
-    if ($Tag.count -gt 0) {
-        # capture existing 'anyOf' section
-        $anyOf = $policyRuleHashtable['if']
-        # replace with new 'allOf' at top order
-        $policyRuleHashtable['if'] = [Ordered]@{
-            allOf = @(
-            )
-        }
-        # add tags section under new 'allOf'
-        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-            allOf = @(
-            )
-        }
-        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
-        $policyRuleHashtable['if']['allOf'] += $anyOf
-        # add each tag individually to tags 'allOf'
-        for($i = 0; $i -lt $Tag.count; $i++) {
-            # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
-                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
-                    field = "tags.$($Tag[$i].Keys)"
-                    equals = "$($Tag[$i].Values)"
-                }
-            }
-        }
-    }
-
     $deploymentHashtable = [Ordered]@{
         properties = [Ordered]@{
             mode       = 'incremental'
@@ -1083,6 +1055,34 @@ function New-GuestConfigurationDeployPolicyDefinition {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
+    # if there is atleast one tag
+    if ($Tag.count -gt 0) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
+    }
+
     $existenceConditionList = @()
     # Handle adding parameters if needed
     if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0) {
@@ -1190,20 +1190,20 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
     
-        $systemAssignedHashtable = [Ordered]@{
-            apiVersion = '2017-03-30'
-            type       = 'Microsoft.Compute/virtualMachines'
-            identity   = [Ordered]@{
-                type = 'SystemAssigned'
-            }
-            name       = "[parameters('vmName')]"
-            location   = "[parameters('location')]"
-        condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        }    
+    $systemAssignedHashtable = [Ordered]@{
+        apiVersion = '2017-03-30'
+        type       = 'Microsoft.Compute/virtualMachines'
+        identity   = [Ordered]@{
+            type = 'SystemAssigned'
+        }
+        name       = "[parameters('vmName')]"
+        location   = "[parameters('location')]"
+    condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+    }    
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
 
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
@@ -1325,34 +1325,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
             details = [Ordered]@{
                 type = 'Microsoft.GuestConfiguration/guestConfigurationAssignments'
                 name = $ConfigurationName
-            }
-        }
-    }
-
-    # if there is atleast one tag
-    if ($Tag.count -gt 0) {
-        # capture existing 'anyOf' section
-        $anyOf = $policyRuleHashtable['if']
-        # replace with new 'allOf' at top order
-        $policyRuleHashtable['if'] = [Ordered]@{
-            allOf = @(
-            )
-        }
-        # add tags section under new 'allOf'
-        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-            allOf = @(
-            )
-        }
-        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
-        $policyRuleHashtable['if']['allOf'] += $anyOf
-        # add each tag individually to tags 'allOf'
-        for($i = 0; $i -lt $Tag.count; $i++) {
-            # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
-                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
-                    field = "tags.$($Tag[$i].Keys)"
-                    equals = "$($Tag[$i].Values)"
-                }
             }
         }
     }
@@ -1698,6 +1670,34 @@ function New-GuestConfigurationAuditPolicyDefinition {
     else
     {
         throw "The specified platform '$Platform' is not currently supported by this script."
+    }
+
+    # if there is atleast one tag
+    if ($Tag.count -gt 0) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
     }
 
     $existenceConditionList = [Ordered]@{

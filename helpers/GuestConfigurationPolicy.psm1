@@ -596,7 +596,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     if ($Tag.count -gt 0) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
-        # inject new 'allOf' at top order
+        # replace with new 'allOf' at top order
         $policyRuleHashtable['if'] = [Ordered]@{
             allOf = @(
             )
@@ -606,7 +606,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             allOf = @(
             )
         }
-        # re-inject 'anyOf' under new 'allOf' after tags 'allOf'
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
         $policyRuleHashtable['if']['allOf'] += $anyOf
         # add each tag individually to tags 'allOf'
         for($i = 0; $i -lt $Tag.count; $i++) {
@@ -1333,7 +1333,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     if ($Tag.count -gt 0) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
-        # inject new 'allOf' at top order
+        # replace with new 'allOf' at top order
         $policyRuleHashtable['if'] = [Ordered]@{
             allOf = @(
             )
@@ -1343,7 +1343,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             allOf = @(
             )
         }
-        # re-inject 'anyOf' under new 'allOf' after tags 'allOf'
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
         $policyRuleHashtable['if']['allOf'] += $anyOf
         # add each tag individually to tags 'allOf'
         for($i = 0; $i -lt $Tag.count; $i++) {

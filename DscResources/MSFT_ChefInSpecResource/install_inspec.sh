@@ -6,7 +6,7 @@
 DSC_HOME_PATH="$PWD"
 LINUX_DISTRO=""
 AZURE_STORAGE_URL="https://oaasguestconfigwcuss1.blob.core.windows.net/inspecpkgs"
-MAX_DOWNLOAD_RETRY_COUNT=5
+MAX_DOWNLOAD_RETRY_COUNT=10
 
 # In priority order. Default is WCUS.
 AVAILABLE_AZURE_STORAGE_REGIONS=('wcus'

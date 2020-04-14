@@ -8,6 +8,18 @@ LINUX_DISTRO=""
 AZURE_STORAGE_URL="https://oaasguestconfigwcuss1.blob.core.windows.net/inspecpkgs"
 MAX_DOWNLOAD_RETRY_COUNT=5
 
+# In priority order. Default is WCUS.
+AVAILABLE_AZURE_STORAGE_REGIONS=('wcus'
+    'we'
+    'ase'
+    'brs'
+    'cid'
+    'eus2'
+    'ne'
+    'scus'
+    'uks'
+    'wus2')
+
 print_error() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
 }
@@ -47,21 +59,10 @@ get_linux_distro() {
 rotate_azure_storage_url() {
     RETRY_NUM=$1
 
-    AVAILABLE_REGIONS=('wcus'
-        'we'
-        'ase'
-        'brs'
-        'cid'
-        'eus2'
-        'ne'
-        'scus'
-        'uks'
-        'wus2')
-
-    NUM_AVAILABLE_REGIONS=${#AVAILABLE_REGIONS[@]}
+    NUM_AVAILABLE_REGIONS=${#AVAILABLE_AZURE_STORAGE_REGIONS[@]}
 
     CURRENT_REGION_INDEX=$(( RETRY_NUM % NUM_AVAILABLE_REGIONS ))
-    CURRENT_REGION=${AVAILABLE_REGIONS[$CURRENT_REGION_INDEX]}
+    CURRENT_REGION=${AVAILABLE_AZURE_STORAGE_REGIONS[$CURRENT_REGION_INDEX]}
 
     AZURE_STORAGE_ENDPOINT="oaasguestconfig${CURRENT_REGION}s1"
     AZURE_STORAGE_URL="https://${AZURE_STORAGE_ENDPOINT}.blob.core.windows.net/inspecpkgs"
@@ -172,7 +173,7 @@ install_inspec_debian() {
     if [ $(dpkg-query -W -f='${Status}' inspec 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
         download_and_validate_inspec_package_with_retries $INSPEC_DOWNLOAD_PACKAGE_NAME $EXPECTED_SHA256_CHECKSUM
 
-        echo "Installing InSpec via dpkg..."
+        echo "Installing InSpec via dpkg from path '$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME'..."
         export DEBIAN_FRONTEND=noninteractive
         dpkg -i "$DSC_HOME_PATH/$INSPEC_DOWNLOAD_PACKAGE_NAME" >/dev/null 2>&1
         check_result $? "Installation of InSpec failed."

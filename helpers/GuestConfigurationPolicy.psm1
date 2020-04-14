@@ -533,7 +533,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
         $Category = 'Guest Configuration',
 
         [Parameter()]
-        [Hashtable]
+        [Hashtable[]]
         $Tag = @{}
     )
 
@@ -1259,7 +1259,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $Category = 'Guest Configuration',
 
         [Parameter()]
-        [Hashtable]
+        [Hashtable[]]
         $Tag = @{}
     )
 

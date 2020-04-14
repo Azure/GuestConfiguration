@@ -534,7 +534,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         [Parameter()]
         [Hashtable[]]
-        $Tag = @{}
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1056,7 +1056,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if ($Tag.count -gt 0) {
+    if ($PSBoundParameters.ContainsKey('Tag')) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order
@@ -1272,7 +1272,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter()]
         [Hashtable[]]
-        $Tag = @{}
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1673,7 +1673,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if ($Tag.count -gt 0) {
+    if ($PSBoundParameters.ContainsKey('Tag')) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order

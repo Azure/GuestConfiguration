@@ -492,7 +492,7 @@ function New-GuestConfigurationPolicy
         [string] $Category = 'Guest Configuration',
 
         [parameter()]
-        [Hashtable[]] $Tag = @{}
+        [Hashtable[]] $Tag
     )
 
     Try {

@@ -1056,7 +1056,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if ($PSBoundParameters.ContainsKey('Tag')) {
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order
@@ -1673,7 +1673,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if ($PSBoundParameters.ContainsKey('Tag')) {
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order

@@ -592,14 +592,20 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     }
 
-    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
-        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
-            field = "tags.$($Tag.Keys[0])"
-            equals = "$($Tag.Values[0])"
-        }
-        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
-            field = "tags.$($Tag.Keys[0])"
-            equals = "$($Tag.Values[0])"
+    # add each tag individually
+    for($i = 0; $i -lt $Tag.Count; $i++) {
+        # verify item is hashtable with a name property
+        if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
+            # Compute tags
+            $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
+                field = "tags.$($Tag.Keys[$i])"
+                equals = "$($Tag.Values[$i])"
+            }
+            # Hybrid Compute tags
+            $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
+                field = "tags.$($Tag.Keys[0])"
+                equals = "$($Tag.Values[0])"
+            }
         }
     }
 
@@ -1312,14 +1318,20 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
     }
 
-    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
-        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
-            field = "tags.$($Tag.Keys[0])"
-            equals = "$($Tag.Values[0])"
-        }
-        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
-            field = "tags.$($Tag.Keys[0])"
-            equals = "$($Tag.Values[0])"
+    # add each tag individually
+    for($i = 0; $i -lt $Tag.Count; $i++) {
+        # verify item is hashtable with a name property
+        if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
+            # Compute tags
+            $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
+                field = "tags.$($Tag.Keys[$i])"
+                equals = "$($Tag.Values[$i])"
+            }
+            # Hybrid Compute tags
+            $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
+                field = "tags.$($Tag.Keys[0])"
+                equals = "$($Tag.Values[0])"
+            }
         }
     }
 

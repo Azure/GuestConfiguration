@@ -595,11 +595,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
     if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            equals = "$($Tag.Values[0])"
         }
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            equals = "$($Tag.Values[0])"
         }
     }
 
@@ -1315,11 +1315,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
     if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            equals = "$($Tag.Values[0])"
         }
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
             field = "tags.$($Tag.Keys[0])"
-            in = "$($Tag.Values[0])"
+            equals = "$($Tag.Values[0])"
         }
     }
 

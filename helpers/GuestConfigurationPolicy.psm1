@@ -592,19 +592,18 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     }
 
-    # add each tag individually
-    for($i = 0; $i -lt $Tag.Count; $i++) {
-        # verify item is hashtable with a name property
-        if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
-            # Compute tags
-            $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
+    # if there is atleast one tag
+    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+        # add tags section to end of of table
+        $policyRuleHashtable['if'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add each tag individually
+        for($i = 0; $i -lt $Tag.Count; $i++) {
+            $policyRuleHashtable['if']['allOf'] += [Ordered]@{
                 field = "tags.$($Tag.Keys[$i])"
                 equals = "$($Tag.Values[$i])"
-            }
-            # Hybrid Compute tags
-            $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
-                field = "tags.$($Tag.Keys[0])"
-                equals = "$($Tag.Values[0])"
             }
         }
     }
@@ -1292,19 +1291,19 @@ function New-GuestConfigurationAuditPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
-                    allOf = @(,
+                    allOf = @(
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -1318,19 +1317,18 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
     }
 
-    # add each tag individually
-    for($i = 0; $i -lt $Tag.Count; $i++) {
-        # verify item is hashtable with a name property
-        if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
-            # Compute tags
-            $policyRuleHashtable['if']['anyOf'][0]['allOf'] += [Ordered]@{
+    # if there is atleast one tag
+    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+        # add tags section to end of of table
+        $policyRuleHashtable['if'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add each tag individually
+        for($i = 0; $i -lt $Tag.Count; $i++) {
+            $policyRuleHashtable['if']['allOf'] += [Ordered]@{
                 field = "tags.$($Tag.Keys[$i])"
                 equals = "$($Tag.Values[$i])"
-            }
-            # Hybrid Compute tags
-            $policyRuleHashtable['if']['anyOf'][1]['allOf'] += [Ordered]@{
-                field = "tags.$($Tag.Keys[0])"
-                equals = "$($Tag.Values[0])"
             }
         }
     }

@@ -565,19 +565,19 @@ function New-GuestConfigurationDeployPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
                     allOf = @(,
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -593,7 +593,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+    if ($Tag.count -gt 0) {
         # add tags section to end of of table
         $policyRuleHashtable['if'] += [Ordered]@{
             allOf = @(
@@ -601,9 +601,12 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
         # add each tag individually
         for($i = 0; $i -lt $Tag.Count; $i++) {
-            $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-                field = "tags.$($Tag.Keys[$i])"
-                equals = "$($Tag.Values[$i])"
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+                $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag.Keys[$i])"
+                    equals = "$($Tag.Values[$i])"
+                }
             }
         }
     }
@@ -1318,7 +1321,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     # if there is atleast one tag
-    if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+    if ($Tag.count -gt 0) {
         # add tags section to end of of table
         $policyRuleHashtable['if'] += [Ordered]@{
             allOf = @(
@@ -1326,9 +1329,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
         # add each tag individually
         for($i = 0; $i -lt $Tag.Count; $i++) {
-            $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-                field = "tags.$($Tag.Keys[$i])"
-                equals = "$($Tag.Values[$i])"
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag.Keys[0])) {
+                $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag.Keys[$i])"
+                    equals = "$($Tag.Values[$i])"
+                }
             }
         }
     }

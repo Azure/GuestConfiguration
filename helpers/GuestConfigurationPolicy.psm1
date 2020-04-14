@@ -602,10 +602,10 @@ function New-GuestConfigurationDeployPolicyDefinition {
         # add each tag individually
         for($i = 0; $i -lt $Tag.Count; $i++) {
             # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
                 $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-                    field = "tags.$($Tag.Keys[$i])"
-                    equals = "$($Tag.Values[$i])"
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
                 }
             }
         }
@@ -1328,12 +1328,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
             )
         }
         # add each tag individually
-        for($i = 0; $i -lt $Tag.Count; $i++) {
+        for($i = 0; $i -lt $Tag.count; $i++) {
             # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag.Keys[$i])) {
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
                 $policyRuleHashtable['if']['allOf'] += [Ordered]@{
-                    field = "tags.$($Tag.Keys[$i])"
-                    equals = "$($Tag.Values[$i])"
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
                 }
             }
         }

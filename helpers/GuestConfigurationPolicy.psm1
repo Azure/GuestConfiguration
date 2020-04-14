@@ -594,16 +594,25 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     # if there is atleast one tag
     if ($Tag.count -gt 0) {
-        # add tags section to end of of table
-        $policyRuleHashtable['if'] += [Ordered]@{
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # inject new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
             allOf = @(
             )
         }
-        # add each tag individually
-        for($i = 0; $i -lt $Tag.Count; $i++) {
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-inject 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
             # if there is atleast one tag
             if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
-                $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
                     field = "tags.$($Tag[$i].Keys)"
                     equals = "$($Tag[$i].Values)"
                 }
@@ -1322,16 +1331,25 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
     # if there is atleast one tag
     if ($Tag.count -gt 0) {
-        # add tags section to end of of table
-        $policyRuleHashtable['if'] += [Ordered]@{
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # inject new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
             allOf = @(
             )
         }
-        # add each tag individually
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-inject 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
         for($i = 0; $i -lt $Tag.count; $i++) {
             # if there is atleast one tag
             if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
-                $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
                     field = "tags.$($Tag[$i].Keys)"
                     equals = "$($Tag[$i].Values)"
                 }

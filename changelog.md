@@ -3,6 +3,7 @@
 ## v1.20.0
 
 - Support for custom Policy categories
+- Download location for InSpec requirements
 - Support custom VM images
 - Support Arc machines
 - Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact

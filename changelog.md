@@ -11,6 +11,7 @@
 - Include PowerShell modules when they are required for DSC modules in packages
 - More target file copy when creating custom packages
 - Remove DataBricks from policy IF statements
+- Support filtering policy for single tag name/value
 
 ## v1.19.3
 

@@ -417,6 +417,12 @@ function Protect-GuestConfigurationPackage
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Category
+        Policy category.
+
+    .Parameter Tag
+        The name and value of a tag used in Azure.
+
     .Example
         New-GuestConfigurationPolicy `
                                  -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
@@ -424,6 +430,8 @@ function Protect-GuestConfigurationPackage
                                  -Description 'Policy to monitor service on Windows machine.' `
                                  -Version 1.0.0.0 
                                  -Path ./git/custom_policy
+                                 -Category 'Contoso Apps'
+                                 -Tag @{Owner = 'WebTeam'}
 
         $PolicyParameterInfo = @(
             @{
@@ -464,10 +472,10 @@ function New-GuestConfigurationPolicy
         [ValidateNotNullOrEmpty()]
         [string] $Description,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [Hashtable[]] $Parameter,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [ValidateNotNullOrEmpty()]
         [version] $Version = '1.0.0.0',
 
@@ -480,8 +488,11 @@ function New-GuestConfigurationPolicy
         [string]
         $Platform = 'Windows',
 
-        [parameter(Mandatory = $false)]
-        [string] $Category = 'Guest Configuration'
+        [parameter()]
+        [string] $Category = 'Guest Configuration',
+
+        [parameter()]
+        [Hashtable[]] $Tag
     )
 
     Try {
@@ -534,6 +545,7 @@ function New-GuestConfigurationPolicy
             ParameterInfo = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
             Category = $Category
+            Tag = $Tag
         }
         $AuditPolicyInfo = @{
             FileName = "AuditIfNotExists.json"
@@ -541,6 +553,7 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Tag = $Tag
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"

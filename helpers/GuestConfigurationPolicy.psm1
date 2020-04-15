@@ -530,7 +530,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [Hashtable[]]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -561,19 +565,19 @@ function New-GuestConfigurationDeployPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
                     allOf = @(,
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -1051,6 +1055,34 @@ function New-GuestConfigurationDeployPolicyDefinition {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
+    # if there is atleast one tag
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
+    }
+
     $existenceConditionList = @()
     # Handle adding parameters if needed
     if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0) {
@@ -1158,20 +1190,20 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
     
-        $systemAssignedHashtable = [Ordered]@{
-            apiVersion = '2017-03-30'
-            type       = 'Microsoft.Compute/virtualMachines'
-            identity   = [Ordered]@{
-                type = 'SystemAssigned'
-            }
-            name       = "[parameters('vmName')]"
-            location   = "[parameters('location')]"
-        condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        }    
+    $systemAssignedHashtable = [Ordered]@{
+        apiVersion = '2017-03-30'
+        type       = 'Microsoft.Compute/virtualMachines'
+        identity   = [Ordered]@{
+            type = 'SystemAssigned'
+        }
+        name       = "[parameters('vmName')]"
+        location   = "[parameters('location')]"
+    condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+    }    
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
 
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
@@ -1236,7 +1268,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [Hashtable[]]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1267,19 +1303,19 @@ function New-GuestConfigurationAuditPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
-                    allOf = @(,
+                    allOf = @(
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -1291,7 +1327,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 name = $ConfigurationName
             }
         }
-
     }
 
     if ($Platform -ieq 'Windows')
@@ -1635,6 +1670,34 @@ function New-GuestConfigurationAuditPolicyDefinition {
     else
     {
         throw "The specified platform '$Platform' is not currently supported by this script."
+    }
+
+    # if there is atleast one tag
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
     }
 
     $existenceConditionList = [Ordered]@{

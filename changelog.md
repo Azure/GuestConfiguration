@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- Adds support for additional Linux distributions
 - Download location for InSpec requirements
 - Support custom VM images
 - Support Arc machines

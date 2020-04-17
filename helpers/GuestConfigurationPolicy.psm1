@@ -530,7 +530,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [Hashtable[]]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -561,19 +565,19 @@ function New-GuestConfigurationDeployPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
                     allOf = @(,
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -891,11 +895,34 @@ function New-GuestConfigurationDeployPolicyDefinition {
                         allOf = @(
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imagePublisher"
-                                equals = 'RedHat'
+                                equals = 'Oracle'
                             },
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                equals = 'RHEL'
+                                equals = 'Oracle-Linux'
+                            },
+                            [Ordered]@{
+                                field = "Microsoft.Compute/imageSKU"
+                                notLike = '6*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field  = $RPName + '/imagePublisher'
+                                equals = 'RedHat'
+                            },
+                            [Ordered]@{ 
+                                field  = $RPName + '/imageOffer'
+                                in = @(
+                                    'RHEL',
+                                    'RHEL-HA'
+                                    'RHEL-SAP',
+                                    'RHEL-SAP-APPS',
+                                    'RHEL-SAP-HA',
+                                    'RHEL-SAP-HANA'
+                                    )
                             },
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageSKU"
@@ -910,8 +937,40 @@ function New-GuestConfigurationDeployPolicyDefinition {
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
+                                field  = $RPName + '/imageOffer'
+                                in = @(
+                                    'osa',
+                                    'rhel-byos'
+                                    )
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'center-for-internet-security-inc'
+                            },
+                            [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                equals = 'osa'
+                                in = @(
+                                'cis-centos-7-l1',
+                                'cis-centos-7-v2-1-1-l1'
+                                'cis-centos-8-l1',
+                                'cis-debian-linux-8-l1',
+                                'cis-debian-linux-9-l1',
+                                'cis-nginx-centos-7-v1-1-0-l1',
+                                'cis-oracle-linux-7-v2-0-0-l1',
+                                'cis-oracle-linux-8-l1',
+                                'cis-postgresql-11-centos-linux-7-level-1',
+                                'cis-rhel-7-l2',
+                                'cis-rhel-7-v2-2-0-l1',
+                                'cis-rhel-8-l1',
+                                'cis-suse-linux-12-v2-0-0-l1',
+                                'cis-ubuntu-linux-1604-v1-0-0-l1',
+                                'cis-ubuntu-linux-1804-l1'
+
+                                )
                             }
                         )
                     },
@@ -1051,6 +1110,34 @@ function New-GuestConfigurationDeployPolicyDefinition {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
+    # if there is atleast one tag
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
+    }
+
     $existenceConditionList = @()
     # Handle adding parameters if needed
     if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0) {
@@ -1158,20 +1245,20 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
     
-        $systemAssignedHashtable = [Ordered]@{
-            apiVersion = '2017-03-30'
-            type       = 'Microsoft.Compute/virtualMachines'
-            identity   = [Ordered]@{
-                type = 'SystemAssigned'
-            }
-            name       = "[parameters('vmName')]"
-            location   = "[parameters('location')]"
-        condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        }    
+    $systemAssignedHashtable = [Ordered]@{
+        apiVersion = '2017-03-30'
+        type       = 'Microsoft.Compute/virtualMachines'
+        identity   = [Ordered]@{
+            type = 'SystemAssigned'
+        }
+        name       = "[parameters('vmName')]"
+        location   = "[parameters('location')]"
+    condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+    }    
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
     
-        $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
+    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
 
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
@@ -1236,7 +1323,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter()]
         [String]
-        $Category = 'Guest Configuration'
+        $Category = 'Guest Configuration',
+
+        [Parameter()]
+        [Hashtable[]]
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1267,19 +1358,19 @@ function New-GuestConfigurationAuditPolicyDefinition {
         if   = [Ordered]@{
             anyOf = @(
                 [Ordered]@{
-            allOf = @(
-                [Ordered]@{
-                    field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                }
-            )
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
                 },
                 [Ordered]@{
-                    allOf = @(,
+                    allOf = @(
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"
-        }
+                        }
                     )
                 }
             )
@@ -1291,7 +1382,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 name = $ConfigurationName
             }
         }
-
     }
 
     if ($Platform -ieq 'Windows')
@@ -1494,11 +1584,34 @@ function New-GuestConfigurationAuditPolicyDefinition {
                         allOf = @(
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imagePublisher"
-                                equals = 'RedHat'
+                                equals = 'Oracle'
                             },
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                equals = 'RHEL'
+                                equals = 'Oracle-Linux'
+                            },
+                            [Ordered]@{
+                                field = "Microsoft.Compute/imageSKU"
+                                notLike = '6*'
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field  = $RPName + '/imagePublisher'
+                                equals = 'RedHat'
+                            },
+                            [Ordered]@{ 
+                                field  = $RPName + '/imageOffer'
+                                in = @(
+                                    'RHEL',
+                                    'RHEL-HA'
+                                    'RHEL-SAP',
+                                    'RHEL-SAP-APPS',
+                                    'RHEL-SAP-HA',
+                                    'RHEL-SAP-HANA'
+                                    )
                             },
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageSKU"
@@ -1513,8 +1626,40 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
+                                field  = $RPName + '/imageOffer'
+                                in = @(
+                                    'osa',
+                                    'rhel-byos'
+                                    )
+                            }
+                        )
+                    },
+                    [Ordered]@{
+                        allOf = @(
+                            [Ordered]@{ 
+                                field = "Microsoft.Compute/imagePublisher"
+                                equals = 'center-for-internet-security-inc'
+                            },
+                            [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                equals = 'osa'
+                                in = @(
+                                'cis-centos-7-l1',
+                                'cis-centos-7-v2-1-1-l1'
+                                'cis-centos-8-l1',
+                                'cis-debian-linux-8-l1',
+                                'cis-debian-linux-9-l1',
+                                'cis-nginx-centos-7-v1-1-0-l1',
+                                'cis-oracle-linux-7-v2-0-0-l1',
+                                'cis-oracle-linux-8-l1',
+                                'cis-postgresql-11-centos-linux-7-level-1',
+                                'cis-rhel-7-l2',
+                                'cis-rhel-7-v2-2-0-l1',
+                                'cis-rhel-8-l1',
+                                'cis-suse-linux-12-v2-0-0-l1',
+                                'cis-ubuntu-linux-1604-v1-0-0-l1',
+                                'cis-ubuntu-linux-1804-l1'
+
+                                )
                             }
                         )
                     },
@@ -1635,6 +1780,34 @@ function New-GuestConfigurationAuditPolicyDefinition {
     else
     {
         throw "The specified platform '$Platform' is not currently supported by this script."
+    }
+
+    # if there is atleast one tag
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
     }
 
     $existenceConditionList = [Ordered]@{

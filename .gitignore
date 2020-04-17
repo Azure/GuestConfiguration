@@ -1,6 +1,8 @@
 /bin
 /DSCConfig
 /.vagrant
+/.github
+/.azure-devops
 .DS_Store
 Vagrantfile
 VagrantRun.ps1

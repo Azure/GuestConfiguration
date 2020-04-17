@@ -13,8 +13,11 @@ trigger:
     - CODE_OF_CONDUCT.md
     - SECURITY.md
     - LICENSE
+    - changelog.md
     - .gitignore
     - .github/*
+variables:
+  releaseBuild: true
 
 jobs:
   - job: Test
@@ -53,7 +56,7 @@ jobs:
           script: |
             $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
             Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-            ./install-powershell.ps1 -Destination $powerShellPath -Preview
+            ./install-powershell.ps1 -Destination $powerShellPath
             if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
             $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
             Write-Host "sending " + $vstsCommandString
@@ -80,8 +83,6 @@ jobs:
           errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
-            $env:BuildTempFolder = New-Item -Type Directory "$(Pipeline.Workspace)/Temp"
-            write-host "BuildTempFolder: $env:BuildTempFolder"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Write-Error "$($Pester.FailedCount) tests failed."

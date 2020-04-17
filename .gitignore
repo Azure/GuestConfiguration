@@ -1,12 +1,9 @@
-/.azure-devops
-/.github
+.DS_Store
 /.vagrant
-/.vscode
 /bin
 /DSCConfig
-.DS_Store
+localhost.mof
 Vagrantfile
 VagrantRun.ps1
-localhost.mof
 *.zip
 *.log

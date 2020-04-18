@@ -2,6 +2,7 @@
 
 ## v1.20.0
 
+- Update API version for MSI
 - Support for custom Policy categories
 - Adds support for additional Linux distributions
 - Download location for InSpec requirements

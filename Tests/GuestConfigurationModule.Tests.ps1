@@ -382,7 +382,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     }
 
     Context 'Protect-GuestConfigurationPackage' {
-        policyName = 'testPolicy'
+        $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
         $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath

@@ -1,0 +1,10 @@
+name: hellopwsh
+on: [push]
+
+jobs:
+
+  pwsh:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - run: pwsh {write-host "hello, pwsh"}

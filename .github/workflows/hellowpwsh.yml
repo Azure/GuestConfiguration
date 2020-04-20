@@ -8,3 +8,7 @@ jobs:
       
     steps:
       - run: pwsh -command {write-host "hello, pwsh"}
+
+      - name: Display the path
+        run: echo ${env:PATH}
+        shell: pwsh

@@ -1246,7 +1246,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
     
     $systemAssignedHashtable = [Ordered]@{
-        apiVersion = '2017-03-30'
+        apiVersion = '2019-07-01'
         type       = 'Microsoft.Compute/virtualMachines'
         identity   = [Ordered]@{
             type = 'SystemAssigned'

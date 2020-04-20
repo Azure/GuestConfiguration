@@ -361,7 +361,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     if (Test-CurrentMachineIsWindows) {
         Context 'Test-GuestConfigurationPackage' {
-            policyName = 'testPolicy'
+            $policyName = 'testPolicy'
             $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
             $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
@@ -386,6 +386,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
+            $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1

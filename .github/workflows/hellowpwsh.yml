@@ -7,4 +7,4 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
-      - run: pwsh {write-host "hello, pwsh"}
+      - run: pwsh -command {write-host "hello, pwsh"}

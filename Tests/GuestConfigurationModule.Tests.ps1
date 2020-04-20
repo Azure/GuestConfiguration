@@ -79,7 +79,12 @@ function New-TestDscConfiguration {
     (
         [Parameter(Mandatory = $true)]
         [String]
-        $DestinationFolderPath
+        $DestinationFolderPath,
+
+        [Parameter()]
+        [ValidateSet('DSC','InSpec')]
+        [String]
+        $Type = 'DSC'
     )
 
     if ($false -eq (Test-CurrentMachineIsWindows)) {
@@ -88,12 +93,13 @@ function New-TestDscConfiguration {
 
     Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
 
-    # Set up the DSC configuration
-    $dscConfig = @"
+#region Windows DSC config
+if ('DSC' -eq $Type) {
+$dscConfig = @"
 Configuration DSCConfig
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
-
+    
     Node 'localhost'
     {
         TimeZone TimeZoneExample
@@ -105,11 +111,67 @@ Configuration DSCConfig
 }
 DSCConfig -OutputPath $DestinationFolderPath
 "@
+}
+#endregion
+
+#region Linux DSC config
+if ('InSpec' -eq $Type) {
+$dscConfig = @"
+Configuration DSCConfig
+{
+    Import-DscResource -ModuleName 'GuestConfiguration'
+
+    Node 'localhost'
+    {
+        ChefInSpecResource 'Audit Linux path exists'
+        {
+            Name = 'linux-path'
+        }
+    }
+}
+DSCConfig -OutputPath $DestinationFolderPath
+"@
+$inSpecProfileName = 'linux-path'
+$inSpecProfile = @"
+name: $inSpecProfileName
+title: Test profile
+maintainer: Test
+summary: Test profile
+license: MIT
+version: 1.0.0
+supports:
+    - os-family: unix
+"@
+$inSpecProfileRB = @"
+describe file('/tmp') do
+    it { should exist }
+end
+"@
+}
+#endregion
 
     $destinationScriptPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig.ps1'
 
     $null = Set-Content -Path $destinationScriptPath -Value $dscConfig
     & $destinationScriptPath
+
+    if ('InSpec' -eq $Type) {
+        # creates directory for InSpec profile
+        $InSpecProfilePath = Join-Path -Path $TestDrive -ChildPath $inSpecProfileName
+        $null = New-Item -ItemType Directory -Path $InSpecProfilePath
+
+        # creates InSpec profile required Yml file
+        $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'inspec.yml'
+        $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
+
+        # creates directory for InSpec controls (component of InSpec profile)
+        $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
+        $null = New-Item -ItemType Directory -Path $InSpecControlsPath
+
+        # creates InSpec controls required Ruby file
+        $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
+        $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
+    }
 }
 
 function Initialize-MachineForGCTesting {

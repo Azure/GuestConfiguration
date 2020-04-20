@@ -291,6 +291,34 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
+    Context 'Module fundamentals' {
+            
+        It 'has the agent binaries from the project feed' {
+            Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
+            Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
+        }
+        
+        It 'has a PowerShell module manifest that meets functional requirements' {
+            Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
+            $? | Should -Be $true
+        }
+
+        It 'imported the module successfully' {
+            Get-Module GuestConfiguration | ForEach-Object {$_.Name} | Should -Be 'GuestConfiguration'
+        }
+
+        It 'does not throw while running Script Analyzer' {
+            $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules
+            $scriptanalyzer | Should -Be $Null
+        }
+
+        It 'has text in help examples' {
+            foreach ($function in $publicFunctions) {
+                Get-Help $function | ForEach-Object {$_.Examples} | Should -Not -BeNullOrEmpty
+            }
+        }
+    }
+
     Context 'Guest Configuration policy packages' {
         $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'

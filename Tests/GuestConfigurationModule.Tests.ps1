@@ -359,8 +359,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
     }
 
-    Context 'Test-GuestConfigurationPackage' {
-        if (Test-CurrentMachineIsWindows) {
+    if (Test-CurrentMachineIsWindows) {
+        Context 'Test-GuestConfigurationPackage' {
             policyName = 'testPolicy'
             $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
             $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
@@ -379,37 +379,37 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
             }
         } 
-    }
 
-    Context 'Protect-GuestConfigurationPackage' {
-        $policyName = 'testPolicy'
-        $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
-        $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+        Context 'Protect-GuestConfigurationPackage' {
+            $policyName = 'testPolicy'
+            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
+            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
 
-        $certificatePath = "Cert:\LocalMachine\My"
-        $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-        $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
+            $certificatePath = "Cert:\LocalMachine\My"
+            $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
+            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
         
-        It 'Signed package should exist at output path' {
-            Test-Path -Path $protectPackageResult.Path | Should Be $true
-        }
+            It 'Signed package should exist at output path' {
+                Test-Path -Path $protectPackageResult.Path | Should Be $true
+            }
     
-        It 'Package should be extractable' {
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
-        }
+            It 'Package should be extractable' {
+                { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
+            }
 
-        $catFileName = "$policyName.cat"
-        $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
+            $catFileName = "$policyName.cat"
+            $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
         
-        It '.cat file should exist in the extracted package' {
-            Test-Path -Path $catFilePath | Should Be $true
-        }
+            It '.cat file should exist in the extracted package' {
+                Test-Path -Path $catFilePath | Should Be $true
+            }
 
-        It 'Extracted .cat file thumbprint should match certificate thumbprint' {
-            $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
-            $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
+            It 'Extracted .cat file thumbprint should match certificate thumbprint' {
+                $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
+                $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
+            }
         }
     }
 

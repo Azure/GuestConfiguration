@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Pester
         run: |
+        Install-Module 'Pester' -Force
           Describe 'Something' {
             It 'can be evaluate by GH Actions' {
               $true | Should -Be $true

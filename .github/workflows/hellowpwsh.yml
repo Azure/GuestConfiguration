@@ -7,15 +7,7 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
-      - name: Pester
+      - name: Talk to API
         run: |
-          $global:progresspreference = 'SilentlyContinue'
-          Install-Module 'Pester' -Force
-          $ChangedFiles = git diff-tree --no-commit-id --name-only -r $Env:GITHUB_SHA
-          Describe 'Included files' {
-            It 'should have one' {
-              $ChangedFiles | Should -Be 'hellopwsh.yml'
-            }
-          }
-          git diff-tree --no-commit-id --name-only -r $Env:GITHUB_SHA
+          Invoke-RestMethod -Method Get -Uri https://api.github.com/user -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}};'content-type'='application-json'}
         shell: pwsh

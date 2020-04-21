@@ -9,11 +9,11 @@ jobs:
     steps:
       - name: Pester
         run: |
-          $Pester = Install-Module 'Pester' -Force
+          Install-Module 'Pester' -Force
           Describe 'Something' {
             It 'can be evaluate by GH Actions' {
               $true | Should -Be $true
             }
           }
-          get-item Env:
+          $Env:GITHUB_REF
         shell: pwsh

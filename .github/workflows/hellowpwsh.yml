@@ -8,6 +8,4 @@ jobs:
       
     steps:
       - name: Hello world
-        run: echo $PR
-        env:
-          PR: ${{ github.event }}
+        run: echo ${{ github.event }}

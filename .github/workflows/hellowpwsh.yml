@@ -9,11 +9,13 @@ jobs:
     steps:
       - name: Pester
         run: |
+          $global:progresspreference = 'SilentlyContinue'
           Install-Module 'Pester' -Force
-          Describe 'Something' {
-            It 'can be evaluate by GH Actions' {
-              $true | Should -Be $true
+          $ChangedFiles = git diff-tree --no-commit-id --name-only -r $Env:GITHUB_SHA
+          Describe 'Included files' {
+            It 'should have one' {
+              $ChangedFiles | Should -Be 'hellopwsh.yml'
             }
           }
-          $Env:GITHUB_REF
+          git diff-tree --no-commit-id --name-only -r $Env:GITHUB_SHA
         shell: pwsh

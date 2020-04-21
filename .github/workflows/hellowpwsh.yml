@@ -9,5 +9,6 @@ jobs:
     steps:
       - name: Talk to API
         run: |
-          Invoke-RestMethod -Method Get -Uri https://api.github.com/repos/$Env:GITHUB_REPOSITORY/pulls/87/files -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}"} -ContentType 'application/json' 
+          $Files = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$Env:GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/files" -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}"} -ContentType 'application/json' 
+          $Files | % filename
         shell: pwsh

@@ -9,8 +9,7 @@ jobs:
     steps:
       - name: Talk to API
         run: |
-          $n = ${{github.event.pull_request.number}}
-          write-host $n
+          ${{github.event}} | % pull_request
           #$Files = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$Env:GITHUB_REPOSITORY/pulls/$PR/files" -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}"} -ContentType 'application/json' 
           #$Files | % filename
         shell: pwsh

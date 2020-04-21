@@ -7,8 +7,12 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
-      - run: pwsh -command {write-host "hello, pwsh"}
-
-      - name: Display the path
-        run: echo ${env:PATH}
+      - name: Pester
+        run: |
+          Describe 'Something' {
+            It 'can be evaluate by GH Actions' {
+              $true | Should -Be $true
+            }
+          }
+          Get-Variable
         shell: pwsh

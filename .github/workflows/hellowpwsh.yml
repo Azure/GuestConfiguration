@@ -8,4 +8,4 @@ jobs:
       
     steps:
       - name: Hello world
-        run: echo ${{ github.event }}
+        run: echo ${{ github.event.push.ref }}

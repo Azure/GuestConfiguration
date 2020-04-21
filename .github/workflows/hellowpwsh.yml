@@ -9,5 +9,5 @@ jobs:
     steps:
       - name: Talk to API
         run: |
-          Invoke-RestMethod -Method Get -Uri https://api.github.com/user -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}";'content-type'='application-json'}
+          Invoke-RestMethod -Method Get -Uri https://api.github.com/user -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}"} -ContentType 'application-json' 
         shell: pwsh

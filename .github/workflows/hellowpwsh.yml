@@ -7,9 +7,14 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
+      - name: Hello world
+        run: echo $PR
+        env:
+          PR: ${{ github.event.pull_request.number }}
+
       - name: Talk to API
         run: |
-          gc $Env:GITHUB_EVENT_PATH
+          write-host $Env:PR
           #$Files = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$Env:GITHUB_REPOSITORY/pulls/$PR/files" -Headers @{authorization = "Bearer ${{secrets.GITHUB_TOKEN}}"} -ContentType 'application/json' 
           #$Files | % filename
         shell: pwsh

@@ -86,6 +86,8 @@ function New-TestDscConfiguration {
         Import-Module 'PSDesiredStateConfiguration'
     }
 
+    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
     # Set up the DSC configuration
     $dscConfig = @"
 Configuration DSCConfig
@@ -122,8 +124,6 @@ function Initialize-MachineForGCTesting {
     if (Test-CurrentMachineIsWindows) {
         Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
     }
-
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
     
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {

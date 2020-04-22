@@ -32,9 +32,9 @@ function Install-AzLibraries{
 function Test-ServicePrincipalAccountInEnviroment
 {
     param()
-     return (Test-Path Env:/AZURESERVICEPRINCIPALPASSWORD) -and`
-            (Test-Path Env:/AZURESERVICEPRINCIPALUSERNAME) -and`
-            (Test-Path Env:/AZURETENANTID)
+     return (Test-Path Env:/AZURE_SERVICEPRINCIPALPASSWORD) -and`
+            (Test-Path Env:/AZURE_SERVICEPRINCIPALUSERNAME) -and`
+            (Test-Path Env:/AZURE_TENANTID)
 }
 
 <#

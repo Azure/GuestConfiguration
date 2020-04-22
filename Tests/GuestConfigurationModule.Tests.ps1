@@ -198,18 +198,12 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             Import-Module -Name $azHelperModulePath
 
             # Initialize the machine
-            if (Test-ServicePrincipalAccountInEnviroment) {
-                Initialize-MachineForGCTesting
-            }
-            else {
+            if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
                 Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }
         }
 
-        if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
-            Initialize-MachineForGCTesting
-        }
-
+        Initialize-MachineForGCTesting
         Write-EnvironmentInfo
 
         # Set up test paths

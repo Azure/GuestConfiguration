@@ -139,6 +139,9 @@ function Initialize-MachineForGCTesting {
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
     if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+        # TODO
+        # Az PowerShell login from macOS currently has issue
+        # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
         Install-AzLibraries
         Login-ToTestAzAccount
     }
@@ -190,6 +193,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
 
         if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+            # TODO
+            # Az PowerShell login from macOS currently has issue
+            # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+            
             # Import the AzHelper module
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
             $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
@@ -298,8 +305,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     }
 
     if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+        # TODO
         # Az PowerShell login from macOS currently has issue
         # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+        
         Context 'Guest Configuration policy definitions' {
             $testPolicyName = 'AuditWindowsService'
             $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"

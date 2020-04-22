@@ -138,7 +138,7 @@ function Initialize-MachineForGCTesting {
     Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
-    if ('true' -eq $Env:RELEASEBUILD) {
+    if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
         Install-AzLibraries
         Login-ToTestAzAccount
     }
@@ -197,7 +197,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
-            # Initialize the machine
             if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
                 Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }

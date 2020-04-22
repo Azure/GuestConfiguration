@@ -1,10 +1,10 @@
 $AZURE_AUTOMATION_TEST_SUBSCRIPTION = 'Guest Configuration Automation Test'
 $Azure_API_TOKEN_EXPIRATION_HR = 1
-$Azure_SUBSCRIPTION_ID = $Env:Azure_SUBSCRIPTION_ID
+$Azure_SUBSCRIPTION_ID = $Env:AZURE_SUBSCRIPTIONID
 if ((Test-Path Env:\DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION) -and ($env:DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION -eq 'Test'))
 {
     # For adhoc testing in test region use a different subscription 
-    $Azure_SUBSCRIPTION_ID = $Env:Azure_Test_SUBSCRIPTION_ID
+    $Azure_SUBSCRIPTION_ID = $Env:AZURETESTSUBSCRIPTIONID
 }
 
 <## Install ##>
@@ -32,9 +32,9 @@ function Install-AzLibraries{
 function Test-ServicePrincipalAccountInEnviroment
 {
     param()
-     return (Test-Path Env:/AzureServicePrincipalPassword) -and`
-            (Test-Path Env:/AzureServicePrincipalUserName) -and`
-            (Test-Path Env:/AzureTenantID)
+     return (Test-Path Env:/AZURE_SERVICEPRINCIPALPASSWORD) -and`
+            (Test-Path Env:/AZURE_SERVICEPRINCIPALUSERNAME) -and`
+            (Test-Path Env:/AZURE_TENANTID)
 }
 
 <#
@@ -58,9 +58,9 @@ function Login-ToTestAzAccount
       }
 
     
-      $secPassword = ConvertTo-SecureString $env:AzureServicePrincipalPassword -AsPlainText -Force
-      $servicePrincipalCreds = [System.Management.Automation.PSCredential]::new($env:AzureServicePrincipalUserName, $secPassword)
-      Login-AzAccount -Credential $servicePrincipalCreds -ServicePrincipal -TenantId $env:AzureTenantID
+      $secPassword = ConvertTo-SecureString $env:AZURE_SERVICEPRINCIPALPASSWORD -AsPlainText -Force
+      $servicePrincipalCreds = [System.Management.Automation.PSCredential]::new($env:AZURE_SERVICEPRINCIPALUSERNAME, $secPassword)
+      Login-AzAccount -Credential $servicePrincipalCreds -ServicePrincipal -TenantId $env:AZURE_TENANTID
       Select-AzSubscription -SubscriptionId $SubscriptionID
 }
 
@@ -80,13 +80,13 @@ function Get-AzureAccessTokenInAzureDevOps
       throw "Test Service Principal account is only availabe under the Azure DevOps worker context"
     }
   
-    $TokenEndpoint = {https://login.windows.net/{0}/oauth2/token} -f $env:AzureTenantID
+    $TokenEndpoint = {https://login.windows.net/{0}/oauth2/token} -f $env:AZURE_TENANTID
     $ARMResource = "https://management.core.windows.net/";
     $Body = @{
             'resource'= $ARMResource
-            'client_id' = $env:AzureServicePrincipalUserName
+            'client_id' = $env:AZURE_SERVICEPRINCIPALUSERNAME
             'grant_type' = 'client_credentials'
-            'client_secret' =  $env:AzureServicePrincipalPassword
+            'client_secret' =  $env:AZURE_SERVICEPRINCIPALPASSWORD
     }    
     $params = @{
         ContentType = 'application/x-www-form-urlencoded'

@@ -304,7 +304,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
     }
 
-    if ('true' -eq $Env:RELEASEBUILD) {
+    if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+        # Az PowerShell login from macOS currently has issue
+        # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
         Context 'Guest Configuration policy definitions' {
             $testPolicyName = 'AuditWindowsService'
             $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"

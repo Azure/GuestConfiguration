@@ -1,6 +1,6 @@
 $AZURE_AUTOMATION_TEST_SUBSCRIPTION = 'Guest Configuration Automation Test'
 $Azure_API_TOKEN_EXPIRATION_HR = 1
-$Azure_SUBSCRIPTION_ID = $Env:AZURESUBSCRIPTIONID
+$Azure_SUBSCRIPTION_ID = $Env:AZURE_SUBSCRIPTIONID
 if ((Test-Path Env:\DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION) -and ($env:DSC_AZUREDEVOPS_ENVIRONMENT_TEST_REGION -eq 'Test'))
 {
     # For adhoc testing in test region use a different subscription 

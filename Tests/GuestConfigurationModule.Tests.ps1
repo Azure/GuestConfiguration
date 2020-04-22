@@ -189,7 +189,7 @@ function Write-EnvironmentInfo {
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
 
-        if ('true' -eq $Env:RELEASEBUILD) {
+        if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
             # Import the AzHelper module
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
             $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
@@ -206,7 +206,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             }
         }
 
-        if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD) {
+        if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
             Initialize-MachineForGCTesting
         }
 

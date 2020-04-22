@@ -4,6 +4,7 @@ pr:
     include:
       - prerelease
       - dev
+      - stage* # retire asap
 trigger:
   batch: true
   branches:

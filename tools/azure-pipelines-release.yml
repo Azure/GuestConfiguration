@@ -1,7 +1,9 @@
 pr:
   autoCancel: true
   branches:
-    include: prerelease, dev
+    include:
+      - prerelease
+      - dev
 trigger:
   batch: true
   branches:

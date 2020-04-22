@@ -188,6 +188,8 @@ function Write-EnvironmentInfo {
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
+        Write-EnvironmentInfo
+
         if ('true' -eq $Env:RELEASEBUILD) {
             # Import the AzHelper module
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
@@ -208,8 +210,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD) {
             Initialize-MachineForGCTesting
         }
-
-        Write-EnvironmentInfo
 
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'

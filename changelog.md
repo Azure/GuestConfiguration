@@ -2,7 +2,7 @@
 
 ## v1.19.4
 
-- Updated InSpec installation path
+- Updated InSpec installation uri
 - Bug fix for Test-GuestConfigurationPackage functionality on Ubuntu 16.04
 - Bug fix for better config refreshing after InSpec profile updates
 

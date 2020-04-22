@@ -201,7 +201,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 Initialize-MachineForGCTesting
             }
             else {
-                Write-Verbose -Message "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose
+                Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose
             }
         }
 

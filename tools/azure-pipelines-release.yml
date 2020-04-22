@@ -1,4 +1,4 @@
-pr: none
+pr: prerelease
 trigger:
   batch: true
   branches:

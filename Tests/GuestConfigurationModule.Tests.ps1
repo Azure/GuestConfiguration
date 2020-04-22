@@ -191,7 +191,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         if ('true' -eq $Env:RELEASEBUILD) {
             # Import the AzHelper module
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'helpers'
+            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
             $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath

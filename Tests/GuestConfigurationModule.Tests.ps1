@@ -86,6 +86,8 @@ function New-TestDscConfiguration {
         Import-Module 'PSDesiredStateConfiguration'
     }
 
+    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
     # Set up the DSC configuration
     $dscConfig = @"
 Configuration DSCConfig
@@ -122,8 +124,6 @@ function Initialize-MachineForGCTesting {
     if (Test-CurrentMachineIsWindows) {
         Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
     }
-
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
     
     $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
     if (Test-CurrentMachineIsWindows) {
@@ -138,7 +138,10 @@ function Initialize-MachineForGCTesting {
     Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
-    if ('true' -eq $Env:RELEASEBUILD) {
+    if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+        # TODO
+        # Az PowerShell login from macOS currently has issue
+        # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
         Install-AzLibraries
         Login-ToTestAzAccount
     }
@@ -188,32 +191,25 @@ function Write-EnvironmentInfo {
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
-        if ('true' -eq $Env:RELEASEBUILD) {
+
+        if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+            # TODO
+            # Az PowerShell login from macOS currently has issue
+            # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+            
             # Import the AzHelper module
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'helpers'
+            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
             $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
-            # Initialize the machine if needed
-            if (Test-CurrentMachineIsWindows) {
-                if (Test-ServicePrincipalAccountInEnviroment) {
-                    Initialize-MachineForGCTesting
-                }
-                else {
-                    Write-Verbose -Message "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose
-                }
-            }
-            else {
-                throw 'Current machine is not running Windows. The Guest Configuration module is currently only supported on Windows.'
+            if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
+                Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }
         }
 
-        if ($null -eq $Env:RELEASEBUILD -OR 'false' -eq $Env:RELEASEBUILD) {
-            Initialize-MachineForGCTesting
-        }
-
+        Initialize-MachineForGCTesting
         Write-EnvironmentInfo
 
         # Set up test paths
@@ -308,7 +304,11 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
     }
 
-    if ('true' -eq $Env:RELEASEBUILD) {
+    if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+        # TODO
+        # Az PowerShell login from macOS currently has issue
+        # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+        
         Context 'Guest Configuration policy definitions' {
             $testPolicyName = 'AuditWindowsService'
             $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"

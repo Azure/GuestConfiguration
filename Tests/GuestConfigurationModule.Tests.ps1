@@ -196,17 +196,12 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
-            # Initialize the machine if needed
-            if (Test-CurrentMachineIsWindows) {
-                if (Test-ServicePrincipalAccountInEnviroment) {
-                    Initialize-MachineForGCTesting
-                }
-                else {
-                    Write-Verbose -Message "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose
-                }
+            # Initialize the machine
+            if (Test-ServicePrincipalAccountInEnviroment) {
+                Initialize-MachineForGCTesting
             }
             else {
-                throw 'Current machine is not running Windows. The Guest Configuration module is currently only supported on Windows.'
+                Write-Verbose -Message "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed." -Verbose
             }
         }
 

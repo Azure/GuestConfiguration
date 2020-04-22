@@ -1,9 +1,14 @@
-pr: prerelease
+pr:
+  autoCancel: true
+  branches:
+    include: prerelease, dev
 trigger:
   batch: true
   branches:
     include:
       - master
+      - prerelease
+      - dev
   paths:
     exclude:
     - /bin/*

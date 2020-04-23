@@ -82,7 +82,7 @@ function New-TestDscConfiguration {
         $DestinationFolderPath,
 
         [Parameter()]
-        [ValidateSet('DSC','InSpec')]
+        [ValidateSet('DSC', 'InSpec')]
         [String]
         $Type = 'DSC'
     )
@@ -91,9 +91,9 @@ function New-TestDscConfiguration {
         Import-Module 'PSDesiredStateConfiguration'
     }
 
-#region Windows DSC config
-if ('DSC' -eq $Type) {
-$dscConfig = @"
+    #region Windows DSC config
+    if ('DSC' -eq $Type) {
+        $dscConfig = @"
 Configuration DSCConfig
 {
     Import-DSCResource -ModuleName ComputerManagementDsc
@@ -109,12 +109,12 @@ Configuration DSCConfig
 }
 DSCConfig -OutputPath $DestinationFolderPath
 "@
-}
-#endregion
+    }
+    #endregion
 
-#region Linux DSC config
-if ('InSpec' -eq $Type) {
-$dscConfig = @"
+    #region Linux DSC config
+    if ('InSpec' -eq $Type) {
+        $dscConfig = @"
 Configuration DSCConfig
 {
     Import-DscResource -ModuleName 'GuestConfiguration'
@@ -129,8 +129,8 @@ Configuration DSCConfig
 }
 DSCConfig -OutputPath $DestinationFolderPath
 "@
-$inSpecProfileName = 'linux-path'
-$inSpecProfile = @"
+        $inSpecProfileName = 'linux-path'
+        $inSpecProfile = @"
 name: $inSpecProfileName
 title: Test profile
 maintainer: Test
@@ -140,13 +140,13 @@ version: 1.0.0
 supports:
     - os-family: unix
 "@
-$inSpecProfileRB = @"
+        $inSpecProfileRB = @"
 describe file('/tmp') do
     it { should exist }
 end
 "@
-}
-#endregion
+    }
+    #endregion
 
     $destinationScriptPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig.ps1'
 
@@ -291,7 +291,35 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
-    Context 'Guest Configuration policy packages' {
+    Context 'Module fundamentals' {
+            
+        It 'has the agent binaries from the project feed' {
+            Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
+            Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
+        }
+        
+        It 'has a PowerShell module manifest that meets functional requirements' {
+            Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
+            $? | Should -Be $true
+        }
+
+        It 'imported the module successfully' {
+            Get-Module GuestConfiguration | ForEach-Object { $_.Name } | Should -Be 'GuestConfiguration'
+        }
+
+        It 'does not throw while running Script Analyzer' {
+            $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules -ExcludeRule 'PSAvoidUsingConvertToSecureStringWithPlainText'
+            $scriptanalyzer | Should -Be $Null
+        }
+
+        It 'has text in help examples' {
+            foreach ($function in $publicFunctions) {
+                Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
+            }
+        }
+    }
+
+    Context 'New-GuestConfigurationPackage' {
         $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
@@ -329,8 +357,15 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 }
             }
         }
+    }
 
-        if (Test-CurrentMachineIsWindows) {
+    if (Test-CurrentMachineIsWindows) {
+        Context 'Test-GuestConfigurationPackage' {
+            $policyName = 'testPolicy'
+            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
+            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
             It 'Validate overall compliance status' {
@@ -343,6 +378,15 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
                 $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
             }
+        } 
+
+        Context 'Protect-GuestConfigurationPackage' {
+            $policyName = 'testPolicy'
+            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
+            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+
+            $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
@@ -371,7 +415,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     }
 
     if ('true' -eq $Env:RELEASEBUILD) {
-        Context 'Guest Configuration policy definitions' {
+        Context 'New-GuestConfigurationPolicy' {
             $testPolicyName = 'AuditWindowsService'
             $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
             if (Test-CurrentMachineIsWindows) {
@@ -433,7 +477,27 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
                 $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
             }
+        }
 
+        Context 'Publish-GuestConfigurationPolicy' {
+            $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+            if (Test-CurrentMachineIsWindows) {
+                $computerInfo = Get-ComputerInfo
+                $currentWindowsOSString = $computerInfo.WindowsProductName
+            }
+            else {
+                $currentWindowsOSString = 'Non-Windows'
+            }
+            
+            $newGCPolicyParameters = @{
+                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+                Description = 'Policy to audit a Windows service'
+                Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+                Version     = '1.0.0.0'
+            }
+
+            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
 
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })

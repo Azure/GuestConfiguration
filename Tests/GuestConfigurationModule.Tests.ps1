@@ -309,9 +309,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
-
-        # Set up type needed for package extraction
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
     Context 'Module fundamentals' {
@@ -353,6 +350,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         It 'Verify the package can be extracted' {
             $package = Get-ChildItem "$testPackagePath/$policyName/$policyName.zip"
 
+            # Set up type needed for package extraction
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should Not Throw
         }
   
@@ -379,8 +378,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
         It 'Validate overall compliance status' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-            
+
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            
             
             $testPackageResult.complianceStatus | Should Be $false
         }
@@ -408,6 +408,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             }
     
             It 'Package should be extractable' {
+                # Set up type needed for package extraction
+                $null = Add-Type -AssemblyName System.IO.Compression.FileSystemPackage should be extractable' {
                 { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
             }
 

@@ -84,10 +84,11 @@ jobs:
           errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
-            if ($IsMacOS -or $IsLinux) { & sudo Su - }
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
+            if ($IsMacOS -or $IsLinux) {
+              sudo su root -c '$Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru'
+              }
+            else {
+              $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             }
       - task: PublishTestResults@2
         condition: succeededOrFailed()

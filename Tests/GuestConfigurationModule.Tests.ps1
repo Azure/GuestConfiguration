@@ -353,27 +353,27 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
     }
 
+    Context 'Test-GuestConfigurationPackage' {
+        $policyName = 'testPolicy'
+        $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
+        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+        $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+
+        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+
+        It 'Validate overall compliance status' {
+            $testPackageResult.complianceStatus | Should Be $false
+        }
+
+        It 'Validate that the resource compliance results are as expected' {
+            $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
+            $testPackageResult.resources[0].complianceStatus | Should Be $false
+            $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
+            $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
+        }
+    } 
+    
     if (Test-CurrentMachineIsWindows) {
-        Context 'Test-GuestConfigurationPackage' {
-            $policyName = 'testPolicy'
-            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
-
-            It 'Validate overall compliance status' {
-                $testPackageResult.complianceStatus | Should Be $false
-            }
-
-            It 'Validate that the resource compliance results are as expected' {
-                $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-                $testPackageResult.resources[0].complianceStatus | Should Be $false
-                $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
-                $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
-            }
-        } 
-
         Context 'Protect-GuestConfigurationPackage' {
             $policyName = 'testPolicy'
             $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'

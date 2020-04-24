@@ -1,16 +1,10 @@
-pr:
-  autoCancel: true
-  branches:
-    include:
-      - prerelease
-      - master # retire asap
+pr: false
 trigger:
   batch: true
   branches:
     include:
       - master
       - prerelease
-      - dev
   paths:
     exclude:
     - /bin/*
@@ -30,15 +24,17 @@ jobs:
   - job: Test
     strategy:
       matrix:
-        # comment out until bugs are resolved in PSDesiredStateConfiguration
-        #Ubuntu:
-        #  imageName: ubuntu-latest
+        # Blocking issue in 18.04
+        # Ubuntu1804:
+        #  imageName: ubuntu-18.04
+        Ubuntu1604:
+          imageName: ubuntu-16.04
         MacOSMojave:
           imageName: macOS-10.14
         MacOSCatalina:
           imageName: macOS-10.15
         Windows2019:
-          imageName: windows-latest
+          imageName: windows-2019
         Windows2016:
           imageName: vs2017-win2016
     pool:

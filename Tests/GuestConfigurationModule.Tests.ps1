@@ -272,6 +272,10 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
 
+            if (!$releaseBuild) {
+                Import-Module "$PSScriptRoot/ProxyFunctions.psm1" -Force
+            }
+            
             if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
                 Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }

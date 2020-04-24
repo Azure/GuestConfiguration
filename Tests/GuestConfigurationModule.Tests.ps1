@@ -91,26 +91,29 @@ function New-TestDscConfiguration {
         Import-Module 'PSDesiredStateConfiguration'
     }
 
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-
     #region Windows DSC config
     if ('DSC' -eq $Type) {
-        $dscConfig = @"
-Configuration DSCConfig
+        Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+        $dscConfig = @'
+instance of DSC_TimeZone as $DSC_TimeZone1ref
 {
-    Import-DSCResource -ModuleName ComputerManagementDsc
-    
-    Node 'localhost'
-    {
-        TimeZone TimeZoneExample
-        {
-            IsSingleInstance = 'Yes'
-            TimeZone         = 'Tonga Standard Time'
-        }
-    }
-}
-DSCConfig -OutputPath $DestinationFolderPath
-"@
+    ModuleName = "ComputerManagementDsc";
+    IsSingleInstance = "Yes";
+    ResourceID = "[TimeZone]TimeZoneExample";
+    SourceInfo = "::7::9::TimeZone";
+    TimeZone = "Tonga Standard Time";
+    ModuleVersion = "8.1.0";
+    ConfigurationName = "DSCConfig";
+};
+
+instance of OMI_ConfigurationDocument
+{
+    Version="2.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+    Name="DSCConfig";
+};
+'@
     }
     #endregion
 
@@ -150,10 +153,10 @@ end
     }
     #endregion
 
-    $destinationScriptPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig.ps1'
+    $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
+    $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
 
-    $null = Set-Content -Path $destinationScriptPath -Value $dscConfig
-    & $destinationScriptPath
+    $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
 
     if ('InSpec' -eq $Type) {
         # creates directory for InSpec profile

@@ -94,7 +94,7 @@ jobs:
           testResultsFormat: NUnit
           testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
         displayName: Publish test result
-  - job: Publish
+  - job: PublishArtifactToAzureDevOpsBuild
     dependsOn: Test
     pool:
       vmImage: ubuntu-latest

@@ -371,6 +371,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
         $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
+        if (!(Test-CurrentMachineIsWindows)) {sudo Su -}
+        
         $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
         It 'Validate overall compliance status' {

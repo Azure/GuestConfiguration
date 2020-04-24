@@ -286,9 +286,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         if (Test-CurrentMachineIsWindows) {
             New-TestCertificate
         }
-
-        # Set up type needed for package extraction
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
     BeforeEach {
@@ -312,6 +309,9 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+
+        # Set up type needed for package extraction
+        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
     Context 'Module fundamentals' {
@@ -347,9 +347,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         It 'creates Custom policy package' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
             Test-Path -Path $package.Path | Should Be $true
-        }
-        
-        It 'Verify package name after creation' {
             $package.Name | Should Be $policyName
         }
 
@@ -378,12 +375,12 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
     Context 'Test-GuestConfigurationPackage' {
 
-        if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
-        
-        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
-
         It 'Validate overall compliance status' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            
+            if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            
             $testPackageResult.complianceStatus | Should Be $false
         }
 

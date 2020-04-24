@@ -314,89 +314,91 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
     }
 
-        Context 'Module fundamentals' {
+    Context 'Module fundamentals' {
             
-            It 'has the agent binaries from the project feed' {
-                Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
-                Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
-            }
+        It 'has the agent binaries from the project feed' {
+            Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
+            Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
+        }
         
-            It 'has a PowerShell module manifest that meets functional requirements' {
-                Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
-                $? | Should -Be $true
-            }
-
-            It 'imported the module successfully' {
-                Get-Module GuestConfiguration | ForEach-Object { $_.Name } | Should -Be 'GuestConfiguration'
-            }
-
-            It 'does not throw while running Script Analyzer' {
-                $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules -ExcludeRule 'PSAvoidUsingConvertToSecureStringWithPlainText'
-                $scriptanalyzer | Should -Be $Null
-            }
-
-            It 'has text in help examples' {
-                foreach ($function in $publicFunctions) {
-                    Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
-                }
-            }
+        It 'has a PowerShell module manifest that meets functional requirements' {
+            Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should Not BeNullOrEmpty
+            $? | Should -Be $true
         }
 
-        Context 'New-GuestConfigurationPackage' {
+        It 'imported the module successfully' {
+            Get-Module GuestConfiguration | ForEach-Object { $_.Name } | Should -Be 'GuestConfiguration'
+        }
+
+        It 'does not throw while running Script Analyzer' {
+            $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules -ExcludeRule 'PSAvoidUsingConvertToSecureStringWithPlainText'
+            $scriptanalyzer | Should -Be $Null
+        }
+
+        It 'has text in help examples' {
+            foreach ($function in $publicFunctions) {
+                Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
+            }
+        }
+    }
+
+    Context 'New-GuestConfigurationPackage' {
+
+        It 'creates Custom policy package' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-
-            It 'Verify package exists after creation' {
-                Test-Path -Path $package.Path | Should Be $true
-            }
+            Test-Path -Path $package.Path | Should Be $true
+        }
         
-            It 'Verify package name after creation' {
-                $package.Name | Should Be $policyName
-            }
+        It 'Verify package name after creation' {
+            $package.Name | Should Be $policyName
+        }
 
-            It 'Verify the package can be extracted' {
-                { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should Not Throw
-            }
+        It 'Verify the package can be extracted' {
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should Not Throw
+        }
   
-            $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
 
-            It 'Verify extracted mof document exists' {
-                Test-Path -Path $mofFilePath | Should Be $true
-            }
+        It 'Verify extracted mof document exists' {
+            Test-Path -Path $mofFilePath | Should Be $true
+        }
 
-            It 'Verify all required modules are included in the package' {
-                $extractedModulesPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules'
-                $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4) 
-                for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
-                    if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
-                        $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
-                        $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
-                        Test-Path -Path $resourceModulePath | Should Be $true
-                    }
+        It 'Verify all required modules are included in the package' {
+            $extractedModulesPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules'
+            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4) 
+            for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
+                if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
+                    $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
+                    $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
+                    Test-Path -Path $resourceModulePath | Should Be $true
                 }
             }
         }
+    }
 
-        Context 'Test-GuestConfigurationPackage' {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+    Context 'Test-GuestConfigurationPackage' {
 
-            if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
+        if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
         
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
-            It 'Validate overall compliance status' {
-                $testPackageResult.complianceStatus | Should Be $false
-            }
+        It 'Validate overall compliance status' {
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            $testPackageResult.complianceStatus | Should Be $false
+        }
 
-            It 'Validate that the resource compliance results are as expected' {
-                $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-                $testPackageResult.resources[0].complianceStatus | Should Be $false
-                $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
-                $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
-            }
-        } 
+        It 'Validate that the resource compliance results are as expected' {
+            $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
+            $testPackageResult.resources[0].complianceStatus | Should Be $false
+            $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
+            $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
+        }
+    } 
     
-        if (Test-CurrentMachineIsWindows) {
-            Context 'Protect-GuestConfigurationPackage' {
+    if (Test-CurrentMachineIsWindows) {
+        Context 'Protect-GuestConfigurationPackage' {
+        
+            It 'Signed package should exist at output path' {
                 $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
                 $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
@@ -404,146 +406,144 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
                 $certificatePath = "Cert:\LocalMachine\My"
                 $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
                 $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
-        
-                It 'Signed package should exist at output path' {
-                    Test-Path -Path $protectPackageResult.Path | Should Be $true
-                }
+                Test-Path -Path $protectPackageResult.Path | Should Be $true
+            }
     
-                It 'Package should be extractable' {
-                    { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
-                }
+            It 'Package should be extractable' {
+                { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
+            }
 
-                $catFileName = "$policyName.cat"
-                $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
+            $catFileName = "$policyName.cat"
+            $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
         
-                It '.cat file should exist in the extracted package' {
-                    Test-Path -Path $catFilePath | Should Be $true
-                }
+            It '.cat file should exist in the extracted package' {
+                Test-Path -Path $catFilePath | Should Be $true
+            }
 
-                It 'Extracted .cat file thumbprint should match certificate thumbprint' {
-                    $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
-                    $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
-                }
+            It 'Extracted .cat file thumbprint should match certificate thumbprint' {
+                $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
+                $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
             }
         }
+    }
 
-        Context 'New-GuestConfigurationPolicy' {
-            $testPolicyName = 'AuditWindowsService'
-            if (Test-CurrentMachineIsWindows) {
-                $computerInfo = Get-ComputerInfo
-                $currentWindowsOSString = $computerInfo.WindowsProductName
-            }
-            else {
-                $currentWindowsOSString = 'Non-Windows'
-            }
-            $expectedPolicyType = 'Custom'
-            $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-
-            $newGCPolicyParameters = @{
-                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-                Description = 'Policy to audit a Windows service'
-                Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-                Version     = '1.0.0.0'
-            }
-
-            if (!$releaseBuild) {
-                Mock Get-AzPolicyDefinition
-            }
-
-            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-
-            It 'New-GuestConfigurationPolicy should output path to generated policies' {
-                $newGCPolicyResult.Path | Should Not BeNullOrEmpty
-            }
-
-            It 'Generated definition output path should exist' {
-                Test-Path -Path $newGCPolicyResult.Path | Should Be $true
-            }
-
-            $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
-
-            It 'Generated Audit policy file should exist' {
-                Test-Path -Path $auditPolicyFile | Should Be $true
-            }
-
-            $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
-            It 'Audit policy should contain expected content' {
-                $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-                $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-                $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
-                $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
-            }
-
-            $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
-
-            It 'Generated Deploy policy file should exist' {
-                Test-Path -Path $deployPolicyFile | Should Be $true
-            }
-
-            $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
-            It 'Deploy policy should contain expected content' {
-                $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-                $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-                $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
-                $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
-            }
+    Context 'New-GuestConfigurationPolicy' {
+        $testPolicyName = 'AuditWindowsService'
+        if (Test-CurrentMachineIsWindows) {
+            $computerInfo = Get-ComputerInfo
+            $currentWindowsOSString = $computerInfo.WindowsProductName
         }
+        else {
+            $currentWindowsOSString = 'Non-Windows'
+        }
+        $expectedPolicyType = 'Custom'
+        $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+
+        $newGCPolicyParameters = @{
+            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            Description = 'Policy to audit a Windows service'
+            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+            Version     = '1.0.0.0'
+        }
+
+        if (!$releaseBuild) {
+            Mock Get-AzPolicyDefinition
+        }
+
+        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+
+        It 'New-GuestConfigurationPolicy should output path to generated policies' {
+            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
+        }
+
+        It 'Generated definition output path should exist' {
+            Test-Path -Path $newGCPolicyResult.Path | Should Be $true
+        }
+
+        $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
+
+        It 'Generated Audit policy file should exist' {
+            Test-Path -Path $auditPolicyFile | Should Be $true
+        }
+
+        $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
+
+        It 'Audit policy should contain expected content' {
+            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+            $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
+            $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
+        }
+
+        $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
+
+        It 'Generated Deploy policy file should exist' {
+            Test-Path -Path $deployPolicyFile | Should Be $true
+        }
+
+        $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
+
+        It 'Deploy policy should contain expected content' {
+            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
+            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
+            $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
+        }
+    }
         
-        Context 'Publish-GuestConfigurationPolicy' {
-            if (Test-CurrentMachineIsWindows) {
-                $computerInfo = Get-ComputerInfo
-                $currentWindowsOSString = $computerInfo.WindowsProductName
-            }
-            else {
-                $currentWindowsOSString = 'Non-Windows'
-            }
+    Context 'Publish-GuestConfigurationPolicy' {
+        if (Test-CurrentMachineIsWindows) {
+            $computerInfo = Get-ComputerInfo
+            $currentWindowsOSString = $computerInfo.WindowsProductName
+        }
+        else {
+            $currentWindowsOSString = 'Non-Windows'
+        }
             
-            $newGCPolicyParameters = @{
-                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-                Description = 'Policy to audit a Windows service'
-                Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-                Version     = '1.0.0.0'
-            }
-
-            if (!$releaseBuild) {
-                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
-            }
-
-            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-            $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
-
-            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
-            It 'Should be able to retrieve 2 published policies' {
-                $null -ne $existingPolicies | Should Be $true
-                $existingPolicies.Count | Should Be 2
-            }
-
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
-            It 'Should be able to retrieve 1 published initiative' {
-                $null -ne $existingInitiatives | Should Be $true
-                $existingInitiatives.Count | Should Be 1
-            }
-        
-            Assert-MockCalled -CommandName New-AzPolicyDefinition -Times 2
-            Assert-MockCalled -CommandName New-AzPolicySetDefinition -Times 1
-
-            # Cleanup
-            foreach ($existingInitiative in $existingInitiatives) {
-                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-            }
-
-            foreach ($existingPolicy in $existingPolicies) {
-                $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
-            }
+        $newGCPolicyParameters = @{
+            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            Description = 'Policy to audit a Windows service'
+            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+            Version     = '1.0.0.0'
         }
+
+        if (!$releaseBuild) {
+            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+            Mock Get-AzPolicyDefinition
+            Mock Get-AzPolicySetDefinition
+            Mock New-AzPolicyDefinition -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
+        }
+
+        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+        $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
+
+        $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+        It 'Should be able to retrieve 2 published policies' {
+            $null -ne $existingPolicies | Should Be $true
+            $existingPolicies.Count | Should Be 2
+        }
+
+        $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+        It 'Should be able to retrieve 1 published initiative' {
+            $null -ne $existingInitiatives | Should Be $true
+            $existingInitiatives.Count | Should Be 1
+        }
+        
+        Assert-MockCalled -CommandName New-AzPolicyDefinition -Times 2
+        Assert-MockCalled -CommandName New-AzPolicySetDefinition -Times 1
+
+        # Cleanup
+        foreach ($existingInitiative in $existingInitiatives) {
+            $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
+        }
+
+        foreach ($existingPolicy in $existingPolicies) {
+            $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+        }
+    }
 }

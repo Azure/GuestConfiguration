@@ -91,6 +91,8 @@ function New-TestDscConfiguration {
         Import-Module 'PSDesiredStateConfiguration'
     }
 
+    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
     #region Windows DSC config
     if ('DSC' -eq $Type) {
         $dscConfig = @"

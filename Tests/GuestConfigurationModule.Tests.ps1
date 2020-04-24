@@ -198,7 +198,7 @@ function Initialize-MachineForGCTesting {
     Import-Module $gcModulePath
     Write-ModuleInfo -ModuleName 'GuestConfiguration'
 
-    if ('true' -eq $Env:RELEASEBUILD -AND (Test-CurrentMachineIsWindows)) {
+    if ($true -eq $releaseBuild -AND (Test-CurrentMachineIsWindows)) {
         # TODO
         # Az PowerShell login from macOS currently has issue
         # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
@@ -252,7 +252,7 @@ function Write-EnvironmentInfo {
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
-                $releaseBuild = $true
+            $releaseBuild = $true
         }
 
         if ($true -eq $releaseBuild -AND $false -eq $IsMacOS) {
@@ -479,49 +479,57 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
     }
         
-    if ('true' -eq $Env:RELEASEBUILD) {
-        Context 'Publish-GuestConfigurationPolicy' {
-            $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
-            if (Test-CurrentMachineIsWindows) {
-                $computerInfo = Get-ComputerInfo
-                $currentWindowsOSString = $computerInfo.WindowsProductName
-            }
-            else {
-                $currentWindowsOSString = 'Non-Windows'
-            }
+    Context 'Publish-GuestConfigurationPolicy' {
+        $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+        if (Test-CurrentMachineIsWindows) {
+            $computerInfo = Get-ComputerInfo
+            $currentWindowsOSString = $computerInfo.WindowsProductName
+        }
+        else {
+            $currentWindowsOSString = 'Non-Windows'
+        }
             
-            $newGCPolicyParameters = @{
-                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-                Description = 'Policy to audit a Windows service'
-                Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-                Version     = '1.0.0.0'
-            }
+        $newGCPolicyParameters = @{
+            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            Description = 'Policy to audit a Windows service'
+            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+            Version     = '1.0.0.0'
+        }
 
-            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-            $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
+        if (!$releaseBuild) {
+            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+            Mock Get-AzPolicyDefinition
+            Mock Get-AzPolicySetDefinition
+            Mock New-AzPolicyDefinition -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
+        }
 
-            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
-            It 'Should be able to retrieve 2 published policies' {
-                $null -ne $existingPolicies | Should Be $true
-                $existingPolicies.Count | Should Be 2
-            }
+        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+        $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
 
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
-            It 'Should be able to retrieve 1 published initiative' {
-                $null -ne $existingInitiatives | Should Be $true
-                $existingInitiatives.Count | Should Be 1
-            }
+        $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+        It 'Should be able to retrieve 2 published policies' {
+            $null -ne $existingPolicies | Should Be $true
+            $existingPolicies.Count | Should Be 2
+        }
+
+        $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+        It 'Should be able to retrieve 1 published initiative' {
+            $null -ne $existingInitiatives | Should Be $true
+            $existingInitiatives.Count | Should Be 1
+        }
         
+        Assert-MockCalled -CommandName New-AzPolicyDefinition -Times 2
+        Assert-MockCalled -CommandName New-AzPolicySetDefinition -Times 1
 
-            # Cleanup
-            foreach ($existingInitiative in $existingInitiatives) {
-                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-            }
+        # Cleanup
+        foreach ($existingInitiative in $existingInitiatives) {
+            $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
+        }
 
-            foreach ($existingPolicy in $existingPolicies) {
-                $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
-            }
+        foreach ($existingPolicy in $existingPolicies) {
+            $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
         }
     }
 }

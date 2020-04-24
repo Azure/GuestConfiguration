@@ -257,11 +257,8 @@ function Write-EnvironmentInfo {
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     
     BeforeAll {
-        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
-            $releaseBuild = $true
-        }
-
-        if ($true -eq $releaseBuild -AND $false -eq $IsMacOS) {
+       
+        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO
             # Az PowerShell login from macOS currently has issue
             # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
@@ -294,6 +291,24 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
     }
 
+    BeforeEach {
+        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
+            $releaseBuild = $true
+        }
+        else {
+            $releaseBuild = $false
+        }
+
+        $policyName = 'testPolicy'
+        $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
+        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+
+        $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
+        $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
+
+        $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+    }
+
         Context 'Module fundamentals' {
             
             It 'has the agent binaries from the project feed' {
@@ -323,13 +338,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
 
         Context 'New-GuestConfigurationPackage' {
-            $policyName = 'testPolicy'
-            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-
-            $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
-            $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
             It 'Verify package exists after creation' {
                 Test-Path -Path $package.Path | Should Be $true
@@ -363,9 +372,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
 
         Context 'Test-GuestConfigurationPackage' {
-            $policyName = 'testPolicy'
-            $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-            $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
             if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
@@ -386,9 +392,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     
         if (Test-CurrentMachineIsWindows) {
             Context 'Protect-GuestConfigurationPackage' {
-                $policyName = 'testPolicy'
-                $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-                $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
                 $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
 
                 $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
@@ -421,7 +424,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
         Context 'New-GuestConfigurationPolicy' {
             $testPolicyName = 'AuditWindowsService'
-            $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
             if (Test-CurrentMachineIsWindows) {
                 $computerInfo = Get-ComputerInfo
                 $currentWindowsOSString = $computerInfo.WindowsProductName
@@ -488,7 +490,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
         
         Context 'Publish-GuestConfigurationPolicy' {
-            $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
             if (Test-CurrentMachineIsWindows) {
                 $computerInfo = Get-ComputerInfo
                 $currentWindowsOSString = $computerInfo.WindowsProductName
@@ -506,12 +507,11 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             }
 
             if (!$releaseBuild) {
-                Import-Module $PSScriptRoot/ProxyFunctions.psm1
-                Mock Get-AzContext -ModuleName GuestConfiguration  -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition -ModuleName GuestConfiguration
-                Mock Get-AzPolicySetDefinition -ModuleName GuestConfiguration
-                Mock New-AzPolicyDefinition -ModuleName GuestConfiguration -Verifiable
-                Mock New-AzPolicySetDefinition -ModuleName GuestConfiguration -Verifiable
+                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+                Mock Get-AzPolicyDefinition
+                Mock Get-AzPolicySetDefinition
+                Mock New-AzPolicyDefinition -Verifiable
+                Mock New-AzPolicySetDefinition -Verifiable
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

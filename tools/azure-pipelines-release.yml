@@ -17,8 +17,6 @@ trigger:
     - changelog.md
     - .gitignore
     - .github/*
-variables:
-  releaseBuild: true
 
 jobs:
   - job: Test

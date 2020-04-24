@@ -19,8 +19,6 @@ pr:
         - changelog.md
         - .gitignore
         - .github/*
-variables:
-  releaseBuild: false
 
 jobs:
   - job: Test

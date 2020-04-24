@@ -294,10 +294,15 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeEach {
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
             $releaseBuild = $true
+            write-host "releaseBuild: $releaseBuild"
         }
         else {
             $releaseBuild = $false
+            write-host "releaseBuild: $releaseBuild"
         }
+
+        $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
+        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
 
         $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'

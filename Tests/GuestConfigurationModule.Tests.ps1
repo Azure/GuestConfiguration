@@ -351,6 +351,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         }
 
         It 'Verify the package can be extracted' {
+            $package = Get-ChildItem "$testPackagePath/$policyName/$policyName.zip"
+
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should Not Throw
         }
   
@@ -378,7 +380,6 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
         It 'Validate overall compliance status' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
             
-            if (!(Test-CurrentMachineIsWindows)) { & sudo Su - }
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             
             $testPackageResult.complianceStatus | Should Be $false

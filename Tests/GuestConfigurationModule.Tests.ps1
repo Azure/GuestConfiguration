@@ -272,7 +272,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
             Write-Verbose -Message "Importing AzHelper module..." -Verbose
             Import-Module -Name $azHelperModulePath
-            
+
             if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
                 Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }
@@ -506,11 +506,12 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             }
 
             if (!$releaseBuild) {
-                Mock Get-AzContext -ModuleName Az.Accounts -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition -ModuleName Az.Resources
-                Mock Get-AzPolicySetDefinition -ModuleName Az.Resources
-                Mock New-AzPolicyDefinition -ModuleName Az.Resources -Verifiable
-                Mock New-AzPolicySetDefinition -ModuleName Az.Resources -Verifiable
+                Import-Module $PSScriptRoot/ProxyFunctions.psm1
+                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+                Mock Get-AzPolicyDefinition
+                Mock Get-AzPolicySetDefinition
+                Mock New-AzPolicyDefinition -Verifiable
+                Mock New-AzPolicySetDefinition -Verifiable
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

@@ -21,21 +21,21 @@ pr:
         - .github/*
 
 jobs:
-  - job: Test
+  - job: Test running cmdlets from
     strategy:
       matrix:
         # Blocking issue in 18.04
-        # Ubuntu1804:
+        # Ubuntu 18.04:
         #  imageName: ubuntu-18.04
-        Ubuntu1604:
+        Ubuntu 16.04:
           imageName: ubuntu-16.04
-        MacOSMojave:
+        macOS Mojave:
           imageName: macOS-10.14
-        MacOSCatalina:
+        macOS Catalina:
           imageName: macOS-10.15
-        Windows2019:
+        Windows 2019:
           imageName: windows-2019
-        Windows2016:
+        Windows 2016:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)

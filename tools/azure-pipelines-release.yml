@@ -19,21 +19,21 @@ trigger:
     - .github/*
 
 jobs:
-  - job: Test running cmdlets from
+  - job: Test
     strategy:
       matrix:
         # Blocking issue in 18.04
-        # Ubuntu 18.04:
+        # running cmdlets from Ubuntu 18.04:
         #  imageName: ubuntu-18.04
-        Ubuntu 16.04:
+        running cmdlets from Ubuntu 16.04:
           imageName: ubuntu-16.04
-        macOS Mojave:
+        running cmdlets from macOS Mojave:
           imageName: macOS-10.14
-        macOS Catalina:
+        running cmdlets from macOS Catalina:
           imageName: macOS-10.15
-        Windows 2019:
+        running cmdlets from Windows 2019:
           imageName: windows-2019
-        Windows 2016:
+        running cmdlets from Windows 2016:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)

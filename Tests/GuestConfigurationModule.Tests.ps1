@@ -291,11 +291,11 @@ end
                     }
                 }
             }
-            Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            Mock Get-AzPolicyDefinition -ModuleName 'GuestConfiguration' -MockWith { @($definitionObject, $definitionObject) } -Verifiable
-            Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
-            Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
-            Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
+            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
+            Mock New-AzPolicyDefinition -Verifiable
+            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
             Write-Host '   [i] Mocked Az commands' -ForegroundColor Cyan
         }
         

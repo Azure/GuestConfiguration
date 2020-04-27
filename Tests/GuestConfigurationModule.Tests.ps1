@@ -498,6 +498,7 @@ end
         }
 
         It 'Audit policy should contain expected content' {
+            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -512,6 +513,7 @@ end
         }
 
         It 'Deploy policy should contain expected content' {
+            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue

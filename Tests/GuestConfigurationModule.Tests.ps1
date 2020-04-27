@@ -258,7 +258,10 @@ end
                 $newGCPolicyParameters,
 
                 [switch]
-                $Objects
+                $mockWithDefinition,
+
+                [switch]
+                $mockWithDefinitionSet
             )
 
             $definitionObject = @{
@@ -270,10 +273,10 @@ end
                 displayName = $newGCPolicyParameters.DisplayName
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            if ($Objects) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }
+            if ($mockWithDefinition) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }
             else {Mock Get-AzPolicyDefinition}
             
-            if ($Objects) { Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } }
+            if ($mockWithDefinitionSet) { Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } }
             else { Mock Get-AzPolicySetDefinition }
         }
         
@@ -545,7 +548,7 @@ end
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
             if ($notReleaseBuild) {
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -Objects
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinition
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
@@ -557,7 +560,7 @@ end
 
         It 'Should be able to retrieve 1 published initiative' {
             if ($notReleaseBuild) {
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -Objects
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinitionSet
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue

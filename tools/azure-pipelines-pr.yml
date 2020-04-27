@@ -60,7 +60,8 @@ jobs:
             $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'false'
+        enabled: 'true'
+        continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
           pwsh: 'true'

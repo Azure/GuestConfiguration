@@ -446,18 +446,17 @@ end
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
+            write-host "signed path: $($protectPackageResult.Path)"
         }
     
-        It 'Package should be extractable' {
+        It 'Signed package should be extractable' {
+            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
             # Set up type needed for package extraction
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should -Not -Throw
         }
 
         It '.cat file should exist in the extracted package' {
-            write-host "policyName $policyName"
-            write-host "signedPackageExtractionPath $signedPackageExtractionPath"
-            write-host "catFileName $catFileName"
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
             Test-Path -Path $catFilePath | Should -BeTrue
         }

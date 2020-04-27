@@ -271,8 +271,8 @@ end
                             Name = 'displayName'
                         }
                     }
-                }
                 displayName = $newGCPolicyParameters.DisplayName
+                }
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
             if ($mockWithDefinition) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }

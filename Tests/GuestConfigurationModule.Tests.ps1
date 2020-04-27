@@ -296,7 +296,7 @@ end
             Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
             Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
             Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
-            Write-Host '      [i] Mocked Az commands' -ForegroundColor Cyan
+            Write-Host '   [i] Mocked Az commands' -ForegroundColor Cyan
         }
         
         function Initialize-MachineForGCTesting {
@@ -527,6 +527,8 @@ end
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
+                function Get-AzPolicyDefinition {}
+                function Get-AzPolicySetDefinition {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 

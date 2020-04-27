@@ -188,6 +188,36 @@ end
             }
         }
 
+        function New-TestGCPolicyParameters {
+            [CmdletBinding()]
+            param
+            (
+                [Parameter(Mandatory = $true)]
+                [String]
+                $DestinationFolderPath
+            )
+
+            if (Test-CurrentMachineIsWindows) {
+                $computerInfo = Get-ComputerInfo
+                $currentWindowsOSString = $computerInfo.WindowsProductName
+            }
+            else {
+                $currentWindowsOSString = 'Non-Windows'
+            }
+            $expectedPolicyType = 'Custom'
+            $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+    
+            $newGCPolicyParameters = @{
+                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+                Description = 'Policy to audit a Windows service'
+                Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitions'
+                Version     = '1.0.0.0'
+            }
+
+            return $newGCPolicyParameters
+        }
+
         function Initialize-MachineForGCTesting {
             [CmdletBinding()]
             param ()
@@ -371,7 +401,7 @@ end
             }
         }
     }
-    Context 'Test-GuestConfigurationPackage' {
+    Context 'Test-GuestConfigurationPackage' -Skip:$IsNotWindows {
 
         It 'Validate that the resource compliance results are as expected' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
@@ -384,7 +414,7 @@ end
             $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
         }
     } 
-<#
+
     Context 'Protect-GuestConfigurationPackage' -Skip:$IsNotWindows {
         
         It 'Signed package should exist at output path' {
@@ -417,63 +447,39 @@ end
     }
 
     Context 'New-GuestConfigurationPolicy' {
-        $testPolicyName = 'AuditWindowsService'
-        if (Test-CurrentMachineIsWindows) {
-            $computerInfo = Get-ComputerInfo
-            $currentWindowsOSString = $computerInfo.WindowsProductName
-        }
-        else {
-            $currentWindowsOSString = 'Non-Windows'
-        }
-        $expectedPolicyType = 'Custom'
-        $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-
-        $newGCPolicyParameters = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-            Version     = '1.0.0.0'
-        }
-
-        if (!$releaseBuild) {
-            Mock Get-AzPolicyDefinition
-        }
-
-        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
-            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
-        }
+            $testPolicyName = 'AuditWindowsService'
 
-        It 'Generated definition output path should exist' {
+            if (!$releaseBuild) {
+                Mock Get-AzPolicyDefinition
+            }
+            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
+            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
             Test-Path -Path $newGCPolicyResult.Path | Should Be $true
         }
 
-        $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
-
         It 'Generated Audit policy file should exist' {
+            $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFile | Should Be $true
         }
 
-        $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
         It 'Audit policy should contain expected content' {
+            $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
             $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
             $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
             $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
         }
 
-        $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
-
         It 'Generated Deploy policy file should exist' {
+            $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
             Test-Path -Path $deployPolicyFile | Should Be $true
         }
 
-        $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-
         It 'Deploy policy should contain expected content' {
+            $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
             $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
             $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
@@ -482,7 +488,7 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
         }
     }
-        
+        <#
     Context 'Publish-GuestConfigurationPolicy' {
         if (Test-CurrentMachineIsWindows) {
             $computerInfo = Get-ComputerInfo

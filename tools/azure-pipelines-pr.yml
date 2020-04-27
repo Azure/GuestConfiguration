@@ -57,12 +57,12 @@ jobs:
           errorActionPreference: stop
           script: |
             if ($IsMacOS -or $IsLinux) {
-              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules;$modules += @('PowerShellGet','PSScriptAnalyzer');Install-Module -Name $modules -Repository 'PSGallery';Install-Module -Name 'Pester' -Repository 'PSGallery' -Force -AllowPreRelease"'
+              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules;$modules += @('PowerShellGet','PSScriptAnalyzer');Install-Module -Name $modules -Repository 'PSGallery' -Force;Install-Module -Name 'Pester' -Repository 'PSGallery' -Force -AllowPreRelease"'
               }
             else {
               $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
               $modules += @('PowerShellGet','PSScriptAnalyzer')
-              Install-Module -Name $modules -Repository 'PSGallery'
+              Install-Module -Name $modules -Repository 'PSGallery' -Force
               Install-Module -Name 'Pester' -Repository 'PSGallery' -Force -AllowPreRelease -AllowClobber -SkipPublisherCheck
             }
       - task: PowerShell@2

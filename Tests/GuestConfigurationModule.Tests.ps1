@@ -230,9 +230,7 @@ end
             else {
                 $currentWindowsOSString = 'Non-Windows'
             }
-            $expectedPolicyType = 'Custom'
-            $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-        
+            
             $newGCPolicyParameters = @{
                 ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
                 DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
@@ -362,6 +360,7 @@ end
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
+        $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
         $testPolicyName = 'AuditWindowsService'
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
@@ -453,7 +452,8 @@ end
         }
     
         It 'Signed package should be extractable' {
-            $package = Get-Item "$testPackagePath/$policyName/$policyName_signed.zip"
+            $signedFileName = $policyName+"_signed.zip"
+            $package = Get-Item "$testPackagePath/$policyName/$signedFileName"
             # Set up type needed for package extraction
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw

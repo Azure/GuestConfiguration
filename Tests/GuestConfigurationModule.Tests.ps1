@@ -560,16 +560,18 @@ end
             $existingInitiatives.Count | Should -Be 1
         }
     }  
-    AfterAll -Skip:$notReleaseBuild {
-        # Cleanup
-        $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+    AfterAll {
+        if ($ReleaseBuild) {
+            # Cleanup
+            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
 
-        foreach ($existingInitiative in $existingInitiatives) {
-            $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-        }
+            foreach ($existingInitiative in $existingInitiatives) {
+                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
+            }
 
-        foreach ($existingPolicy in $existingPolicies) {
-            $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+            foreach ($existingPolicy in $existingPolicies) {
+                $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+            }
         }
     }
 }

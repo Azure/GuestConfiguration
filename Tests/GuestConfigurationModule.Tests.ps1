@@ -255,7 +255,10 @@ end
             (
                 [Parameter(Mandatory = $true)]
                 [Hashtable]
-                $newGCPolicyParameters
+                $newGCPolicyParameters,
+
+                [switch]
+                $Objects
             )
 
             $definitionObject = @{
@@ -267,10 +270,11 @@ end
                 displayName = $newGCPolicyParameters.DisplayName
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) }
-            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject }
-            Mock New-AzPolicyDefinition -Verifiable
-            Mock New-AzPolicySetDefinition -Verifiable
+            if ($Objects) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }
+            else {Mock Get-AzPolicyDefinition}
+            
+            if ($Objects) { Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } }
+            else { Mock Get-AzPolicySetDefinition }
         }
         
         function Initialize-MachineForGCTesting {
@@ -500,7 +504,7 @@ end
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
-                Get-AzMocks $newGCPolicyParameters
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
@@ -541,7 +545,7 @@ end
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
             if ($notReleaseBuild) {
-                Get-AzMocks $newGCPolicyParameters
+                Get-AzMocks newGCPolicyParameters $newGCPolicyParameters -Objects
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
@@ -553,7 +557,7 @@ end
 
         It 'Should be able to retrieve 1 published initiative' {
             if ($notReleaseBuild) {
-                Get-AzMocks $newGCPolicyParameters
+                Get-AzMocks newGCPolicyParameters $newGCPolicyParameters -Objects
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue

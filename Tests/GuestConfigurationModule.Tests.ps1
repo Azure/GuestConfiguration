@@ -424,9 +424,9 @@ end
             }
         }
     }
-    Context 'Test-GuestConfigurationPackage' -Skip:$IsNotWindows {
+    Context 'Test-GuestConfigurationPackage' {
 
-        It 'Validate that the resource compliance results are as expected' {
+        It 'Validate that the resource compliance results are as expected' -Skip:$IsNotWindows {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
@@ -436,9 +436,9 @@ end
             $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
         }
     } 
-    Context 'Protect-GuestConfigurationPackage' -Skip:$IsNotWindows {
+    Context 'Protect-GuestConfigurationPackage' {
         
-        It 'Signed package should exist at output path' {
+        It 'Signed package should exist at output path' -Skip:$IsNotWindows {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
@@ -447,7 +447,7 @@ end
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
         }
     
-        It 'Signed package should be extractable' {
+        It 'Signed package should be extractable' -Skip:$IsNotWindows {
             $signedFileName = $policyName + "_signed.zip"
             $package = Get-Item "$testPackagePath/$policyName/$signedFileName"
             # Set up type needed for package extraction
@@ -455,12 +455,12 @@ end
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw
         }
 
-        It '.cat file should exist in the extracted package' {
+        It '.cat file should exist in the extracted package' -Skip:$IsNotWindows {
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
             Test-Path -Path $catFilePath | Should -BeTrue
         }
 
-        It 'Extracted .cat file thumbprint should match certificate thumbprint' {
+        It 'Extracted .cat file thumbprint should match certificate thumbprint' -Skip:$IsNotWindows {
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"

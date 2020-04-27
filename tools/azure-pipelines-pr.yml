@@ -57,10 +57,10 @@ jobs:
           errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
+            $modules += @('PowerShellGet','PSScriptAnalyzer')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'true'
+        enabled: 'false'
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:

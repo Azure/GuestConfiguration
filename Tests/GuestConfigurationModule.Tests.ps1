@@ -265,16 +265,18 @@ end
             )
 
             $definitionObject = @{
-                PSObject    = @{
-                    Properties = @{
-                        Name = 'displayName'
+                Properties  = @{
+                    PSObject = @{
+                        Properties = @{
+                            Name = 'displayName'
+                        }
                     }
                 }
                 displayName = $newGCPolicyParameters.DisplayName
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
             if ($mockWithDefinition) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }
-            else {Mock Get-AzPolicyDefinition}
+            else { Mock Get-AzPolicyDefinition }
             
             if ($mockWithDefinitionSet) { Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } }
             else { Mock Get-AzPolicySetDefinition }
@@ -507,7 +509,7 @@ end
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
-                function Get-AzContext {}
+                function Get-AzContext { }
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 
@@ -549,7 +551,7 @@ end
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
             if ($notReleaseBuild) {
-                function Get-AzContext {}
+                function Get-AzContext { }
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinition
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
@@ -562,7 +564,7 @@ end
 
         It 'Should be able to retrieve 1 published initiative' {
             if ($notReleaseBuild) {
-                function Get-AzContext {}
+                function Get-AzContext { }
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinitionSet
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )

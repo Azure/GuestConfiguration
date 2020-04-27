@@ -472,11 +472,6 @@ end
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if (!$releaseBuild) {
-                Function Get-AzContext { }
-                Function Get-AzPolicyDefinition { }
-                Function Get-AzPolicySetDefinition { }
-                Function New-AzPolicyDefinition { }
-                Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -ModuleName -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
                 Mock Get-AzPolicyDefinition
                 Mock Get-AzPolicySetDefinition

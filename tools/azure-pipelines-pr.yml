@@ -74,6 +74,7 @@ jobs:
               Write-Error "$($Pester.FailedCount) tests failed."
             }
       - task: PowerShell@2
+        enabled: 'true'
         displayName: Install Pester v5
         inputs:
           pwsh: 'true'
@@ -83,6 +84,7 @@ jobs:
           script: |
             Install-Module -Name 'Pester' -Force -AllowPreRelease
       - task: PowerShell@2
+        enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'

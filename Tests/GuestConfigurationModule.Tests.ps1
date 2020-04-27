@@ -39,6 +39,29 @@ function Get-OSPlatform {
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 
+if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
+    # TODO
+    # Az PowerShell login from macOS currently has issue
+    # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+    
+    # Import the AzHelper module
+    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
+    $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
+    Write-Verbose -Message "Importing AzHelper module..." -Verbose
+    Import-Module -Name $azHelperModulePath
+
+    if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
+        Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
+    }
+    $releaseBuild = $true
+    write-host "AZ MOCKS: Az cmdlets are NOT mocked"
+}
+if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Public)') {
+    $notReleaseBuild = $true
+    write-host "AZ MOCKS: Az cmdlets are mocked"
+}
+
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
     BeforeAll {
         function Get-OSPlatform {
@@ -290,7 +313,7 @@ end
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
         
-            if ($true -eq $releaseBuild -AND (Test-CurrentMachineIsWindows)) {
+            if ($releaseBuild -AND (Test-CurrentMachineIsWindows)) {
                 # TODO
                 # Az PowerShell login from macOS currently has issue
                 # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
@@ -339,31 +362,6 @@ end
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'
             Write-EnvironmentVariableInfo
-        }
-
-        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
-            # TODO
-            # Az PowerShell login from macOS currently has issue
-            # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
-            
-            # Import the AzHelper module
-            $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
-            $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
-            Write-Verbose -Message "Importing AzHelper module..." -Verbose
-            Import-Module -Name $azHelperModulePath
-    
-            if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
-                Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
-            }
-        }
-        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
-            $releaseBuild = $true
-            write-host "releaseBuild: $releaseBuild"
-        }
-        else {
-            $releaseBuild = $false
-            write-host "releaseBuild: $releaseBuild"
         }
     
         Initialize-MachineForGCTesting
@@ -495,7 +493,7 @@ end
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
-            if (!$releaseBuild) {
+            if ($notReleaseBuild) {
                 Get-AzMocks $newGCPolicyParameters
             }
 
@@ -509,7 +507,7 @@ end
             Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
-        It 'Audit policy should contain expected content' {
+        It 'Audit policy should contain expected content' -Skip:$notReleaseBuild{
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -523,7 +521,7 @@ end
             Test-Path -Path $deployPolicyFile | Should -BeTrue
         }
 
-        It 'Deploy policy should contain expected content' {
+        It 'Deploy policy should contain expected content' -Skip:$notReleaseBuild{
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -536,7 +534,7 @@ end
     }
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
-            if (!$releaseBuild) {
+            if ($notReleaseBuild) {
                 Get-AzMocks $newGCPolicyParameters
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
@@ -548,7 +546,7 @@ end
         }
 
         It 'Should be able to retrieve 1 published initiative' {
-            if (!$releaseBuild) {
+            if ($notReleaseBuild) {
                 Get-AzMocks $newGCPolicyParameters
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )

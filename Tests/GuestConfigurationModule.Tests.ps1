@@ -291,11 +291,11 @@ end
                     }
                 }
             }
-            Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable          
-            Mock Get-AzPolicyDefinition -ModuleName 'GuestConfiguration' -MockWith { @($definitionObject, $definitionObject) } -Verifiable
-            Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
-            Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
-            Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
+            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable          
+            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
+            Mock New-AzPolicyDefinition -Verifiable
+            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
             Write-Host '   [i] Mocked Az commands' -ForegroundColor Cyan
         }
         
@@ -529,45 +529,7 @@ end
                 function Get-AzContext {}
                 function Get-AzPolicyDefinition {}
                 function Get-AzPolicySetDefinition {}
-                $definitionObject = [pscustomobject]@{
-                    Properties = [pscustomobject]@{
-                        DisplayName = $newGCPolicyParameters.DisplayName
-                        ContentUri  = $newGCPolicyParameters.ContentUri
-                        ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-                        Description = $newGCPolicyParameters.Description
-                        Path        = $newGCPolicyParameters.Path
-                        Version     = $newGCPolicyParameters.Version
-                        PolicyType  = 'Custom'
-                        policyRule  = @{
-                            then = @{
-                                details = @{
-                                    name = 'AuditWindowsService'
-                                    deployment = @{
-                                        properties = @{
-                                            parameters = @{
-                                                configurationName = @{
-                                                    value = 'AuditWindowsService'
-                                                }
-                                                contentHash = @{
-                                                    value = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-                                                }
-                                                contentUri = @{
-                                                    value = $newGCPolicyParameters.ContentUri
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable          
-                Mock Get-AzPolicyDefinition -ModuleName 'GuestConfiguration' -MockWith { @($definitionObject, $definitionObject) } -Verifiable
-                Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
-                Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
-                Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
-                Write-Host '   [i] Mocked Az commands' -ForegroundColor Cyan
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
@@ -609,7 +571,41 @@ end
         It 'Should be able to publish policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
-                function Get-AzPolicyDefinition {}
+                function Get-AzPolicyDefinition {
+                    [pscustomobject]@{
+                        Properties = [pscustomobject]@{
+                            DisplayName = $newGCPolicyParameters.DisplayName
+                            ContentUri  = $newGCPolicyParameters.ContentUri
+                            ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+                            Description = $newGCPolicyParameters.Description
+                            Path        = $newGCPolicyParameters.Path
+                            Version     = $newGCPolicyParameters.Version
+                            PolicyType  = 'Custom'
+                            policyRule  = @{
+                                then = @{
+                                    details = @{
+                                        name = 'AuditWindowsService'
+                                        deployment = @{
+                                            properties = @{
+                                                parameters = @{
+                                                    configurationName = @{
+                                                        value = 'AuditWindowsService'
+                                                    }
+                                                    contentHash = @{
+                                                        value = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+                                                    }
+                                                    contentUri = @{
+                                                        value = $newGCPolicyParameters.ContentUri
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 function Get-AzPolicySetDefinition {}
                 function New-AzPolicyDefinition {}
                 function New-AzPolicySetDefinition {}

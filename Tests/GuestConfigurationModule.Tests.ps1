@@ -239,6 +239,30 @@ end
         
             return $newGCPolicyParameters
         }
+
+        function Get-AzMocks {
+            [CmdletBinding()]
+            param
+            (
+                [Parameter(Mandatory = $true)]
+                [Hashtable]
+                $newGCPolicyParameters
+            )
+
+            $definitionObject = @{
+                PSObject = @{
+                    Properties = @{
+                        Name = 'displayName'
+                    }
+                }
+                displayName = $newGCPolicyParameters.DisplayName
+            }
+            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject,$definitionObject) }
+            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject }
+            Mock New-AzPolicyDefinition -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
+        }
         
         function Initialize-MachineForGCTesting {
             [CmdletBinding()]
@@ -472,11 +496,7 @@ end
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if (!$releaseBuild) {
-                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
+                Get-AzMocks $newGCPolicyParameters
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
@@ -517,16 +537,7 @@ end
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
             if (!$releaseBuild) {
-                Function Get-AzContext { }
-                Function Get-AzPolicyDefinition { }
-                Function Get-AzPolicySetDefinition { }
-                Function New-AzPolicyDefinition { }
-                Function New-AzPolicySetDefinition { }
-                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition -MockWith { @( @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName}, @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} ) }
-                Mock Get-AzPolicySetDefinition
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
+                Get-AzMocks $newGCPolicyParameters
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
@@ -538,16 +549,7 @@ end
 
         It 'Should be able to retrieve 1 published initiative' {
             if (!$releaseBuild) {
-                Function Get-AzContext { }
-                Function Get-AzPolicyDefinition { }
-                Function Get-AzPolicySetDefinition { }
-                Function New-AzPolicyDefinition { }
-                Function New-AzPolicySetDefinition { }
-                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition -MockWith { @{ PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName } }
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
+                Get-AzMocks $newGCPolicyParameters
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue

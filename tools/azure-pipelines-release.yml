@@ -76,26 +76,6 @@ jobs:
             write-host "installing " $modules
             Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
-        displayName: Pester v4 unit tests
-        enabled: 'false'
-        continueOnError: 'true'
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
-            }
-        env: 
-          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
-          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
-          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
-          AZURE_TENANTID: $(AZURETENANTID)
-      - task: PowerShell@2
         enabled: 'true'
         displayName: Install Pester v5
         inputs:

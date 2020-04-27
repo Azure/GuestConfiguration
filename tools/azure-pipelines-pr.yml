@@ -60,21 +60,6 @@ jobs:
             $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'false'
-        continueOnError: 'true'
-        displayName: Pester v4 unit tests
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
-            }
-      - task: PowerShell@2
         enabled: 'true'
         displayName: Install Pester v5
         inputs:

@@ -293,7 +293,7 @@ end
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
             Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
-            Mock Net-AzPolicyDefinition -Verifiable
+            Mock New-AzPolicyDefinition -Verifiable
             Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } -Verifiable
             Mock New-AzPolicySetDefinition -Verifiable
         }

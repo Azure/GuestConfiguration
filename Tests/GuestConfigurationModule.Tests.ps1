@@ -477,11 +477,11 @@ end
                 Function Get-AzPolicySetDefinition { }
                 Function New-AzPolicyDefinition { }
                 Function New-AzPolicySetDefinition { }
-                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
+                Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+                Mock Get-AzPolicyDefinition -ModuleName 'GuestConfiguration'
+                Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration'
+                Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
+                Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

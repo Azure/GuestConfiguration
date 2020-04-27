@@ -545,7 +545,7 @@ end
     Context 'Publish-GuestConfigurationPolicy' {
         It 'Should be able to retrieve 2 published policies' {
             if ($notReleaseBuild) {
-                Get-AzMocks newGCPolicyParameters $newGCPolicyParameters -Objects
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -Objects
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
@@ -557,7 +557,7 @@ end
 
         It 'Should be able to retrieve 1 published initiative' {
             if ($notReleaseBuild) {
-                Get-AzMocks newGCPolicyParameters $newGCPolicyParameters -Objects
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -Objects
             }
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue

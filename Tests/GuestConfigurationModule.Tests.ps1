@@ -527,6 +527,8 @@ end
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
+                function Get-AzPolicyDefinition {}
+                function Get-AzPolicySetDefinition {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 

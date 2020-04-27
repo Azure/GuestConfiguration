@@ -291,11 +291,12 @@ end
                     }
                 }
             }
-            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+            Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
             Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
-            Mock New-AzPolicyDefinition -Verifiable
-            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } -Verifiable
-            Mock New-AzPolicySetDefinition -Verifiable
+            Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
+            Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
+            Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
+            Write-Host '      [i] Mocked Az commands' -ForegroundColor Cyan
         }
         
         function Initialize-MachineForGCTesting {
@@ -525,7 +526,7 @@ end
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
-                function Get-AzContext { }
+                function Get-AzContext {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
 
@@ -565,24 +566,22 @@ end
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {
-        It 'Should be able to retrieve 2 published policies' {
+        It 'Should be able to publish policies' {
             if ($notReleaseBuild) {
-                function Get-AzContext { }
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinition
+                function Get-AzContext {}
+                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-            $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
-    
+            { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
+        }
+        It 'Should be able to retrieve 2 published policies' -Skip:$notReleaseBuild {
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+            write-host $($existingPolicies | % Properties)
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 2
         }
 
-        It 'Should be able to retrieve 1 published initiative' {
-            if ($notReleaseBuild) {
-                function Get-AzContext { }
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters -mockWithDefinitionSet
-            }
+        It 'Should be able to retrieve 1 published initiative' -Skip:$notReleaseBuild {
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue
             $existingInitiatives.Count | Should -Be 1

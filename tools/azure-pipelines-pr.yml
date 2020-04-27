@@ -57,14 +57,15 @@ jobs:
           errorActionPreference: stop
           script: |
             if ($IsMacOS -or $IsLinux) {
-              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile ${BUILD_SOURCESDIRECTORY}/GuestConfiguration.psd1).RequiredModules;$modules += @(PowerShellGet,PSScriptAnalyzer);Install-Module -Name $modules -Force"'
+              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile ${BUILD_SOURCESDIRECTORY}/GuestConfiguration.psd1).RequiredModules;Install-Module -Name $modules -Force"'
+              sudo su root -c 'pwsh -c "Install-Module -Name PSScriptAnalyzer -Force"'
               sudo su root -c 'pwsh -c "Install-Module -Name Pester -Force -AllowPreRelease"'
               }
             else {
               $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-              $modules += @(PowerShellGet,PSScriptAnalyzer)
+              $modules += @('PowerShellGet','PSScriptAnalyzer')
               Install-Module -Name $modules -Force
-              Install-Module -Name Pester -Force -AllowPreRelease -AllowClobber -SkipPublisherCheck
+              Install-Module -Name 'Pester' -Force -AllowPreRelease -AllowClobber -SkipPublisherCheck
             }
       - task: PowerShell@2
         displayName: Pester unit tests

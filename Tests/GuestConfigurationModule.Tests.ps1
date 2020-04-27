@@ -428,8 +428,8 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
     
         It 'Package should be extractable' {
             # Set up type needed for package extraction
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystemPackage
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should Not Throw
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should -Not Throw
         }
 
         It '.cat file should exist in the extracted package' {
@@ -454,7 +454,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             }
             $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-            $newGCPolicyResult.Path | Should Not BeNullOrEmpty
+            $newGCPolicyResult.Path | Should -Not -BeNullOrEmpty
             Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
         }
 

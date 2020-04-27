@@ -11,7 +11,33 @@ function Get-IsAzureDevOps {
     else { $false }
 }
 
+function Get-OSPlatform {
+    [OutputType([String])]
+    [CmdletBinding()]
+    param()
+
+    $platform = 'Windows'
+
+    if ($PSVersionTable.PSEdition -eq 'Desktop') {
+        $platform = 'Windows'
+    }
+    elseif ($PSVersionTable.PSEdition -eq 'Core') {
+        if ($IsWindows) {
+            $platform = 'Windows'
+        }
+        elseif ($IsLinux) {
+            $platform = 'Linux'
+        }
+        elseif ($IsMacOS) {
+            $platform = 'MacOS'
+        }
+    }
+
+    return $platform
+}
+
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
+$IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
 
@@ -295,7 +321,6 @@ end
             Write-EnvironmentVariableInfo
         }
 
-        $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO
@@ -323,7 +348,7 @@ end
         }
     
         Initialize-MachineForGCTesting
-        # Write-EnvironmentInfo
+        Write-EnvironmentInfo
     
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
@@ -351,7 +376,7 @@ end
         
         It 'has a PowerShell module manifest that meets functional requirements' {
             Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should -Not -BeNullOrEmpty
-            $? | Should -Be $true
+            $? | Should -BeTrue
         }
 
         It 'imported the module successfully' {
@@ -373,7 +398,7 @@ end
 
         It 'creates Custom policy package' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-            Test-Path -Path $package.Path | Should -Be $true
+            Test-Path -Path $package.Path | Should -BeTrue
             $package.Name | Should -Be $policyName
         }
 
@@ -386,7 +411,7 @@ end
         }
   
         It 'Verify extracted mof document exists' {
-            Test-Path -Path $mofFilePath | Should -Be $true
+            Test-Path -Path $mofFilePath | Should -BeTrue
         }
 
         It 'Verify all required modules are included in the package' {
@@ -396,7 +421,7 @@ end
                 if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
                     $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
                     $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
-                    Test-Path -Path $resourceModulePath | Should -Be $true
+                    Test-Path -Path $resourceModulePath | Should -BeTrue
                 }
             }
         }
@@ -405,13 +430,12 @@ end
 
         It 'Validate that the resource compliance results are as expected' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-            Write-Host "Testing package at path: $($package.Path)"
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
-            $testPackageResult.complianceStatus | Should Be $false
-            $testPackageResult.resources[0].ModuleName | Should Be 'ComputerManagementDsc'
-            $testPackageResult.resources[0].complianceStatus | Should Be $false
-            $testPackageResult.resources[0].ConfigurationName | Should Be 'DSCConfig'
-            $testPackageResult.resources[0].IsSingleInstance | Should Be 'Yes'
+            $testPackageResult.complianceStatus | Should -Be $false
+            $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $false
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
+            $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
         }
     } 
 
@@ -425,7 +449,7 @@ end
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
-            Test-Path -Path $protectPackageResult.Path | Should Be $true
+            Test-Path -Path $protectPackageResult.Path | Should -BeTrue
         }
     
         It 'Package should be extractable' {
@@ -437,12 +461,12 @@ end
         It '.cat file should exist in the extracted package' {
             $catFileName = "$policyName.cat"
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath $catFileName
-            Test-Path -Path $catFilePath | Should Be $true
+            Test-Path -Path $catFilePath | Should -BeTrue
         }
 
         It 'Extracted .cat file thumbprint should match certificate thumbprint' {
             $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
-            $authenticodeSignature.SignerCertificate.Thumbprint | Should Be $certificate.Thumbprint
+            $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
 
@@ -457,35 +481,35 @@ end
             $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $newGCPolicyResult.Path | Should Not BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResult.Path | Should Be $true
+            Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
         }
 
         It 'Generated Audit policy file should exist' {
             $auditPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFile | Should Be $true
+            Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
         It 'Audit policy should contain expected content' {
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-            $auditPolicyContent.properties.policyType | Should Be $expectedPolicyType
-            $auditPolicyContent.properties.policyRule.then.details.name | Should Be $testPolicyName
+            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
+            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should -BeTrue
+            $auditPolicyContent.properties.policyType | Should -Be $expectedPolicyType
+            $auditPolicyContent.properties.policyRule.then.details.name | Should -Be $testPolicyName
         }
 
         It 'Generated Deploy policy file should exist' {
             $deployPolicyFile = Join-Path -Path $newGCPolicyResult.Path -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFile | Should Be $true
+            Test-Path -Path $deployPolicyFile | Should -BeTrue
         }
 
         It 'Deploy policy should contain expected content' {
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should Be $true
-            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should Be $true
-            $deployPolicyContent.properties.policyType | Should Be $expectedPolicyType
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should Be $testPolicyName
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should Be $expectedContentHash
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should Be $newGCPolicyParameters.ContentUri
+            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
+            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should -BeTrue
+            $deployPolicyContent.properties.policyType | Should -Be $expectedPolicyType
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should -Be $testPolicyName
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should -Be $expectedContentHash
+            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
         <#
@@ -519,14 +543,14 @@ end
 
         $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
         It 'Should be able to retrieve 2 published policies' {
-            $null -ne $existingPolicies | Should Be $true
-            $existingPolicies.Count | Should Be 2
+            $null -ne $existingPolicies | Should -BeTrue
+            $existingPolicies.Count | Should -Be 2
         }
 
         $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
         It 'Should be able to retrieve 1 published initiative' {
-            $null -ne $existingInitiatives | Should Be $true
-            $existingInitiatives.Count | Should Be 1
+            $null -ne $existingInitiatives | Should -BeTrue
+            $existingInitiatives.Count | Should -Be 1
         }
         
         Assert-MockCalled -CommandName New-AzPolicyDefinition -Times 2

@@ -43,7 +43,7 @@ if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
     write-host "AZ MOCKS: Az cmdlets are NOT mocked"
 }
-if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Public)') {
+else {
     $notReleaseBuild = $true
     write-host "AZ MOCKS: Az cmdlets are mocked"
 }
@@ -259,7 +259,7 @@ end
             )
 
             $definitionObject = @{
-                PSObject = @{
+                PSObject    = @{
                     Properties = @{
                         Name = 'displayName'
                     }
@@ -267,7 +267,7 @@ end
                 displayName = $newGCPolicyParameters.DisplayName
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject,$definitionObject) }
+            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) }
             Mock Get-AzPolicySetDefinition -MockWith { $definitionObject }
             Mock New-AzPolicyDefinition -Verifiable
             Mock New-AzPolicySetDefinition -Verifiable
@@ -388,12 +388,9 @@ end
             if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
                 Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
             }
-            $releaseBuild = $true
-            write-host "AZ MOCKS: Az cmdlets are NOT mocked"
         }
-        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Public)') {
+        else {
             $notReleaseBuild = $true
-            write-host "AZ MOCKS: Az cmdlets are mocked"
         }
     }
     Context 'Module fundamentals' {
@@ -516,7 +513,7 @@ end
             Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
-        It 'Audit policy should contain expected content' -Skip:$notReleaseBuild{
+        It 'Audit policy should contain expected content' -Skip:$notReleaseBuild {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -530,7 +527,7 @@ end
             Test-Path -Path $deployPolicyFile | Should -BeTrue
         }
 
-        It 'Deploy policy should contain expected content' -Skip:$notReleaseBuild{
+        It 'Deploy policy should contain expected content' -Skip:$notReleaseBuild {
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -563,18 +560,16 @@ end
             $existingInitiatives.Count | Should -Be 1
         }
     }  
-    AfterAll {
-        if ($releaseBuild) {
-            # Cleanup
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+    AfterAll -Skip:$notReleaseBuild {
+        # Cleanup
+        $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
 
-            foreach ($existingInitiative in $existingInitiatives) {
-                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-            }
+        foreach ($existingInitiative in $existingInitiatives) {
+            $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
+        }
 
-            foreach ($existingPolicy in $existingPolicies) {
-                $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
-            }
+        foreach ($existingPolicy in $existingPolicies) {
+            $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
         }
     }
 }

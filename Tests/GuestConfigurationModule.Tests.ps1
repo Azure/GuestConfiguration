@@ -530,6 +530,7 @@ end
                 function Get-AzPolicyDefinition {}
                 function Get-AzPolicySetDefinition {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
+                Mock New-CustomGuestConfigPolicy -Verifiable
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

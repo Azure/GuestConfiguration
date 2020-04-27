@@ -528,7 +528,7 @@ end
                 Function New-AzPolicyDefinition { }
                 Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition -MockWith @{ @( @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName}, @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} ) }
+                Mock Get-AzPolicyDefinition -MockWith { @( @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName}, @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} ) }
                 Mock Get-AzPolicySetDefinition
                 Mock New-AzPolicyDefinition -Verifiable
                 Mock New-AzPolicySetDefinition -Verifiable
@@ -536,7 +536,7 @@ end
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
     
-            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 2
         }
@@ -550,11 +550,11 @@ end
                 Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
                 Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition -MockWith @{ @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} }
+                Mock Get-AzPolicySetDefinition -MockWith { @{ PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName } }
                 Mock New-AzPolicyDefinition -Verifiable
                 Mock New-AzPolicySetDefinition -Verifiable
             }
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue
             $existingInitiatives.Count | Should -Be 1
         }
@@ -562,7 +562,7 @@ end
     AfterAll {
         if ($releaseBuild) {
             # Cleanup
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
+            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
 
             foreach ($existingInitiative in $existingInitiatives) {
                 $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force

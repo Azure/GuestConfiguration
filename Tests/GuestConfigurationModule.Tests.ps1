@@ -39,21 +39,7 @@ function Get-OSPlatform {
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 
-if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
-    # TODO
-    # Az PowerShell login from macOS currently has issue
-    # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
-    
-    # Import the AzHelper module
-    $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
-    $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
-    Write-Verbose -Message "Importing AzHelper module..." -Verbose
-    Import-Module -Name $azHelperModulePath
-
-    if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
-        Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
-    }
+if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
     write-host "AZ MOCKS: Az cmdlets are NOT mocked"
 }
@@ -386,6 +372,29 @@ end
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
         New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
+
+        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
+            # TODO
+            # Az PowerShell login from macOS currently has issue
+            # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+            
+            # Import the AzHelper module
+            $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
+            $helperModulesFolderPath = Join-Path -Path $gcModuleFolderPath -ChildPath 'Tests'
+            $azHelperModulePath = Join-Path -Path $helperModulesFolderPath -ChildPath 'AzHelper.psm1'
+            Write-Verbose -Message "Importing AzHelper module..." -Verbose
+            Import-Module -Name $azHelperModulePath
+        
+            if ($false -eq (Test-ServicePrincipalAccountInEnviroment)) {
+                Throw "Current machine does not have a service principal available. Test environment should have been set up manually. Please ensure you are logged in to an Azure account and the GuestConfiguration and ComputerManagementDsc modules are installed."
+            }
+            $releaseBuild = $true
+            write-host "AZ MOCKS: Az cmdlets are NOT mocked"
+        }
+        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Public)') {
+            $notReleaseBuild = $true
+            write-host "AZ MOCKS: Az cmdlets are mocked"
+        }
     }
     Context 'Module fundamentals' {
             

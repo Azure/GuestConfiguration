@@ -264,7 +264,7 @@ end
                 $mockWithDefinitionSet
             )
 
-            $definitionObject = @{
+            $definitionObject = New-Object -TypeName psobject -Property @{
                 Properties  = @{
                     PSObject = @{
                         Properties = @{

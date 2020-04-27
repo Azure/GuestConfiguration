@@ -125,7 +125,7 @@ jobs:
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+          testResultsFiles: 'testResults.xml'
   - job: CodeSign
     dependsOn: Test
     pool:

@@ -57,10 +57,10 @@ jobs:
           errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PowerShellGet','PSScriptAnalyzer')
+            $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'false'
+        enabled: 'true'
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
@@ -98,7 +98,7 @@ jobs:
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+          testResultsFiles: 'testResults.xml'
         displayName: Publish test result
   - job: PublishArtifactToAzureDevOpsBuild
     dependsOn: Test

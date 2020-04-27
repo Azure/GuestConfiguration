@@ -362,6 +362,7 @@ end
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
+        $testPolicyName = 'AuditWindowsService'
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
@@ -455,7 +456,7 @@ end
             $package = Get-Item "$testPackagePath/$policyName/$policyName_signed.zip"
             # Set up type needed for package extraction
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should -Not -Throw
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw
         }
 
         It '.cat file should exist in the extracted package' {
@@ -473,8 +474,6 @@ end
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
-            $testPolicyName = 'AuditWindowsService'
-
             if (!$releaseBuild) {
                 Function Get-AzContext {}
                 Function Get-AzPolicyDefinition {}

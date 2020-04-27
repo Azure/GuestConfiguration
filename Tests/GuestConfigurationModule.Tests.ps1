@@ -571,6 +571,10 @@ end
         It 'Should be able to publish policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
+                function Get-AzPolicyDefinition {}
+                function Get-AzPolicySetDefinition {}
+                function New-AzPolicyDefinition {}
+                function New-AzPolicySetDefinition {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

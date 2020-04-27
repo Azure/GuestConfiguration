@@ -255,31 +255,47 @@ end
             (
                 [Parameter(Mandatory = $true)]
                 [Hashtable]
-                $newGCPolicyParameters,
-
-                [switch]
-                $mockWithDefinition,
-
-                [switch]
-                $mockWithDefinitionSet
+                $newGCPolicyParameters
             )
 
-            $definitionObject = New-Object -TypeName psobject -Property @{
-                Properties  = @{
-                    PSObject = @{
-                        Properties = @{
-                            Name = 'displayName'
+            $definitionObject = [pscustomobject]@{
+                Properties = [pscustomobject]@{
+                    DisplayName = $newGCPolicyParameters.DisplayName
+                    ContentUri  = $newGCPolicyParameters.ContentUri
+                    ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+                    Description = $newGCPolicyParameters.Description
+                    Path        = $newGCPolicyParameters.Path
+                    Version     = $newGCPolicyParameters.Version
+                    PolicyType  = 'Custom'
+                    policyRule  = @{
+                        then = @{
+                            details = @{
+                                name = 'AuditWindowsService'
+                                deployment = @{
+                                    properties = @{
+                                        parameters = @{
+                                            configurationName = @{
+                                                value = 'AuditWindowsService'
+                                            }
+                                            contentHash = @{
+                                                value = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+                                            }
+                                            contentUri = @{
+                                                value = $newGCPolicyParameters.ContentUri
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                displayName = $newGCPolicyParameters.DisplayName
                 }
             }
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            if ($mockWithDefinition) { Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } }
-            else { Mock Get-AzPolicyDefinition }
-            
-            if ($mockWithDefinitionSet) { Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } }
-            else { Mock Get-AzPolicySetDefinition }
+            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
+            Mock Net-AzPolicyDefinition -Verifiable
+            Mock Get-AzPolicySetDefinition -MockWith { $definitionObject } -Verifiable
+            Mock New-AzPolicySetDefinition -Verifiable
         }
         
         function Initialize-MachineForGCTesting {
@@ -523,7 +539,7 @@ end
             Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
-        It 'Audit policy should contain expected content' -Skip:$notReleaseBuild {
+        It 'Audit policy should contain expected content' {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -537,7 +553,7 @@ end
             Test-Path -Path $deployPolicyFile | Should -BeTrue
         }
 
-        It 'Deploy policy should contain expected content' -Skip:$notReleaseBuild {
+        It 'Deploy policy should contain expected content' {
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue

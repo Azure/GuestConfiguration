@@ -361,7 +361,10 @@ end
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+        $expectedPolicyType = 'Custom'
         
+        $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
+
         New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
     }
 
@@ -446,11 +449,10 @@ end
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
-            write-host "signed path: $($protectPackageResult.Path)"
         }
     
         It 'Signed package should be extractable' {
-            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
+            $package = Get-Item "$testPackagePath/$policyName/$policyName_signed.zip"
             # Set up type needed for package extraction
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($protectPackageResult.Path, $signedPackageExtractionPath) } | Should -Not -Throw
@@ -486,7 +488,6 @@ end
                 Mock New-AzPolicySetDefinition -Verifiable
             }
 
-            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $newGCPolicyResult.Path | Should -Not -BeNullOrEmpty
             Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
@@ -498,7 +499,6 @@ end
         }
 
         It 'Audit policy should contain expected content' {
-            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -513,7 +513,6 @@ end
         }
 
         It 'Deploy policy should contain expected content' {
-            $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue

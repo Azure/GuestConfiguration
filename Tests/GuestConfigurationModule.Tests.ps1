@@ -528,7 +528,7 @@ end
                 Function New-AzPolicyDefinition { }
                 Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-                Mock Get-AzPolicyDefinition
+                Mock Get-AzPolicyDefinition -MockWith @{ @( @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName}, @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} ) }
                 Mock Get-AzPolicySetDefinition
                 Mock New-AzPolicyDefinition -Verifiable
                 Mock New-AzPolicySetDefinition -Verifiable
@@ -550,7 +550,7 @@ end
                 Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
                 Mock Get-AzPolicyDefinition
-                Mock Get-AzPolicySetDefinition
+                Mock Get-AzPolicySetDefinition -MockWith @{ @{PSObject = @{Name = 'displayName'}; displayName = $newGCPolicyParameters.DisplayName} }
                 Mock New-AzPolicyDefinition -Verifiable
                 Mock New-AzPolicySetDefinition -Verifiable
             }

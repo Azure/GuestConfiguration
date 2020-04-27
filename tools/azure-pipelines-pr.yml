@@ -57,11 +57,32 @@ jobs:
           errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PowerShellGet','PSScriptAnalyzer')
+            $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
             Install-Module -Name $modules -Force
-            Install-Module -Name 'Pester' -Force -AllowPreRelease -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
-        displayName: Pester unit tests
+        displayName: Pester v4 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
+      - task: PowerShell@2
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
+      - task: PowerShell@2
+        displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -69,11 +90,12 @@ jobs:
           errorActionPreference: stop
           script: |
             Invoke-Pester -CI
+        continueOnError: 'true'
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: 'testResults.xml'
+          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
         displayName: Publish test result
   - job: PublishArtifactToAzureDevOpsBuild
     dependsOn: Test

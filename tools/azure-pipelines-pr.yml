@@ -49,20 +49,6 @@ jobs:
           vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
-        displayName: Install PowerShell Core
-        inputs:
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-            ./install-powershell.ps1 -Destination $powerShellPath
-            if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
-            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
-            Write-Host "sending " + $vstsCommandString
-            Write-Host "##$vstsCommandString"
-      - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'
@@ -70,11 +56,15 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
-            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
-            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
-            write-host "installing " $modules
-            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+            if ($IsMacOS -or $IsLinux) {
+              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules;$modules += @('PowerShellGet','PSScriptAnalyzer');Install-Module -Name $modules -Repository 'PSGallery';Install-Module -Name 'Pester' -Repository 'PSGallery' -Force -AllowPreRelease"'
+              }
+            else {
+              $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
+              $modules += @('PowerShellGet','PSScriptAnalyzer')
+              Install-Module -Name $modules -Repository 'PSGallery'
+              Install-Module -Name 'Pester' -Repository 'PSGallery' -Force -AllowPreRelease -AllowClobber -SkipPublisherCheck
+            }
       - task: PowerShell@2
         displayName: Pester unit tests
         inputs:
@@ -83,18 +73,17 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
             if ($IsMacOS -or $IsLinux) {
-              sudo su root -c '$Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru'
+              sudo su root -c 'pwsh -c "$Pester = Invoke-Pester -CI"'
               }
             else {
-              $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+              $Pester = Invoke-Pester -CI
             }
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+          testResultsFiles: 'testResults.xml'
         displayName: Publish test result
   - job: PublishArtifactToAzureDevOpsBuild
     dependsOn: Test

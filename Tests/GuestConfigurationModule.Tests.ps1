@@ -292,7 +292,7 @@ end
                 }
             }
             Mock Get-AzContext -ModuleName 'GuestConfiguration' -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            Mock Get-AzPolicyDefinition -MockWith { @($definitionObject, $definitionObject) } -Verifiable
+            Mock Get-AzPolicyDefinition -ModuleName 'GuestConfiguration' -MockWith { @($definitionObject, $definitionObject) } -Verifiable
             Mock New-AzPolicyDefinition -ModuleName 'GuestConfiguration' -Verifiable
             Mock Get-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -MockWith { $definitionObject } -Verifiable
             Mock New-AzPolicySetDefinition -ModuleName 'GuestConfiguration' -Verifiable
@@ -527,10 +527,7 @@ end
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
-                function Get-AzPolicyDefinition {}
-                function Get-AzPolicySetDefinition {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
-                Mock New-CustomGuestConfigPolicy -Verifiable
             }
 
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters

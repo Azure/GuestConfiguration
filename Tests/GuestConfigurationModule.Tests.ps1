@@ -40,9 +40,7 @@ $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 
 Describe 'Test Guest Configuration Custom Policy cmdlets' {
-
     BeforeAll {
-
         function Get-OSPlatform {
             [OutputType([String])]
             [CmdletBinding()]
@@ -367,7 +365,6 @@ end
 
         New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
     }
-
     Context 'Module fundamentals' {
             
         It 'has the agent binaries from the project feed' -Skip:$IsNotAzureDevOps {
@@ -439,7 +436,6 @@ end
             $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
         }
     } 
-
     Context 'Protect-GuestConfigurationPackage' -Skip:$IsNotWindows {
         
         It 'Signed package should exist at output path' {
@@ -452,7 +448,7 @@ end
         }
     
         It 'Signed package should be extractable' {
-            $signedFileName = $policyName+"_signed.zip"
+            $signedFileName = $policyName + "_signed.zip"
             $package = Get-Item "$testPackagePath/$policyName/$signedFileName"
             # Set up type needed for package extraction
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -465,21 +461,22 @@ end
         }
 
         It 'Extracted .cat file thumbprint should match certificate thumbprint' {
+            $certificatePath = "Cert:\LocalMachine\My"
+            $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
             $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
-
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if (!$releaseBuild) {
-                Function Get-AzContext {}
-                Function Get-AzPolicyDefinition {}
-                Function Get-AzPolicySetDefinition {}
-                Function New-AzPolicyDefinition {}
-                Function New-AzPolicySetDefinition {}
+                Function Get-AzContext { }
+                Function Get-AzPolicyDefinition { }
+                Function Get-AzPolicySetDefinition { }
+                Function New-AzPolicyDefinition { }
+                Function New-AzPolicySetDefinition { }
                 Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
                 Mock Get-AzPolicyDefinition
                 Mock Get-AzPolicySetDefinition
@@ -522,58 +519,58 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
-        <#
     Context 'Publish-GuestConfigurationPolicy' {
-        if (Test-CurrentMachineIsWindows) {
-            $computerInfo = Get-ComputerInfo
-            $currentWindowsOSString = $computerInfo.WindowsProductName
-        }
-        else {
-            $currentWindowsOSString = 'Non-Windows'
-        }
-            
-        $newGCPolicyParameters = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
-            Version     = '1.0.0.0'
-        }
-
-        if (!$releaseBuild) {
-            Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
-            Mock Get-AzPolicyDefinition
-            Mock Get-AzPolicySetDefinition
-            Mock New-AzPolicyDefinition -Verifiable
-            Mock New-AzPolicySetDefinition -Verifiable
-        }
-
-        $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-        $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
-
-        $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
         It 'Should be able to retrieve 2 published policies' {
+            if (!$releaseBuild) {
+                Function Get-AzContext { }
+                Function Get-AzPolicyDefinition { }
+                Function Get-AzPolicySetDefinition { }
+                Function New-AzPolicyDefinition { }
+                Function New-AzPolicySetDefinition { }
+                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+                Mock Get-AzPolicyDefinition
+                Mock Get-AzPolicySetDefinition
+                Mock New-AzPolicyDefinition -Verifiable
+                Mock New-AzPolicySetDefinition -Verifiable
+            }
+            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+            $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy
+    
+            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 2
         }
 
-        $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
         It 'Should be able to retrieve 1 published initiative' {
+            if (!$releaseBuild) {
+                Function Get-AzContext { }
+                Function Get-AzPolicyDefinition { }
+                Function Get-AzPolicySetDefinition { }
+                Function New-AzPolicyDefinition { }
+                Function New-AzPolicySetDefinition { }
+                Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } }            
+                Mock Get-AzPolicyDefinition
+                Mock Get-AzPolicySetDefinition
+                Mock New-AzPolicyDefinition -Verifiable
+                Mock New-AzPolicySetDefinition -Verifiable
+            }
+            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
             $null -ne $existingInitiatives | Should -BeTrue
             $existingInitiatives.Count | Should -Be 1
         }
-        
-        Assert-MockCalled -CommandName New-AzPolicyDefinition -Times 2
-        Assert-MockCalled -CommandName New-AzPolicySetDefinition -Times 1
+    }  
+    AfterAll {
+        if ($releaseBuild) {
+            # Cleanup
+            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName)) })
 
-        # Cleanup
-        foreach ($existingInitiative in $existingInitiatives) {
-            $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-        }
+            foreach ($existingInitiative in $existingInitiatives) {
+                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
+            }
 
-        foreach ($existingPolicy in $existingPolicies) {
-            $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+            foreach ($existingPolicy in $existingPolicies) {
+                $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+            }
         }
     }
-    #>
 }

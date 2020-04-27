@@ -532,11 +532,7 @@ end
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {
-        It 'Should be able to publish policies' {
-            if ($notReleaseBuild) {
-                function Get-AzContext {}
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
-            }
+        It 'Should be able to publish policies' -Skip:$notReleaseBuild{
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         }

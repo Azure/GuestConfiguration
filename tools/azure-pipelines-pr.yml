@@ -57,9 +57,9 @@ jobs:
           errorActionPreference: stop
           script: |
             if ($IsMacOS -or $IsLinux) {
-              sudo su root -c 'pwsh -c "$modules = (Import-PowerShellDataFile ${BUILD_SOURCESDIRECTORY}/GuestConfiguration.psd1).RequiredModules;Install-Module -Name $modules -Force"'
-              sudo su root -c 'pwsh -c "Install-Module -Name PSScriptAnalyzer -Force"'
-              sudo su root -c 'pwsh -c "Install-Module -Name Pester -Force -AllowPreRelease"'
+              sudo su -c 'pwsh -c "$modules = (Import-PowerShellDataFile ${BUILD_SOURCESDIRECTORY}/GuestConfiguration.psd1).RequiredModules;Install-Module -Name $modules -Force"'
+              sudo su -c 'pwsh -c "Install-Module -Name PSScriptAnalyzer -Force"'
+              sudo su -c 'pwsh -c "Install-Module -Name Pester -Force -AllowPreRelease"'
               }
             else {
               $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules

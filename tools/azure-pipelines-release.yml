@@ -1,9 +1,16 @@
-pr: none
+pr:
+  autoCancel: true
+  branches:
+    include:
+      - prerelease
+      - master # retire asap
 trigger:
   batch: true
   branches:
     include:
       - master
+      - prerelease
+      - dev
   paths:
     exclude:
     - /bin/*
@@ -87,6 +94,11 @@ jobs:
             if ($Pester.FailedCount -gt 0) {
               Write-Error "$($Pester.FailedCount) tests failed."
             }
+        env: 
+          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
+          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
+          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
+          AZURE_TENANTID: $(AZURETENANTID)
       - task: PublishTestResults@2
         displayName: Publish test result
         condition: succeededOrFailed()

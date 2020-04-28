@@ -4,7 +4,7 @@
 RootModule = 'GuestConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '3.0.0'
+moduleVersion = '1.19.4'
 
 # ID used to uniquely identify this module
 GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -25,10 +25,10 @@ Description = '[PREVIEW] The Guest Configuration module is an experimental tool 
 PowerShellVersion = '5.1'
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage')
+RequiredModules = @('Az.Accounts','Az.Resources')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+FunctionsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()

@@ -2,6 +2,8 @@ pr:
   autoCancel: 'true'
   branches:
     include:
+      - master
+      - rollback
       - feature/*
       - bug/*
       - chore/*
@@ -44,32 +46,33 @@ jobs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
-          vstsPackageVersion: '0.0.2'
+          vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: false
-          errorActionPreference: silentlycontinue
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PSScriptAnalyzer','Pester')
-            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck
+            $modules += @('PSScriptAnalyzer')
+            Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'true'
+        enabled: 'false'
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
-          continueOnError: 'true'
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
-              Exit "$($Pester.FailedCount)"
+              Write-Error "$($Pester.FailedCount) tests failed."
             }
       - task: PowerShell@2
         enabled: 'true'
@@ -87,7 +90,8 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          continueOnError: 'true'
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             Invoke-Pester -CI
       - task: PublishTestResults@2

@@ -57,7 +57,7 @@ jobs:
           errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PowerShellGet','PSScriptAnalyzer','Pester')
+            $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
         enabled: 'false'

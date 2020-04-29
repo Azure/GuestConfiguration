@@ -2,7 +2,7 @@
 
 ## v1.20.0
 
-- Update API version for MSI
+- Update API version for Managed Service Identity
 - Support for custom Policy categories
 - Adds support for additional Linux distributions
 - Download location for InSpec requirements
@@ -15,6 +15,12 @@
 - More target file copy when creating custom packages
 - Remove DataBricks from policy IF statements
 - Support filtering policy for single tag name/value
+
+## v1.19.4
+
+- Updated InSpec installation uri
+- Bug fix for Test-GuestConfigurationPackage functionality on Ubuntu 16.04
+- Bug fix for better config refreshing after InSpec profile updates
 
 ## v1.19.3
 

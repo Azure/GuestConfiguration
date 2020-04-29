@@ -1,16 +1,10 @@
-pr:
-  autoCancel: true
-  branches:
-    include:
-      - prerelease
-      - master # retire asap
+pr: 'none'
 trigger:
-  batch: true
+  batch: 'true'
   branches:
     include:
       - master
       - prerelease
-      - dev
   paths:
     exclude:
     - /bin/*
@@ -23,23 +17,23 @@ trigger:
     - changelog.md
     - .gitignore
     - .github/*
-variables:
-  releaseBuild: true
 
 jobs:
   - job: Test
     strategy:
       matrix:
-        # comment out until bugs are resolved in PSDesiredStateConfiguration
-        #Ubuntu:
-        #  imageName: ubuntu-latest
-        MacOSMojave:
+        # Blocking issue in 18.04
+        # running cmdlets from Ubuntu 18.04:
+        #  imageName: ubuntu-18.04
+        running cmdlets from Ubuntu 16.04:
+          imageName: ubuntu-16.04
+        running cmdlets from macOS Mojave:
           imageName: macOS-10.14
-        MacOSCatalina:
+        running cmdlets from macOS Catalina:
           imageName: macOS-10.15
-        Windows2019:
-          imageName: windows-latest
-        Windows2016:
+        running cmdlets from Windows 2019:
+          imageName: windows-2019
+        running cmdlets from Windows 2016:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)
@@ -78,11 +72,13 @@ jobs:
           script: |
             $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
-            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
+            $modules += @('PSScriptAnalyzer')
             write-host "installing " $modules
-            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+            Install-Module -Name $modules -Force
       - task: PowerShell@2
-        displayName: Pester unit tests
+        displayName: Pester v4 unit tests
+        enabled: 'false'
+        continueOnError: 'true'
         inputs:
           pwsh: 'true'
           targetType: inline
@@ -99,12 +95,37 @@ jobs:
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
           AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
           AZURE_TENANTID: $(AZURETENANTID)
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Pester v5 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Invoke-Pester -CI
+        env: 
+          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
+          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
+          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
+          AZURE_TENANTID: $(AZURETENANTID)
       - task: PublishTestResults@2
         displayName: Publish test result
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+          testResultsFiles: 'testResults.xml'
   - job: CodeSign
     dependsOn: Test
     pool:

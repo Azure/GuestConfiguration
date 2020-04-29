@@ -84,6 +84,31 @@ jobs:
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
           AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
           AZURE_TENANTID: $(AZURETENANTID)
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Pester v5 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Invoke-Pester -CI
+        env: 
+          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
+          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
+          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
+          AZURE_TENANTID: $(AZURETENANTID)
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

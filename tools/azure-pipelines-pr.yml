@@ -2,6 +2,8 @@ pr:
   autoCancel: 'true'
   branches:
     include:
+      - master
+      - rollback
       - feature/*
       - bug/*
       - chore/*
@@ -39,19 +41,11 @@ jobs:
       vmImage: $(imageName)
     steps:
       - task: UniversalPackages@0
-        displayName: Download Linux agent
+        displayName: Universal download
         inputs:
           command: download
           vstsFeed: guestconfiguration
-          vstsFeedPackage: linux_agent
-          vstsPackageVersion: '*'
-          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
-      - task: UniversalPackages@0
-        displayName: Download Windows agent
-        inputs:
-          command: download
-          vstsFeed: guestconfiguration
-          vstsFeedPackage: windows_agent
+          vstsFeedPackage: gc_agents
           vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
@@ -60,17 +54,44 @@ jobs:
           pwsh: 'true'
           targetType: inline
           failOnStderr: true
+          errorActionPreference: stop
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PSScriptAnalyzer','Pester')
-            Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
+            $modules += @('PSScriptAnalyzer')
+            Install-Module -Name $modules -Force
+      - task: PowerShell@2
+        enabled: 'false'
+        continueOnError: 'true'
+        displayName: Pester v4 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
-          continueOnError: 'true'
+          failOnStderr: true
+          errorActionPreference: stop
           script: |
             Invoke-Pester -CI
       - task: PublishTestResults@2

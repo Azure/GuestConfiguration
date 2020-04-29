@@ -1,7 +1,22 @@
 # Change Log for GuestConfiguration module
 
-## v1.19.4
+## v1.20.0
 
+- Update API version for Managed Service Identity
+- Support for custom Policy categories
+- Adds support for additional Linux distributions
+- Download location for InSpec requirements
+- Support custom VM images
+- Support Arc machines
+- Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact
+- Return error when attempting to protect package using invalid certificate
+- Ensures shell script to install Inspec has Linux line endings
+- Include PowerShell modules when they are required for DSC modules in packages
+- More target file copy when creating custom packages
+- Remove DataBricks from policy IF statements
+- Support filtering policy for single tag name/value
+
+## v1.19.4
 
 - Updated InSpec installation uri
 - Bug fix for Test-GuestConfigurationPackage functionality on Ubuntu 16.04

@@ -6,7 +6,7 @@ Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
 Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
-if (($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
+if(($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux')) {
     Write-Warning "'$($currentCulture.Name)' Culture is not supported, changing it to 'en-US'"
     # Set Culture info to en-US
     [System.Globalization.CultureInfo]::CurrentUICulture = [System.Globalization.CultureInfo]::new('en-US')
@@ -40,14 +40,15 @@ InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
         Return name and path of the new Guest Configuration Policy package.
 #>
 
-function New-GuestConfigurationPackage {
+function New-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true)]
+        [parameter(Position=0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [parameter(Position = 1, Mandatory = $true)]
+        [parameter(Position=1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 
@@ -62,10 +63,11 @@ function New-GuestConfigurationPackage {
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
+        $reservedResourceName = @('OMI_ConfigurationDocument')
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
         $Configuration = Resolve-Path $Configuration
 
-        if (-not (Test-Path -Path $Configuration -PathType Leaf)) {
+        if(-not (Test-Path -Path $Configuration -PathType Leaf)) {
             Throw "Invalid mof file path, please specify full file path for dsc configuration in -Configuration parameter."
         }
          
@@ -80,20 +82,18 @@ function New-GuestConfigurationPackage {
         # Copy DSC resources
         Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
 
-        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
+        if ($null -ne $ChefInspecProfilePath) {
             # Copy Chef resource and profiles.
             Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
         }
 
         # Copy FilesToInclude
-        if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
-            if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
+        if(-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            if(Test-Path $FilesToInclude -PathType Leaf) {
+                Copy-Item "$FilesToInclude" $modulePath -Force -ErrorAction SilentlyContinue
             }
             else {
-                $filesToIncludeFolderName = Get-Item $FilesToInclude
-                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse
+                Copy-Item "$FilesToInclude\*" $modulePath -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
         
@@ -145,10 +145,11 @@ function New-GuestConfigurationPackage {
         Returns compliance details.
 #>
 
-function Test-GuestConfigurationPackage {
+function Test-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [parameter(Position=0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
@@ -156,12 +157,8 @@ function Test-GuestConfigurationPackage {
         [Hashtable[]] $Parameter = @()
     )
 
-    if ($IsMacOS) {
-        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
-    }
-    
-    if (-not (Test-Path $Path -PathType Leaf)) {
-        Throw 'Invalid Guest Configuration package path : $($Path)'
+    if(-not (Test-Path $Path -PathType Leaf)) {
+        Throw 'Invalid Guest Configuration package path.'
     }
 
     $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
@@ -180,25 +177,25 @@ function Test-GuestConfigurationPackage {
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
-        if (-not $dscDocument) {
+        if(-not $dscDocument) {
             Throw "Invalid policy package, failed to find dsc document in policy package."
         }
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
         # update configuration parameters
-        if ($Parameter.Count -gt 0) {
+        if($Parameter.Count -gt 0) {
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
         # Unzip Guest Configuration binaries
         $gcBinPath = Get-GuestConfigBinaryPath
         $gcBinRootPath = Get-GuestConfigBinaryRootPath
-        if (-not (Test-Path $gcBinPath)) {
+        if(-not (Test-Path $gcBinPath)) {
             # Clean the bin folder
             Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
 
             $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
-            if ($(Get-OSPlatform) -eq 'Windows') {
+            if($(Get-OSPlatform) -eq 'Windows') {
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
             }
             else {
@@ -229,33 +226,33 @@ function Test-GuestConfigurationPackage {
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
             if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$false}}
                     }
                 }
             }
             elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$false}}
             }
         }
 
         $testResult.resources_in_desired_state | ForEach-Object {
             $resourceId = $_;
             if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+                for($i = 0; $i -lt $getResult.Count; $i++) {
+                    if($getResult[$i].ResourceId -ieq $resourceId) {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n='complianceStatus';e={$true}}
                     }
                 }
             }
             elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+                $getResult = $getResult | Select-Object *, @{n='complianceStatus';e={$true}}
             }
         }
 
         $result = New-Object -TypeName PSObject
-        $properties = [ordered]@{ complianceStatus = $testResult.compliance_state; resources = $getResult }
+        $properties = [ordered]@{ complianceStatus = $testResult.compliance_state; resources = $getResult}
         $result | Add-Member -NotePropertyMembers $properties
 
         return $result;
@@ -289,11 +286,12 @@ function Test-GuestConfigurationPackage {
         Return name and path of the signed Guest Configuration Policy package.
 #>
 
-function Protect-GuestConfigurationPackage {
+function Protect-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Certificate")]
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GpgKeys")]
+        [parameter(Position=0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Certificate")]
+        [parameter(Position=0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GpgKeys")]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
@@ -311,7 +309,7 @@ function Protect-GuestConfigurationPackage {
     )
 
     $Path = Resolve-Path $Path
-    if (-not (Test-Path $Path -PathType Leaf)) {
+    if(-not (Test-Path $Path -PathType Leaf)) {
         Throw 'Invalid Guest Configuration package path.'
     }
 
@@ -328,14 +326,14 @@ function Protect-GuestConfigurationPackage {
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $tempDir -Filter *.mof
-        if (-not $dscDocument) {
+        if(-not $dscDocument) {
             Throw "Invalid policy package, failed to find dsc document in policy package."
         }
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
-        $osPlatform = Get-OSPlatform
-        if ($PSCmdlet.ParameterSetName -eq "Certificate") {
-            if ($osPlatform -eq "Linux") {
+        $osPlatform  = Get-OSPlatform
+        if($PSCmdlet.ParameterSetName -eq "Certificate") {
+            if($osPlatform -eq "Linux") {
                 throw 'Certificate signing not supported on Linux.'
             }
 
@@ -351,14 +349,13 @@ function Protect-GuestConfigurationPackage {
 
             $Signature = Get-AuthenticodeSignature $catalogFilePath
             if ($null -ne $Signature.SignerCertificate) {
-                if ($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
                     throw $CodeSignOutput.StatusMessage
                 }
-            }
-            else { throw $CodeSignOutput.StatusMessage }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
-            if ($osPlatform -eq "Windows") {
+            if($osPlatform -eq "Windows") {
                 throw 'Gpg signing not supported on Windows.'
             }
 
@@ -397,98 +394,6 @@ function Protect-GuestConfigurationPackage {
 
 <#
     .SYNOPSIS
-        Publish a Guest Configuration policy package to Azure blob storage.
-        The goal is to simplify the number of steps by scoping to a specific
-        task.
-
-        Generates a SAS token with a 3-year lifespan, to mitigate the risk
-        of a malicious person discovering the published content.
-
-        Requires a resource group, storage account, and container
-        to be pre-staged. For details on how to pre-stage these things see the 
-        documentation for the Az Storage cmdlets.
-        https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-powershell.
-
-    .Parameter Path
-        Location of the .zip file containing the Guest Configuration artifacts
-
-    .Parameter ResourceGroupName
-        The Azure resource group for the storage account
-
-    .Parameter StorageAccountName
-        The name of the storage account for where the package will be published
-        Storage account names must be globally unique
-
-    .Parameter StorageContainerName
-        Name of the storage container in Azure Storage account (default: "guestconfiguration")
-
-    .Example
-        Publish-GuestConfigurationPackage -Path ./package.zip -ResourceGroupName 'resourcegroup' -StorageAccountName 'sa12345'
-
-    .OUTPUTS
-        Return a publicly accessible URI containing a SAS token with a 3-year expiration.
-#>
-
-function Publish-GuestConfigurationPackage {
-    [CmdletBinding()]
-    param (
-        [parameter(Position = 0, Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $Path,
-
-        [parameter(Position = 1, Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $ResourceGroupName,
-
-        [parameter(Position = 2, Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $StorageAccountName,
-
-        [string] $StorageContainerName = 'guestconfiguration',
-        
-        [switch] $Force
-    )
-
-    # Get Storage Context
-    $Context = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName `
-        -Name $StorageAccountName | `
-        ForEach-Object { $_.Context }
-
-    # Blob name from file name
-    $BlobName = Get-Item $Path | ForEach-Object { $_.Name }
-
-    # Upload file
-    if ($true -eq $Force) {
-        $Blob = Set-AzStorageBlobContent -Context $Context `
-            -Container $StorageContainerName `
-            -Blob $BlobName `
-            -File $Path `
-            -Force
-    }
-    else {
-        $Blob = Set-AzStorageBlobContent -Context $Context `
-            -Container $StorageContainerName `
-            -Blob $BlobName `
-            -File $Path
-    }
-
-    # Get url with SAS token
-    # THREE YEAR EXPIRATION
-    $StartTime = Get-Date
-    $SAS = New-AzStorageBlobSASToken -Context $Context `
-        -Container $StorageContainerName `
-        -Blob $BlobName `
-        -StartTime $StartTime `
-        -ExpiryTime $StartTime.AddYears('3') `
-        -Permission 'rl' `
-        -FullUri
-
-    # Output
-    return $SAS
-}
-
-<#
-    .SYNOPSIS
         Creates Audit, DeployIfNotExists and Initiative policy definitions on specified Destination Path.
 
     .Parameter ContentUri
@@ -513,6 +418,9 @@ function Publish-GuestConfigurationPackage {
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Category
+        Policy category.
+
     .Parameter Tag
         The name and value of a tag used in Azure.
 
@@ -523,6 +431,7 @@ function Publish-GuestConfigurationPackage {
                                  -Description 'Policy to monitor service on Windows machine.' `
                                  -Version 1.0.0.0 
                                  -Path ./git/custom_policy
+                                 -Category 'Contoso Apps'
                                  -Tag @{Owner = 'WebTeam'}
 
         $PolicyParameterInfo = @(
@@ -548,7 +457,8 @@ function Publish-GuestConfigurationPackage {
         Return name and path of the Guest Configuration policy definitions.
 #>
 
-function New-GuestConfigurationPolicy {
+function New-GuestConfigurationPolicy
+{
     [CmdletBinding()]
     param (
         [parameter(Mandatory = $true)]
@@ -568,7 +478,7 @@ function New-GuestConfigurationPolicy {
 
         [parameter()]
         [ValidateNotNullOrEmpty()]
-        [version] $Version = '1.0.0',
+        [version] $Version = '1.0.0.0',
 
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -580,11 +490,11 @@ function New-GuestConfigurationPolicy {
         $Platform = 'Windows',
 
         [parameter()]
+        [string] $Category = 'Guest Configuration',
+
+        [parameter()]
         [Hashtable[]] $Tag
     )
-
-    # This value must be static for AINE policies due to service configuration
-    $Category = 'Guest Configuration'
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
@@ -599,7 +509,7 @@ function New-GuestConfigurationPolicy {
 
         # Check if ContentUri is a valid web Uri
         $uri = $ContentUri -as [System.URI]
-        if (-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
+        if(-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
             Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
         }
 
@@ -616,31 +526,47 @@ function New-GuestConfigurationPolicy {
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempContentPackageFilePath, $unzippedPkgPath)
         $dscDocument = Get-ChildItem -Path $unzippedPkgPath -Filter *.mof -Exclude '*.schema.mof' -Depth 1
-        if (-not $dscDocument) {
+        if(-not $dscDocument) {
             Throw "Invalid policy package, failed to find dsc document in policy package."
         }
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
         $packageIsSigned = (((Get-ChildItem -Path $unzippedPkgPath -Filter *.cat) -ne $null) -or `
-            (((Get-ChildItem -Path $unzippedPkgPath -Filter *.asc) -ne $null) -and ((Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums) -ne $null)))
+                            (((Get-ChildItem -Path $unzippedPkgPath -Filter *.asc) -ne $null) -and ((Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums) -ne $null)))
 
-        $AuditIfNotExistsInfo = @{
-            FileName                 = 'AuditIfNotExists.json'
-            DisplayName              = $DisplayName
-            Description              = $Description
-            Platform                 = $Platform
-            ConfigurationName        = $policyName
-            ConfigurationVersion     = $Version
-            ContentUri               = $ContentUri
-            ContentHash              = $contentHash
-            ReferenceId              = "Deploy_$policyName"
-            ParameterInfo            = $ParameterInfo
+        $DeployPolicyInfo = @{
+            FileName = "DeployIfNotExists.json"
+            DisplayName = "[Deploy] $DisplayName"
+            Description = $Description 
+            ConfigurationName = $policyName
+            ConfigurationVersion = $Version
+            ContentUri = $ContentUri
+            ContentHash = $contentHash
+            ReferenceId = "Deploy_$policyName"
+            ParameterInfo = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
-            Category                 = $Category
-            Tag                      = $Tag
+            Category = $Category
+            Tag = $Tag
         }
-        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose | Out-Null
-            
+        $AuditPolicyInfo = @{
+            FileName = "AuditIfNotExists.json"
+            DisplayName = "[Audit] $DisplayName"
+            Description = $Description 
+            ConfigurationName = $policyName
+            ReferenceId = "Audit_$policyName"
+            Category = $Category
+            Tag = $Tag
+        }
+        $InitiativeInfo = @{
+            FileName = "Initiative.json"
+            DisplayName = "[Initiative] $DisplayName"
+            Description = $Description
+            Category = $Category
+        }
+
+        Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."
+        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -DeployPolicyInfo $DeployPolicyInfo -AuditPolicyInfo $AuditPolicyInfo -InitiativeInfo $InitiativeInfo -Platform $Platform -Verbose:$verbose | Out-Null
+
         $result = [pscustomobject]@{
             Name = $policyName
             Path = $Path
@@ -665,7 +591,8 @@ function New-GuestConfigurationPolicy {
         Publish-GuestConfigurationPolicy -Path ./git/custom_policy
 #>
 
-function Publish-GuestConfigurationPolicy {
+function Publish-GuestConfigurationPolicy
+{
     [CmdletBinding()]
     param (
         [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -681,30 +608,62 @@ function Publish-GuestConfigurationPolicy {
 
     # Publish policies
     $subscriptionId = $rmContext.Subscription.Id
-    $policyFile = join-path $Path "AuditIfNotExists.json"
-    $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
-    $definitionContent = $jsonDefinition.Properties
+    foreach ($policy in @("AuditIfNotExists.json", "DeployIfNotExists.json")){
+        $policyFile = join-path $Path $policy
+        $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object {$_}
+        $definitionContent = $jsonDefinition.Properties
 
-    $newAzureRmPolicyDefinitionParameters = @{
-        Name        = $jsonDefinition.name
-        DisplayName = $($definitionContent.DisplayName | ConvertTo-Json -Depth 20).replace('"', '')
-        Description = $($definitionContent.Description | ConvertTo-Json -Depth 20).replace('"', '')
-        Policy      = $($definitionContent.policyRule | ConvertTo-Json -Depth 20)
-        Metadata    = $($definitionContent.Metadata | ConvertTo-Json -Depth 20)
-        ApiVersion  = '2018-05-01'
-        Verbose     = $true
+        $newAzureRmPolicyDefinitionParameters = @{
+            Name = $jsonDefinition.name
+            DisplayName = $($definitionContent.DisplayName | ConvertTo-Json -Depth 20).replace('"','')
+            Description = $($definitionContent.Description | ConvertTo-Json -Depth 20).replace('"','')
+            Policy = $($definitionContent.policyRule | ConvertTo-Json -Depth 20)
+            Metadata = $($definitionContent.Metadata | ConvertTo-Json -Depth 20)
+            ApiVersion = '2018-05-01'
+            Verbose = $true
+        }
+
+        if ($definitionContent.PSObject.Properties.Name -contains 'parameters')
+        {
+            $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
+        }
+
+        if ($ManagementGroupName) {
+            $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+        }
+
+        Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
+        New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
     }
 
-    if ($definitionContent.PSObject.Properties.Name -contains 'parameters') {
-        $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
-    }
+    # Process initiative
+    $initiativeFile = join-path $Path "Initiative.json"
+    $jsonDefinition = Get-Content $initiativeFile | ConvertFrom-Json | ForEach-Object {$_}
 
-    if ($ManagementGroupName) {
-        $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+    # Update with subscriptionId
+    foreach($definitions in $jsonDefinition.properties.policyDefinitions){
+        $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
     }
 
     Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
-    New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
+    $initiativeContent = $jsonDefinition.Properties
+
+    $newAzureRmPolicySetDefinitionParameters = @{
+        Name = $jsonDefinition.name
+        DisplayName = $($initiativeContent.DisplayName | ConvertTo-Json -Depth 20).replace('"','')
+        Description = $($initiativeContent.Description | ConvertTo-Json -Depth 20).replace('"','')
+        PolicyDefinition = $($initiativeContent.policyDefinitions | ConvertTo-Json -Depth 20)
+        Metadata = $($initiativeContent.Metadata | ConvertTo-Json -Depth 20)
+        ApiVersion = '2018-05-01'
+        Verbose = $true
+    }
+
+    if ($initiativeContent.PSObject.Properties.Name -contains 'parameters')
+    {
+        $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
+    }
+
+    New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters
 }
 
-Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

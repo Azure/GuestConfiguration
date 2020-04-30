@@ -857,6 +857,14 @@ function New-GuestConfigurationDeployPolicyDefinition {
                                             [Ordered]@{
                                                 field = "Microsoft.Compute/imageOffer"
                                                 notLike = 'SQL2008*'
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
             }
         )
 
@@ -1557,10 +1565,16 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                             [Ordered]@{
                                                 field = "Microsoft.Compute/imageOffer"
                                                 notLike = 'SQL2008*'
+                                            }
+                                        )
+                                    }
+                                )
                             }
                         )
                     }
                 )
+            }
+        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
@@ -1568,10 +1582,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 like = "windows*"
             }
         )
-                            }
-                        )
-                    }
-                )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{

@@ -643,7 +643,7 @@ function Publish-GuestConfigurationPolicy
     if (-not [string]::IsNullOrEmpty($ManagementGroupName)) {
         # Update with management group and subscriptionId
         foreach ($definitions in $jsonDefinition.properties.policyDefinitions) {
-            $definitions.policyDefinitionId = "/providers/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
+            $definitions.policyDefinitionId = "/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
         }
     }
     else {

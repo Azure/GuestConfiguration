@@ -38,6 +38,7 @@ function Get-OSPlatform {
 
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
+$IsNotWindowsAndIsAzureDevOps = $IsNotWindows -AND (Get-IsAzureDevOps)
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
@@ -325,14 +326,6 @@ end
             $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
-        
-            if ($releaseBuild -AND (Test-CurrentMachineIsWindows)) {
-                # TODO
-                # Az PowerShell login from macOS currently has issue
-                # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
-                Install-AzLibraries
-                Login-ToTestAzAccount
-            }
         }
         
         function Write-ModuleInfo {
@@ -418,6 +411,13 @@ end
         }
         else {
             $notReleaseBuild = $true
+        }
+
+        if ($releaseBuild -AND (Test-CurrentMachineIsWindows)) {
+            # TODO
+            # Az PowerShell login from macOS currently has issue
+            # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
+            Install-AzLibraries
         }
     }
     Context 'Module fundamentals' {
@@ -523,14 +523,16 @@ end
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
-    Context 'New-GuestConfigurationPolicy' {
+    Context 'New-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
             }
-
+            else {
+                Login-ToTestAzAccount
+            }
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             $newGCPolicyResult.Path | Should -Not -BeNullOrEmpty
             Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
@@ -566,19 +568,24 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
-    Context 'Publish-GuestConfigurationPolicy' {
+    Context 'Publish-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
+
         It 'Should be able to publish policies' -Skip:$notReleaseBuild{
+            Login-ToTestAzAccount
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         }
+
         It 'Should be able to retrieve 2 published policies' -Skip:$notReleaseBuild {
+            Login-ToTestAzAccount
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             write-host $($existingPolicies | % Properties)
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 2
         }
-
+        
         It 'Should be able to retrieve 1 published initiative' -Skip:$notReleaseBuild {
+            Login-ToTestAzAccount
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue
             $existingInitiatives.Count | Should -Be 1

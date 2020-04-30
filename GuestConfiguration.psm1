@@ -645,11 +645,17 @@ function Publish-GuestConfigurationPolicy
         foreach ($definitions in $jsonDefinition.properties.policyDefinitions) {
             $definitions.policyDefinitionId = "/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
         }
+        foreach ($id in $jsonDefinition.id) {
+            $id = "/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
+        }
     }
     else {
         # Update with subscriptionId
         foreach($definitions in $jsonDefinition.properties.policyDefinitions){
             $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
+        }
+        foreach ($id in $jsonDefinition.id) {
+            $id = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
         }
     }
 

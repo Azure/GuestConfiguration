@@ -476,7 +476,7 @@ function New-GuestConfigurationPolicy {
 
         [parameter()]
         [ValidateNotNullOrEmpty()]
-        [version] $Version = '1.0.0.0',
+        [version] $Version = '1.0.0',
 
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -614,12 +614,6 @@ function Publish-GuestConfigurationPolicy {
 
     Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
-
-    Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
-        $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
-    }
-
-    Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
 }
 
 Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

@@ -1914,10 +1914,6 @@ function New-GuestConfigurationPolicyDefinition {
         $PolicyFolderPath,
 
         [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $AuditPolicyInfo,
-
-        [Parameter(Mandatory = $true)]
         [Hashtable]
         $AuditIfNotExistsInfo,
 
@@ -1947,10 +1943,6 @@ function New-CustomGuestConfigPolicy {
         [Parameter(Mandatory = $true)]
         [String]
         $PolicyFolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable[]]
-        $AuditPolicyInfo,
 
         [Parameter(Mandatory = $true)]
         [Hashtable]

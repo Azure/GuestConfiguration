@@ -540,22 +540,6 @@ end
             $auditPolicyContent.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContent.properties.policyRule.then.details.name | Should -Be $testPolicyName
         }
-
-        It 'Generated Deploy policy file should exist' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
-            $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'            
-            Test-Path -Path $deployPolicyFile | Should -BeTrue
-        }
-
-        It 'Deploy policy should contain expected content' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
-            $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
-            $deployPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should -BeTrue
-            $deployPolicyContent.properties.policyType | Should -Be $expectedPolicyType
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should -Be $testPolicyName
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should -Be $expectedContentHash
-            $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
-        }
     }
     Context 'Publish-GuestConfigurationPolicy' {
 

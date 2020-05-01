@@ -1323,7 +1323,12 @@ function New-GuestConfigurationPolicyDefinition {
     
 }
 
-function New-CustomGuestConfigPolicy {
+<#
+    .SYNOPSIS
+        Creates a new audit policy definition for a guest configuration policy.
+#>
+function New-GuestConfigurationAuditPolicyDefinition
+{
     [CmdletBinding()]
     param
     (
@@ -1909,7 +1914,6 @@ function New-GuestConfigurationPolicyDefinition {
         $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
         New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
     }
-    
 }
 
 function New-CustomGuestConfigPolicy {

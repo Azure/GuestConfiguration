@@ -1366,7 +1366,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
-
+    $ParameterMapping = @{ }
+    $ParameterDefinitions = @{ }
+    $auditPolicyContentHashtable = [Ordered]@{ }
+    
+    if ($null -ne $ParameterInfo) {
+        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+    }
+    
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName

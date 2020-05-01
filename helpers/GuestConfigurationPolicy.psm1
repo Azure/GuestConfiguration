@@ -1318,6 +1318,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         [Parameter(Mandatory = $true)]
         [String]
+        $ConfigurationVersion,
+
+        [Parameter(Mandatory = $true)]
+        [String]
         $ReferenceId,
 
         [Parameter()]
@@ -1354,8 +1358,17 @@ function New-GuestConfigurationAuditPolicyDefinition {
             mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{
-                category = $Category
+                category           = $Category
+                guestConfiguration = [Ordered]@{
+                    configurationParameter = $ParameterMapping
+                    name                   = $ConfigurationName
+                    version                = $ConfigurationVersion
+                    contentType            = "Custom"
+                    contentUri             = $ContentUri
+                    contentHash            = $ContentHash
+                }
             }
+            parameters  = $ParameterDefinitions
             
         }
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"

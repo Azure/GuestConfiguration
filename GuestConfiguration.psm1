@@ -672,7 +672,7 @@ function Publish-GuestConfigurationPolicy
     }
 
     if ($ManagementGroupName) {
-        $ewAzureRmPolicySetDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+        $newAzureRmPolicySetDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
     }
 
     New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters

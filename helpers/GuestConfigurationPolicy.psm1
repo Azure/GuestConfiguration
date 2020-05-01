@@ -1329,6 +1329,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $ParameterInfo,
 
         [Parameter()]
+        [String]
+        $ContentUri,
+
+        [Parameter()]
+        [String]
+        $ContentHash,
+
+        [Parameter()]
         [bool]
         $UseCertificateValidation = $false,
 

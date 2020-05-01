@@ -1290,41 +1290,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
 <#
     .SYNOPSIS
-        Creates a new policy for guest configuration.
-#>
-function New-GuestConfigurationPolicyDefinition {
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $PolicyFolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $AuditIfNotExistsInfo,
-
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows'
-    )
-
-    if (Test-Path -Path $PolicyFolderPath) {
-        $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
-    }
-
-    $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
-    
-    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
-    }
-    
-}
-
-<#
-    .SYNOPSIS
         Creates a new audit policy definition for a guest configuration policy.
 #>
 function New-GuestConfigurationAuditPolicyDefinition {
@@ -1980,7 +1945,8 @@ function Get-ParameterDefinitionsAINE
     param
     (
         [Parameter(Mandatory = $true)]   
-        [Hashtable[]]$ParameterInfo
+        [Hashtable[]]
+        $ParameterInfo
     )
     
     $paramDefinition = [Ordered]@{}

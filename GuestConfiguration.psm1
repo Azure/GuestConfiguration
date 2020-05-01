@@ -645,17 +645,11 @@ function Publish-GuestConfigurationPolicy
         foreach ($definitions in $jsonDefinition.properties.policyDefinitions) {
             $definitions.policyDefinitionId = "/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
         }
-        foreach ($id in $jsonDefinition.id) {
-            $id = "/Microsoft.Management/managementgroups/$ManagementGroupName" + "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
-        }
     }
     else {
         # Update with subscriptionId
         foreach($definitions in $jsonDefinition.properties.policyDefinitions){
             $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
-        }
-        foreach ($id in $jsonDefinition.id) {
-            $id = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
         }
     }
 
@@ -675,6 +669,10 @@ function Publish-GuestConfigurationPolicy
     if ($initiativeContent.PSObject.Properties.Name -contains 'parameters')
     {
         $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
+    }
+
+    if ($ManagementGroupName) {
+        $ewAzureRmPolicySetDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
     }
 
     New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters

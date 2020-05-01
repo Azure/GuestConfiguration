@@ -1325,6 +1325,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $ReferenceId,
 
         [Parameter()]
+        [Hashtable[]]
+        $ParameterInfo,
+
+        [Parameter()]
+        [bool]
+        $UseCertificateValidation = $false,
+
+        [Parameter()]
         [String]
         $Guid,
 

@@ -1327,14 +1327,33 @@ function New-GuestConfigurationPolicyDefinition {
     .SYNOPSIS
         Creates a new audit policy definition for a guest configuration policy.
 #>
-function New-GuestConfigurationAuditPolicyDefinition
-{
+function New-GuestConfigurationAuditPolicyDefinition {
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
         [String]
-        $PolicyFolderPath,
+        $FileName,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $FolderPath,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $DisplayName,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $Description,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ConfigurationName,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ReferenceId,
 
         [Parameter()]
         [String]
@@ -1346,34 +1365,12 @@ function New-GuestConfigurationAuditPolicyDefinition
         $Platform = 'Windows',
 
         [Parameter()]
-        [ValidateSet('Microsoft.Compute', 'Microsoft.HybridCompute')]
-        [String]
-        $RPName = 'Microsoft.Compute',
-
-        [Parameter()]
-        [ValidateSet('virtualMachines', 'machines')]
-        [String]
-        $ResourceName = 'virtualMachines',
-
-        [Parameter()]
         [String]
         $Category = 'Guest Configuration',
-        
+
         [Parameter()]
         [Hashtable[]]
-        $ParameterInfo,
-
-        [Parameter()]
-        [String]
-        $ContentUri,
-
-        [Parameter()]
-        [String]
-        $ContentHash,
-
-        [Parameter()]
-        [String]
-        $Version = '1.*'
+        $Tag
     )
 
     if (-not [String]::IsNullOrEmpty($Guid)) {
@@ -1384,44 +1381,40 @@ function New-GuestConfigurationAuditPolicyDefinition
     }
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
-    $ParameterMapping = @{ }
-    $ParameterDefinitions = @{ }
-    $auditPolicyContentHashtable = [Ordered]@{ }
-    
-    if ($null -ne $ParameterInfo) {
-        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
-    }
+
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
-            policyType  = 'BuiltIn'
+            policyType  = 'Custom'
             mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{
-                category           = $Category
-                guestConfiguration = [Ordered]@{
-                    configurationParameter = $ParameterMapping
-                    name                   = $ConfigurationName
-                    version                = $Version
-                    contentType            = "Custom"
-                    contentUri             = $ContentUri
-                    contentHash            = $ContentHash
-                }
+                category = $Category
             }
-            parameters  = $ParameterDefinitions
+            
         }
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
     }
-     
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
-            allOf = @(
+            anyOf = @(
                 [Ordered]@{
-                    field  = 'type'
-                    equals = $RPName + '/' + $ResourceName
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
+                },
+                [Ordered]@{
+                    allOf = @(
+                        [Ordered]@{
+                            field = "type"
+                            equals = "Microsoft.HybridCompute/machines"
+                        }
+                    )
                 }
             )
         }
@@ -1432,34 +1425,16 @@ function New-GuestConfigurationAuditPolicyDefinition
                 name = $ConfigurationName
             }
         }
-
     }
 
-    $computeSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field  = "type"
-                equals = "Microsoft.Compute/virtualMachines"
-            }
-        )
-    }
-
-    $hybridSection = [Ordered]@{
-        allOf = @(
-            [Ordered]@{
-                field  = "type"
-                equals = "Microsoft.HybridCompute/machines"
-            }
-        )
-    }
-
-    if ($Platform -ieq 'Windows') {
-        $computeSection['allOf'] += @(
+    if ($Platform -ieq 'Windows')
+    {
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
                         field = "Microsoft.Compute/imagePublisher"
-                        in    = @(
+                        in = @(
                             'esri',
                             'incredibuild',
                             'MicrosoftDynamicsAX',
@@ -1472,11 +1447,11 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'MicrosoftWindowsServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field = "Microsoft.Compute/imageSKU"
                                 notLike = '2008*'
                             }
                         )
@@ -1484,11 +1459,11 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'MicrosoftSQLServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageOffer"
+                                field = "Microsoft.Compute/imageOffer"
                                 notLike = 'SQL2008*'
                             }
                         )
@@ -1496,11 +1471,11 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'microsoft-dsvm'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field = "Microsoft.Compute/imageOffer"
                                 equals = 'dsvm-windows'
                             }
                         )
@@ -1508,12 +1483,12 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'microsoft-ads'
                             },
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                in    = @(
+                                in = @(
                                     'standard-data-science-vm',
                                     'windows-data-science-vm'
                                 )
@@ -1523,11 +1498,11 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'batch'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field = "Microsoft.Compute/imageOffer"
                                 equals = 'rendering-windows2016'
                             }
                         )
@@ -1535,36 +1510,36 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'center-for-internet-security-inc'
                             },
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageOffer"
-                                like  = 'cis-windows-server-201*'
+                                like = 'cis-windows-server-201*'
                             }
                         )
                     },
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'pivotal'
                             },
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageOffer"
-                                like  = 'bosh-windows-server*'
+                                like = 'bosh-windows-server*'
                             }
                         )
                     },
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'cloud-infrastructure-services'
                             },
                             [Ordered]@{
                                 field = "Microsoft.Compute/imageOffer"
-                                like  = 'ad*'
+                                like = 'ad*'
                             }
                         )
                     },
@@ -1573,55 +1548,56 @@ function New-GuestConfigurationAuditPolicyDefinition
                             [Ordered]@{ 
                                 anyOf = @(
                                     [Ordered]@{ 
-                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        field = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
                                         exists = 'true'
                                     },
                                     [Ordered]@{
                                         field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like  = 'Windows*'
+                                        like = 'Windows*'
                                     }
                                 )
                             },
                             [Ordered]@{ 
                                 anyOf = @(
                                     [Ordered]@{ 
-                                        field  = "Microsoft.Compute/imageSKU"
+                                        field = "Microsoft.Compute/imageSKU"
                                         exists = 'false'
                                     },
                                     [Ordered]@{
                                         allOf = @(
                                             [Ordered]@{ 
-                                                field   = "Microsoft.Compute/imageSKU"
+                                                field = "Microsoft.Compute/imageSKU"
                                                 notLike = '2008*'
                                             },
                                             [Ordered]@{
-                                                field   = "Microsoft.Compute/imageOffer"
+                                                field = "Microsoft.Compute/imageOffer"
                                                 notLike = 'SQL2008*'
-                                            }
-                                        )
-                                    }
-                                )
                             }
                         )
                     }
                 )
             }
         )
+                            }
+                        )
+                    }
+                )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
-                like  = "windows*"
+                like = "windows*"
             }
         )
     }
-    elseif ($Platform -ieq 'Linux') {
-        $computeSection['allOf'] += @(
+    elseif ($Platform -ieq 'Linux')
+    {
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
                         field = "Microsoft.Compute/imagePublisher"
-                        in    = @(
+                        in = @(
                             'microsoft-aks',
                             'qubole-inc',
                             'datastax',
@@ -1634,15 +1610,15 @@ function New-GuestConfigurationAuditPolicyDefinition
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field = "Microsoft.Compute/imagePublisher"
                                 equals = 'OpenLogic'
                             },
                             [Ordered]@{ 
                                 field = "Microsoft.Compute/imageOffer"
-                                like  = 'CentOS*'
+                                like = 'CentOS*'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field = "Microsoft.Compute/imageSKU"
                                 notLike = '6*'
                             }
                         )
@@ -1658,7 +1634,7 @@ function New-GuestConfigurationAuditPolicyDefinition
                                 equals = 'Oracle-Linux'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field = "Microsoft.Compute/imageSKU"
                                 notLike = '6*'
                             }
                         )
@@ -1834,13 +1810,11 @@ function New-GuestConfigurationAuditPolicyDefinition
                         )
                     }
                 )
-            }
-        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
-                like  = "linux*"
+                like = "linux*"
             }
         )
 
@@ -1851,19 +1825,43 @@ function New-GuestConfigurationAuditPolicyDefinition
             }
         )
     }
-    else {
+    else
+    {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
-    $existenceConditionList = [Ordered]@{
-        allOf = [System.Collections.ArrayList]@()
+    # if there is atleast one tag
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+        # capture existing 'anyOf' section
+        $anyOf = $policyRuleHashtable['if']
+        # replace with new 'allOf' at top order
+        $policyRuleHashtable['if'] = [Ordered]@{
+            allOf = @(
+            )
+        }
+        # add tags section under new 'allOf'
+        $policyRuleHashtable['if']['allOf'] += [Ordered]@{
+            allOf = @(
+            )
+        }
+        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        $policyRuleHashtable['if']['allOf'] += $anyOf
+        # add each tag individually to tags 'allOf'
+        for($i = 0; $i -lt $Tag.count; $i++) {
+            # if there is atleast one tag
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+                $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
+                    field = "tags.$($Tag[$i].Keys)"
+                    equals = "$($Tag[$i].Values)"
+                }
+            }
+        }
     }
-    $existenceConditionList['allOf'].Add([Ordered]@{
-            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
-            equals = 'Compliant'
-        })
-    $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
-    $existenceConditionList['allOf'].Add($parametersExistenceCondition)
+
+    $existenceConditionList = [Ordered]@{
+        field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+        equals = 'Compliant'
+    }
 
     $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 

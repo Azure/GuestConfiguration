@@ -119,7 +119,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'InSpec', 'WinDSC')]
+                [ValidateSet('DSC', 'InSpec', 'Pester')]
                 [String]
                 $Type = 'DSC'
             )
@@ -208,6 +208,50 @@ end
 
                 # creates directory for Inspec profile
                 $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
+            }
+            #endregion
+
+            #region Operational Validation DSC config
+            if ('Pester' -eq $Type) {
+                $dscConfig = @'
+Configuration DSCConfigOV_Windows
+{
+    Import-DSCResource -ModuleName GuestConfiguration
+
+    Node DSCConfigOV_Windows
+    {
+        OperationalValidation EnvironmentVariables
+        {
+            TestFileName = 'EnvironmentVariables'
+        }
+
+        
+    }
+}
+'@
+                $operationalValidationScript = @'
+describe 'Test Environment' {
+    context 'Simple' {
+        It 'PSModulePath is not null or empty' {
+            $Env:PSModulePath | Should -Not -BeNullOrEmpty
+        }
+        It 'Path is not null or empty' {
+            $Env:Path | Should -Not -BeNullOrEmpty
+        }
+    }
+}
+'@
+            }
+            #endregion
+        
+            $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
+            $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
+        
+            $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
+        
+            if ('InSpec' -eq $Type) {
+                # creates directory for InSpec profile
+                $InSpecProfilePath = Join-Path -Path $TestDrive -ChildPath $inSpecProfileName
                 $null = New-Item -ItemType Directory -Path $InSpecProfilePath
         
                 # creates Inspec profile required Yml file
@@ -222,33 +266,6 @@ end
                 $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
                 $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
             }
-            #endregion 
-
-            #region Windows DSC config using invalid resources
-            if ('WinDSC' -eq $Type) {
-                $dscConfig = @'
-instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
-{
-ResourceID = "[File]test";
-Ensure = "Present";
-Contents = "test";
-DestinationPath = "c:\\test";
-ModuleName = "PSDesiredStateConfiguration";
-SourceInfo = "::1::76::file";
-ModuleVersion = "1.0";
-ConfigurationName = "file";
-};
-
-instance of OMI_ConfigurationDocument
-{
-Version="2.0.0";
-MinimumCompatibleVersion = "1.0.0";
-CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-Name="DSCConfig";
-};
-'@
-            }
-            #endregion
         }
         #TODO
         function New-TestGCPolicyParameters {

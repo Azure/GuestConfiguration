@@ -203,7 +203,8 @@ end
         
             $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
 
-            $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
+            $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
+            New-Item $filesToIncludeFolderPath -ItemType Directory
             $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
             $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
         

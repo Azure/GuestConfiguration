@@ -352,6 +352,7 @@ end
         $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+        $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'filesToIncludePackage'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $extractedFilesToIncludePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'FilesToInclude'
@@ -456,7 +457,7 @@ end
         }
 
         It 'Implements -FilesToInclude parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludeFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue

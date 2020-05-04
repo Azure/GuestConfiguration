@@ -93,8 +93,8 @@ function New-GuestConfigurationPackage
                 Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
             }
             else {
-                $filesToIncludeFolderName = Get-Item $FilesToInclude | ForEach-Object {$_.Name}
-                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName
+                $filesToIncludeFolderName = Get-Item $FilesToInclude
+                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
                 Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse
             }
         }

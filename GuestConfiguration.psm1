@@ -90,10 +90,10 @@ function New-GuestConfigurationPackage
         # Copy FilesToInclude
         if(-not [string]::IsNullOrEmpty($FilesToInclude)) {
             if(Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item "$FilesToInclude" $modulePath -Force -ErrorAction SilentlyContinue
+                Copy-Item "$FilesToInclude" $unzippedPackagePath -Force -ErrorAction SilentlyContinue
             }
             else {
-                Copy-Item "$FilesToInclude\*" $modulePath -Recurse -Force -ErrorAction SilentlyContinue
+                Copy-Item "$FilesToInclude\*" $unzippedPackagePath -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
         

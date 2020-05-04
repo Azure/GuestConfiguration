@@ -202,6 +202,10 @@ end
             $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
         
             $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
+
+            $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
+            $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
+            $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
         
             if ('InSpec' -eq $Type) {
                 # creates directory for InSpec profile
@@ -341,6 +345,7 @@ end
     
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
+        $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $newPolicyDirectory = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
         $policyName = 'testPolicy'
@@ -442,6 +447,12 @@ end
                     Test-Path -Path $resourceModulePath | Should -BeTrue
                 }
             }
+        }
+
+        It 'Implements -filestoinclude parameter' {
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludePath
+            $filesPath = Join-Path $package.Path 'FilesToInclude'
+            Test-Path -Path $filesPath | Should -BeTrue
         }
     }
     Context 'Test-GuestConfigurationPackage' {

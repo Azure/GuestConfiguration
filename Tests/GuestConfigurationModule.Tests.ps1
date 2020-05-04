@@ -202,6 +202,11 @@ end
             $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
         
             $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
+
+            $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
+            New-Item $filesToIncludeFolderPath -ItemType Directory
+            $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
+            $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
         
             if ('InSpec' -eq $Type) {
                 # creates directory for InSpec profile
@@ -341,13 +346,17 @@ end
     
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
+        $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $newPolicyDirectory = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
         $policyName = 'testPolicy'
         $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
+        $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'filesToIncludePackage'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
+        $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'filesToIncludeUnsignedPackage'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -442,6 +451,20 @@ end
                     Test-Path -Path $resourceModulePath | Should -BeTrue
                 }
             }
+        }
+
+        It 'Should not include -FilesToInclude by default' {
+            Test-Path -Path $extractedFilesToIncludePath | Should -BeFalse
+        }
+
+        It 'Implements -FilesToInclude parameter' {
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $filesToIncludeExtractionPath) } | Should -Not -Throw
+            Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
+            $extractedFile = Join-Path $extractedFilesToIncludePath 'file.txt'
+            Test-Path -Path $extractedFile | Should -BeTrue
+            Get-Content $extractedFile | Should -Be 'test'
         }
     }
     Context 'Test-GuestConfigurationPackage' {

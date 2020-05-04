@@ -458,7 +458,7 @@ end
         It 'Implements -FilesToInclude parameter' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludeFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $unsignedPackageExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
             $extractedFile = Join-Path $extractedFilesToIncludePath 'file.txt'
             Test-Path -Path $extractedFile | Should -BeTrue

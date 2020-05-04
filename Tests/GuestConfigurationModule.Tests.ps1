@@ -451,7 +451,7 @@ end
         }
 
         It 'Implements -filestoinclude parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludePath
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludeFolderPath
             $filesPath = Join-Path $package.Path 'FilesToInclude'
             Test-Path -Path $filesPath | Should -BeTrue
         }

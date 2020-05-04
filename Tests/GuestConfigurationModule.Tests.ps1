@@ -354,6 +354,7 @@ end
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $extractedFilesToIncludePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'FilesToInclude'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -450,10 +451,18 @@ end
             }
         }
 
-        It 'Implements -filestoinclude parameter' {
+        It 'Should not include -FilesToInclude by default' {
+            Test-Path -Path $extractedFilesToIncludePath | Should -BeFalse
+        }
+
+        It 'Implements -FilesToInclude parameter' {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludeFolderPath
-            $filesPath = Join-Path $package.Path 'FilesToInclude'
-            Test-Path -Path $filesPath | Should -BeTrue
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
+            Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
+            $extractedFile = Join-Path $extractedFilesToIncludePath 'file.txt'
+            Test-Path -Path $extractedFile | Should -BeTrue
+            Get-Content $extractedFile | Should -Be 'test'
         }
     }
     Context 'Test-GuestConfigurationPackage' {

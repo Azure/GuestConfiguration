@@ -54,7 +54,7 @@ function Get-ResultsfromPesterScript {
     }
 
     $Reasons += @{
-        Code   = 'OperationalValidation:OperationalValidation:ScriptOutput'
+        Code   = 'PesterResource:PesterResource:ScriptOutput'
         Phrase = $Phrase+"`n"
     }
 

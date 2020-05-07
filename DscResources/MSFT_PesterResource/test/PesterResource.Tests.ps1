@@ -1,12 +1,12 @@
 
-Describe "OperationalValidation Tests" {
+Describe "PesterResource Tests" {
 
     BeforeAll {
-        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Parent) -ChildPath "MSFT_OperationalValidation.psm1"
+        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Parent) -ChildPath "MSFT_PesterResource.psm1"
         Import-Module -Name $resourceModulePath -Force
     }
 
-    Context 'OperationalValidation\Get-ResultsfromPesterScript' {
+    Context 'PesterResource\Get-ResultsfromPesterScript' {
 
         It 'Should return a hashtable that can be used by Get/Test' {
             $function1 = Get-ResultsfromPesterScript -ScriptFilePath "$psscriptroot/TestScript.ps1"
@@ -25,7 +25,7 @@ Describe "OperationalValidation Tests" {
 
     }
 <#
-    Context "OperationalValidation\Set-TargetResource" {
+    Context "PesterResource\Set-TargetResource" {
 
         It 'Should always throw' {
             { Set-TargetResource -TestFileName 'Value' } | Should -Throw

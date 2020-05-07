@@ -220,7 +220,7 @@ Configuration DSCConfigOV_Windows
 
     Node DSCConfigOV_Windows
     {
-        OperationalValidation EnvironmentVariables
+        PesterResource EnvironmentVariables
         {
             TestFileName = 'EnvironmentVariables'
         }
@@ -229,7 +229,7 @@ Configuration DSCConfigOV_Windows
     }
 }
 '@
-                $operationalValidationScript = @'
+                $PesterResourceScript = @'
 describe 'Test Environment' {
     context 'Simple' {
         It 'PSModulePath is not null or empty' {

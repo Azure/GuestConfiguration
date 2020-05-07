@@ -5,8 +5,8 @@ class Reason
     [Read] String Phrase;
 };
 
-[ClassVersion("1.0.0.0"), FriendlyName("OperationalValidation")]
-class MSFT_OperationalValidation : OMI_BaseResource
+[ClassVersion("1.0.0.0"), FriendlyName("PesterResource")]
+class MSFT_PesterResource : OMI_BaseResource
 {
     [Key, Description("Specifies the name of the Pester script included in the module")] String TestFileName;
     [Read] String Status;

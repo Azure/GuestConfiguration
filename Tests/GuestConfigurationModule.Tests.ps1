@@ -286,12 +286,7 @@ end
             }
         
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            if (Test-CurrentMachineIsWindows) {
-                $delimiter = ";"
-            }
-            else {
-                $delimiter = ":"
-            }
+            $delimiter = [IO.Path]::PathSeparator
             $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
         
             $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'

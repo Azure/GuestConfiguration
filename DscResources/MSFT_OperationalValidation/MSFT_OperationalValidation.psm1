@@ -21,7 +21,7 @@ function Get-ResultsfromPesterScript {
 
     Write-Verbose "[$((get-date).getdatetimeformats()[45])] About to run Pester script"
 
-    $Pester = Invoke-Pester -Script $ScriptFilePath -PassThru
+    $Pester = Invoke-Pester $ScriptFilePath -PassThru
 
     Write-Verbose "[$((get-date).getdatetimeformats()[45])] Capturing Pester output for Policy"
 

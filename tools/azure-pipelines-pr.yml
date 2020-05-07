@@ -70,6 +70,41 @@ jobs:
             Install-Module -Name 'Pester' -RequiredVersion 5.0.4 -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
         enabled: 'true'
+        displayName: Install Pester v4
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force
+      - task: PowerShell@2
+        enabled: 'false'
+        continueOnError: 'true'
+        displayName: Pester v4 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            write-host "ps version: $($PSVersionTable | % PSVersion)"
+            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
+            if ($Pester.FailedCount -gt 0) {
+              Write-Error "$($Pester.FailedCount) tests failed."
+            }
+      - task: PowerShell@2
+        enabled: 'false'
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
+      - task: PowerShell@2
+        enabled: 'false'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'

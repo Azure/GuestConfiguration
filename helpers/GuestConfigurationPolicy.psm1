@@ -79,7 +79,7 @@ function Test-GuestConfigurationMofResourceDependencies {
     for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
         if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName' -and $resourcesInMofDocument[$i].ModuleName -ne 'GuestConfiguration') {
             if ($resourcesInMofDocument[$i].ModuleName -ieq 'PsDesiredStateConfiguration') {
-                Throw "'PsDesiredStateConfiguration' module is not supported by GuestConfiguration. Please use 'PSDscResources' module instead of 'PsDesiredStateConfiguration' module in DSC configuration."
+                Throw "'PsDesiredStateConfiguration' module is not supported by GuestConfiguration. Please use 'PSDSCResources' module instead of 'PsDesiredStateConfiguration' module in DSC configuration."
             }
 
             $configurationName = $resourcesInMofDocument[$i].ConfigurationName
@@ -89,7 +89,7 @@ function Test-GuestConfigurationMofResourceDependencies {
     }
 }
 
-function Copy-DscResources {
+function Copy-DSCResources {
     [CmdletBinding()]
     param
     (
@@ -121,7 +121,7 @@ function Copy-DscResources {
                 catch {
                     write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
                 }
-                Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
+                Copy-Item "$($latestModule.ModuleBase)/DSCResources/" "$guestConfigModulePath/DSCResources/" -Recurse
                 Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
                 Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
                 Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
@@ -131,14 +131,14 @@ function Copy-DscResources {
                 $resources = Get-DscResource -Module GuestConfiguration
                 $resources | ForEach-Object {
                     if ($_.ImplementedAs -eq 'Binary') {
-                        $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
+                        $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DSCResources') $_.ResourceType
                         Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
                         Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
                     }
                 }
             }
             if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
-                Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration", that is not available in PowerShell Core. Switch to the "PSDscResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available.'
+                Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration" that are not available in PowerShell Core. Switch to the "PSDSCResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available in "PSDSCResources".'
             }
             if ($_.ModuleName -ne 'GuestConfiguration' -AND $_.ModuleName -ne 'PSDesiredStateConfiguration') {
                 $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
@@ -151,6 +151,7 @@ function Copy-DscResources {
     $modulesToCopy.Values | ForEach-Object {
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            if (!$requiredModule) {throw "Module '$($_.ModuleName)' with version '$($_.ModuleVersion)' was not found in Env:PSModulePath"}
             if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
                 $requiredModule.RequiredModules | ForEach-Object {
                     if ($null -ne $_.Version) {

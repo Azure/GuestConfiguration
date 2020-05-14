@@ -113,20 +113,21 @@ function Copy-DSCResources {
                 Write-Verbose "Copy Guest Configuration native resources ..."
                 $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
                 try {
+                    # We need to check both the versions imported in to the current session and the versions available in psmodulepath
                     $latestModule = @()
                     $latestModule += Get-Module GuestConfiguration
                     $latestModule += Get-Module GuestConfiguration -ListAvailable
                     $latestModule = ($latestModule | Sort-Object Version)[0]
                 }
                 catch {
-                    write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
+                    write-error 'Unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
                 }
                 Copy-Item "$($latestModule.ModuleBase)/DSCResources/" "$guestConfigModulePath/DSCResources/" -Recurse
                 Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
                 Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
                 Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
     
-                # Copy binary resources.
+                # Copy native resources.
                 $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
                 $resources = Get-DscResource -Module GuestConfiguration
                 $resources | ForEach-Object {

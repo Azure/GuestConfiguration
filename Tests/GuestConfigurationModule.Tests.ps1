@@ -478,11 +478,12 @@ end
     Context 'Protect-GuestConfigurationPackage' {
         
         It 'Signed package should exist at output path' -Skip:$IsNotWindows {
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
             $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.FullName -Certificate $certificate 
+            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
         }
     

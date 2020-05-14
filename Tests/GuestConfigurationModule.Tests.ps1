@@ -286,7 +286,12 @@ end
             }
         
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            $delimiter = [IO.Path]::PathSeparator
+            if (Test-CurrentMachineIsWindows) {
+                $delimiter = ";"
+            }
+            else {
+                $delimiter = ":"
+            }
             $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
         
             $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
@@ -479,7 +484,6 @@ end
         
         It 'Signed package should exist at output path' -Skip:$IsNotWindows {
             $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
@@ -508,7 +512,7 @@ end
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
-    Context 'New-GuestConfigurationPolicy' {
+    Context 'New-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             if ($notReleaseBuild) {
@@ -553,7 +557,7 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
-    Context 'Publish-GuestConfigurationPolicy' {
+    Context 'Publish-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
 
         It 'Should be able to publish policies' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount

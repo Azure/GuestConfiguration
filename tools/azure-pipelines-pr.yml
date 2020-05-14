@@ -60,7 +60,7 @@ jobs:
             $modules += @('PSScriptAnalyzer')
             Install-Module -Name $modules -Force
       - task: PowerShell@2
-        enabled: 'false'
+        enabled: 'true'
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
@@ -78,14 +78,14 @@ jobs:
         enabled: 'true'
         displayName: Install Pester v5
         inputs:
-          pwsh: 'true'
+          pwsh: 'false'
           targetType: inline
           failOnStderr: true
           errorActionPreference: stop
           script: |
             Install-Module -Name 'Pester' -Force -AllowPreRelease
       - task: PowerShell@2
-        enabled: 'true'
+        enabled: 'false'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'

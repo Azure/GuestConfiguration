@@ -466,8 +466,8 @@ end
     Context 'Test-GuestConfigurationPackage' {
 
         It 'Validate that the resource compliance results are as expected' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.FullName
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
             $testPackageResult.resources[0].complianceStatus | Should -Be $false
@@ -478,11 +478,11 @@ end
     Context 'Protect-GuestConfigurationPackage' {
         
         It 'Signed package should exist at output path' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate 
+            $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.FullName -Certificate $certificate 
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
         }
     

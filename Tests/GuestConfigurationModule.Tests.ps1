@@ -466,8 +466,8 @@ end
     Context 'Test-GuestConfigurationPackage' {
 
         It 'Validate that the resource compliance results are as expected' -Skip:$IsNotWindows {
-            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.FullName
+            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
             $testPackageResult.resources[0].complianceStatus | Should -Be $false

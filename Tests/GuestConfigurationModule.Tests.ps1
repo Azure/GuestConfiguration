@@ -512,7 +512,7 @@ end
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
-    Context 'New-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
+    Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             if ($notReleaseBuild) {
@@ -557,7 +557,7 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
-    Context 'Publish-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
+    Context 'Publish-GuestConfigurationPolicy' {
 
         It 'Should be able to publish policies' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount

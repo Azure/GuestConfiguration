@@ -138,7 +138,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
         
             #region Windows DSC config
             if ('DSC' -eq $Type) {
-                Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+                Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force
                 $dscConfig = @'
 instance of DSC_TimeZone as $DSC_TimeZone1ref
 {
@@ -147,7 +147,7 @@ IsSingleInstance = "Yes";
 ResourceID = "[TimeZone]TimeZoneExample";
 SourceInfo = "::7::9::TimeZone";
 TimeZone = "Tonga Standard Time";
-ModuleVersion = "8.1.0";
+ModuleVersion = "8.2.0";
 ConfigurationName = "DSCConfig";
 };
 

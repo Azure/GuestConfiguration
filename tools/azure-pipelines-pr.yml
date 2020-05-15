@@ -53,8 +53,8 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          failOnStderr: false
+          errorActionPreference: silentlycontinue
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer','Pester')
@@ -90,7 +90,7 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
+          failOnStderr: false
           errorActionPreference: silentlycontinue
           script: |
             Invoke-Pester -CI

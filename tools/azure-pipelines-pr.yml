@@ -66,13 +66,12 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: 'false'
-          errorActionPreference: continue
+          continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
+              Exit "$($Pester.FailedCount)"
             }
       - task: PowerShell@2
         enabled: 'true'
@@ -90,8 +89,7 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: 'false'
-          errorActionPreference: continue
+          continueOnError: 'true'
           script: |
             Invoke-Pester -CI
       - task: PublishTestResults@2

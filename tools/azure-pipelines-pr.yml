@@ -67,7 +67,7 @@ jobs:
           pwsh: 'true'
           targetType: inline
           failOnStderr: true
-          errorActionPreference: continueOnError
+          errorActionPreference: stop
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
@@ -91,7 +91,7 @@ jobs:
           pwsh: 'true'
           targetType: inline
           failOnStderr: true
-          errorActionPreference: stop
+          errorActionPreference: continue
           script: |
             Invoke-Pester -CI
       - task: PublishTestResults@2

@@ -67,7 +67,7 @@ jobs:
           pwsh: 'true'
           targetType: inline
           failOnStderr: true
-          errorActionPreference: stop
+          errorActionPreference: continueOnError
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
@@ -78,14 +78,14 @@ jobs:
         enabled: 'true'
         displayName: Install Pester v5
         inputs:
-          pwsh: 'false'
+          pwsh: 'true'
           targetType: inline
           failOnStderr: true
           errorActionPreference: stop
           script: |
             Install-Module -Name 'Pester' -Force -AllowPreRelease
       - task: PowerShell@2
-        enabled: 'false'
+        enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'

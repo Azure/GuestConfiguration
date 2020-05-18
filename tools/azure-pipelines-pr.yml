@@ -34,14 +34,13 @@ jobs:
         running cmdlets from macOS Catalina:
           imageName: macOS-10.15
         running cmdlets from Windows 2019:
-          imageName: set2019
+          imageName: windows-latest
         running cmdlets from Windows 2016:
           imageName: vs2017-win2016
     pool:
-      vmImage: $(imageName)
+      vmImage: set2019
     steps:
       - task: PowerShell@2
-        condition: and(succeeded(), eq(variables['Agent.Name'], 'set2019'))
         inputs:
           targetType: 'inline'
           script: |

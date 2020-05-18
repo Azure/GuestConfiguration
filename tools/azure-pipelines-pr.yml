@@ -34,12 +34,24 @@ jobs:
         running cmdlets from macOS Catalina:
           imageName: macOS-10.15
         running cmdlets from Windows 2019:
-          imageName: windows-2019
+          imageName: set2019
         running cmdlets from Windows 2016:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)
     steps:
+      - task: PowerShell@2
+        condition: and(succeeded(), eq(variables['Agent.Name'], 'set2019'))
+        inputs:
+          targetType: 'inline'
+          script: |
+            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
+            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
+            ./install-powershell.ps1 -Destination $powerShellPath
+            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath;$env:PATH"
+            Write-Host "sending " + $vstsCommandString
+            Write-Host "##$vstsCommandString"
+        displayName: Install PowerShell Core
       - task: UniversalPackages@0
         displayName: Universal download
         inputs:

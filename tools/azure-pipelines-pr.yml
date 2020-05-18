@@ -46,33 +46,32 @@ jobs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
-          vstsPackageVersion: '*'
+          vstsPackageVersion: '0.0.2'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          failOnStderr: false
+          errorActionPreference: silentlycontinue
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            $modules += @('PSScriptAnalyzer')
-            Install-Module -Name $modules -Force
+            $modules += @('PSScriptAnalyzer','Pester')
+            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
-        enabled: 'false'
+        enabled: 'true'
         continueOnError: 'true'
         displayName: Pester v4 unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
+              Exit "$($Pester.FailedCount)"
             }
       - task: PowerShell@2
         enabled: 'true'
@@ -90,8 +89,7 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          continueOnError: 'true'
           script: |
             if ($IsWindows) { $env:ADO = $true; Invoke-Pester -CI }
             else { sudo pwsh { $env:ADO = $true; Invoke-Pester -CI }}

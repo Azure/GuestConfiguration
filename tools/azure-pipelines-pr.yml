@@ -56,7 +56,7 @@ jobs:
           command: download
           vstsFeed: guestconfiguration
           vstsFeedPackage: gc_agents
-          vstsPackageVersion: '*'
+          vstsPackageVersion: '0.0.2'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules

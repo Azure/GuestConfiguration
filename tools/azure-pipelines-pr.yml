@@ -22,21 +22,21 @@ pr:
 
 jobs:
   - job: Test
-    strategy:
-      matrix:
-        # Blocking issue in 18.04
-        # running cmdlets from Ubuntu 18.04:
-        #  imageName: ubuntu-18.04
-        running cmdlets from Ubuntu 16.04:
-          imageName: ubuntu-16.04
-        running cmdlets from macOS Mojave:
-          imageName: macOS-10.14
-        running cmdlets from macOS Catalina:
-          imageName: macOS-10.15
-        running cmdlets from Windows 2019:
-          imageName: windows-latest
-        running cmdlets from Windows 2016:
-          imageName: vs2017-win2016
+    # strategy:
+    #   matrix:
+    #     # Blocking issue in 18.04
+    #     # running cmdlets from Ubuntu 18.04:
+    #     #  imageName: ubuntu-18.04
+    #     running cmdlets from Ubuntu 16.04:
+    #       imageName: ubuntu-16.04
+    #     running cmdlets from macOS Mojave:
+    #       imageName: macOS-10.14
+    #     running cmdlets from macOS Catalina:
+    #       imageName: macOS-10.15
+    #     running cmdlets from Windows 2019:
+    #       imageName: windows-latest
+    #     running cmdlets from Windows 2016:
+    #       imageName: vs2017-win2016
     pool:
       vmImage: set2019
     steps:

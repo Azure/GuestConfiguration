@@ -37,8 +37,7 @@ jobs:
     #       imageName: windows-latest
     #     running cmdlets from Windows 2016:
     #       imageName: vs2017-win2016
-    pool:
-      vmImage: set2019
+    pool: set2019
     steps:
       - task: PowerShell@2
         inputs:

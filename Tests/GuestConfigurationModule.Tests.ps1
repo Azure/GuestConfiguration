@@ -39,6 +39,7 @@ function Get-OSPlatform {
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 $IsNotWindowsAndIsAzureDevOps = $IsNotWindows -AND (Get-IsAzureDevOps)
+$IsPester4 = (Get-Module 'Pester').version.Major -eq '4'
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
@@ -138,7 +139,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
         
             #region Windows DSC config
             if ('DSC' -eq $Type) {
-                Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+                Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force
                 $dscConfig = @'
 instance of DSC_TimeZone as $DSC_TimeZone1ref
 {
@@ -147,7 +148,7 @@ IsSingleInstance = "Yes";
 ResourceID = "[TimeZone]TimeZoneExample";
 SourceInfo = "::7::9::TimeZone";
 TimeZone = "Tonga Standard Time";
-ModuleVersion = "8.1.0";
+ModuleVersion = "8.2.0";
 ConfigurationName = "DSCConfig";
 };
 
@@ -511,9 +512,9 @@ end
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
-    Context 'New-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
+    Context 'New-GuestConfigurationPolicy' {
 
-        It 'New-GuestConfigurationPolicy should output path to generated policies' {
+        It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
@@ -526,12 +527,12 @@ end
             Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
         }
 
-        It 'Generated Audit policy file should exist' {
+        It 'Generated Audit policy file should exist' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
-        It 'Audit policy should contain expected content' {
+        It 'Audit policy should contain expected content' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -540,12 +541,12 @@ end
             $auditPolicyContent.properties.policyRule.then.details.name | Should -Be $testPolicyName
         }
 
-        It 'Generated Deploy policy file should exist' {
+        It 'Generated Deploy policy file should exist' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'            
             Test-Path -Path $deployPolicyFile | Should -BeTrue
         }
 
-        It 'Deploy policy should contain expected content' {
+        It 'Deploy policy should contain expected content' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
             $deployPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContent = Get-Content $deployPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $deployPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -556,15 +557,15 @@ end
             $deployPolicyContent.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
-    Context 'Publish-GuestConfigurationPolicy' -Skip:$IsNotWindowsAndIsAzureDevOps {
+    Context 'Publish-GuestConfigurationPolicy' {
 
-        It 'Should be able to publish policies' -Skip:$notReleaseBuild{
+        It 'Should be able to publish policies' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         }
 
-        It 'Should be able to retrieve 2 published policies' -Skip:$notReleaseBuild {
+        It 'Should be able to retrieve 2 published policies' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             write-host $($existingPolicies | % Properties)
@@ -572,7 +573,7 @@ end
             $existingPolicies.Count | Should -Be 2
         }
         
-        It 'Should be able to retrieve 1 published initiative' -Skip:$notReleaseBuild {
+        It 'Should be able to retrieve 1 published initiative' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             $null -ne $existingInitiatives | Should -BeTrue

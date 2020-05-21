@@ -1079,11 +1079,13 @@ function New-GuestConfigurationDeployPolicyDefinition {
                         )
                     }
                 )
+            }
+        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
-                like = "linux*"
+                like  = "linux*"
             }
         )
 
@@ -1111,8 +1113,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
         }
     }
-    else
-    {
+    else {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
@@ -1771,11 +1772,13 @@ function New-GuestConfigurationAuditPolicyDefinition {
                         )
                     }
                 )
+            }
+        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
-                like = "linux*"
+                like  = "linux*"
             }
         )
 
@@ -1786,8 +1789,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
     }
-    else
-    {
+    else {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 

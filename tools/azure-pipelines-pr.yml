@@ -2,8 +2,6 @@ pr:
   autoCancel: 'true'
   branches:
     include:
-      - master
-      - rollback
       - feature/*
       - bug/*
       - chore/*

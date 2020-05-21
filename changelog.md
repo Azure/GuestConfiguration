@@ -2,7 +2,6 @@
 
 ## v1.20.2
 
-- Only copy native resources if the Guest Configuration module is included in the MOF
 - Throw error if PSDesiredStateConfiguration resources are included
 
 ## v1.20.1

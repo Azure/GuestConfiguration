@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.2
+
+- Throw error if PSDesiredStateConfiguration resources are included
+
 ## v1.20.1
 
 - Fix issue with filestoinclude not finding temp package folder

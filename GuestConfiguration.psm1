@@ -545,7 +545,6 @@ function New-GuestConfigurationPolicy {
             UseCertificateValidation = $packageIsSigned
             Category                 = $Category
             Tag                      = $Tag
-            Version                  = $Version
         }
         New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Platform $Platform -Verbose:$verbose | Out-Null
             
@@ -613,12 +612,6 @@ function Publish-GuestConfigurationPolicy {
 
     Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
-
-    Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
-        $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
-    }
-
-    Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
 }
 
 Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

@@ -617,6 +617,7 @@ end
     }  
     AfterAll {
         if ($ReleaseBuild) {
+            Login-ToTestAzAccount
             # Cleanup
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
 

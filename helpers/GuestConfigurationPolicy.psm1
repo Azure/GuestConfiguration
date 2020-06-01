@@ -843,7 +843,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         $guestConfigurationExtensionHashtable = [Ordered]@{
             apiVersion = '2015-05-01-preview'
-            name       = '[concat(parameters('vmName'), '/AzurePolicyforWindows')]'
+            name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
             type       = 'Microsoft.Compute/virtualMachines/extensions'
             location   = "[parameters('location')]"
             properties = [Ordered]@{

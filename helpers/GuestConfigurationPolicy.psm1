@@ -103,7 +103,7 @@ function Copy-DscResources {
     )
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($MofDocumentPath, 4)
 
-    Write-Verbose "Copy DSC resources ..."
+    Write-Verbose 'Copy DSC resources ...'
     $modulePath = New-Item -ItemType Directory -Force -Path (Join-Path $Destination 'Modules')
     $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
     try {
@@ -234,7 +234,7 @@ function Copy-ChefInspecDependencies {
     }
     else {
         if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
-            Throw "ChefInspecProfilePath parameter is supported only for Linux packages."
+            Throw 'ChefInspecProfilePath parameter is supported only for Linux packages.'
         }
     }
 }
@@ -386,7 +386,7 @@ function Save-GuestConfigurationMofDocument {
     # if mof contains Chef resource
     if ($resourcesInMofDocument.CimSystemProperties.ClassName -contains 'MSFT_ChefInSpecResource') {
         Write-Verbose "Serialize DSC document to $DestinationPath path ..."
-        $content = ""
+        $content = ''
         for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
             $resourceClassName = $resourcesInMofDocument[$i].CimSystemProperties.ClassName
             $content += "instance of $resourceClassName"
@@ -698,11 +698,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'MicrosoftWindowsServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '2008*'
                             }
                         )
@@ -710,11 +710,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'MicrosoftSQLServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageOffer"
+                                field   = 'Microsoft.Compute/imageOffer'
                                 notLike = 'SQL2008*'
                             }
                         )
@@ -722,11 +722,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-dsvm'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'dsvm-windows'
                             }
                         )
@@ -734,11 +734,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-ads'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'standard-data-science-vm',
                                     'windows-data-science-vm'
@@ -749,11 +749,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'batch'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'rendering-windows2016'
                             }
                         )
@@ -761,11 +761,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'center-for-internet-security-inc'
                             },
                             [Ordered]@{
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'cis-windows-server-201*'
                             }
                         )
@@ -773,11 +773,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'pivotal'
                             },
                             [Ordered]@{
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'bosh-windows-server*'
                             }
                         )
@@ -785,11 +785,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'cloud-infrastructure-services'
                             },
                             [Ordered]@{
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'ad*'
                             }
                         )
@@ -799,11 +799,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                             [Ordered]@{ 
                                 anyOf = @(
                                     [Ordered]@{ 
-                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
+                                        field  = 'Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration'
                                         exists = 'true'
                                     },
                                     [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+                                        field = 'Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType'
                                         like  = 'Windows*'
                                     }
                                 )
@@ -811,17 +811,17 @@ function New-GuestConfigurationDeployPolicyDefinition {
                             [Ordered]@{ 
                                 anyOf = @(
                                     [Ordered]@{ 
-                                        field  = "Microsoft.Compute/imageSKU"
+                                        field  = 'Microsoft.Compute/imageSKU'
                                         exists = 'false'
                                     },
                                     [Ordered]@{
                                         allOf = @(
                                             [Ordered]@{ 
-                                                field   = "Microsoft.Compute/imageSKU"
+                                                field   = 'Microsoft.Compute/imageSKU'
                                                 notLike = '2008*'
                                             },
                                             [Ordered]@{
-                                                field   = "Microsoft.Compute/imageOffer"
+                                                field   = 'Microsoft.Compute/imageOffer'
                                                 notLike = 'SQL2008*'
                                             }
                                         )
@@ -836,14 +836,14 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
-                field = "Microsoft.HybridCompute/imageOffer"
-                like  = "windows*"
+                field = 'Microsoft.HybridCompute/imageOffer'
+                like  = 'windows*'
             }
         )
 
         $guestConfigurationExtensionHashtable = [Ordered]@{
             apiVersion = '2015-05-01-preview'
-            name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
+            name       = '[concat(parameters('vmName'), '/AzurePolicyforWindows')]'
             type       = 'Microsoft.Compute/virtualMachines/extensions'
             location   = "[parameters('location')]"
             properties = [Ordered]@{
@@ -865,7 +865,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
-                        field = "Microsoft.Compute/imagePublisher"
+                        field = 'Microsoft.Compute/imagePublisher'
                         in    = @(
                             'microsoft-aks',
                             'qubole-inc',
@@ -879,15 +879,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'OpenLogic'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'CentOS*'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -895,15 +895,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'Oracle'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'Oracle-Linux'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -911,11 +911,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = $RPName + '/imagePublisher'
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
-                                field = $RPName + '/imageOffer'
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'RHEL',
                                     'RHEL-HA'
@@ -926,7 +926,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
                                 )
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -934,11 +934,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
-                                field = $RPName + '/imageOffer'
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'osa',
                                     'rhel-byos'
@@ -949,11 +949,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'center-for-internet-security-inc'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'cis-centos-7-l1',
                                     'cis-centos-7-v2-1-1-l1'
@@ -978,15 +978,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'credativ'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'Debian'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '7*'
                             }
                         )
@@ -994,15 +994,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'Suse'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'SLES*'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '11*'
                             }
                         )
@@ -1010,15 +1010,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'Canonical'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'UbuntuServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '12*'
                             }
                         )
@@ -1026,11 +1026,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-dsvm'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'linux-data-science-vm-ubuntu',
                                     'azureml'
@@ -1041,15 +1041,15 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'cloudera'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'cloudera-centos-os'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -1057,11 +1057,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'cloudera'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'cloudera-altus-centos-os'
                             }
                         )
@@ -1069,11 +1069,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-ads'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'linux*'
                             }
                         )
@@ -1084,8 +1084,8 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
-                field = "Microsoft.HybridCompute/imageOffer"
-                like  = "linux*"
+                field = 'Microsoft.HybridCompute/imageOffer'
+                like  = 'linux*'
             }
         )
 
@@ -1597,11 +1597,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = $RPName + '/imagePublisher'
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
-                                field = $RPName + '/imageOffer'
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'RHEL',
                                     'RHEL-HA'
@@ -1612,7 +1612,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                 )
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -1620,11 +1620,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'RedHat'
                             },
                             [Ordered]@{ 
-                                field = $RPName + '/imageOffer'
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'osa',
                                     'rhel-byos'
@@ -1635,11 +1635,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'center-for-internet-security-inc'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'cis-centos-7-l1',
                                     'cis-centos-7-v2-1-1-l1'
@@ -1664,15 +1664,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'credativ'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'Debian'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '7*'
                             }
                         )
@@ -1680,15 +1680,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'Suse'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'SLES*'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '11*'
                             }
                         )
@@ -1696,15 +1696,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'Canonical'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'UbuntuServer'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '12*'
                             }
                         )
@@ -1712,11 +1712,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-dsvm'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 in    = @(
                                     'linux-data-science-vm-ubuntu',
                                     'azureml'
@@ -1727,15 +1727,15 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'cloudera'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'cloudera-centos-os'
                             },
                             [Ordered]@{
-                                field   = "Microsoft.Compute/imageSKU"
+                                field   = 'Microsoft.Compute/imageSKU'
                                 notLike = '6*'
                             }
                         )
@@ -1743,11 +1743,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'cloudera'
                             },
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imageOffer"
+                                field  = 'Microsoft.Compute/imageOffer'
                                 equals = 'cloudera-altus-centos-os'
                             }
                         )
@@ -1755,11 +1755,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
                     [Ordered]@{
                         allOf = @(
                             [Ordered]@{ 
-                                field  = "Microsoft.Compute/imagePublisher"
+                                field  = 'Microsoft.Compute/imagePublisher'
                                 equals = 'microsoft-ads'
                             },
                             [Ordered]@{ 
-                                field = "Microsoft.Compute/imageOffer"
+                                field = 'Microsoft.Compute/imageOffer'
                                 like  = 'linux*'
                             }
                         )
@@ -1770,8 +1770,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
-                field = "Microsoft.HybridCompute/imageOffer"
-                like  = "linux*"
+                field = 'Microsoft.HybridCompute/imageOffer'
+                like  = 'linux*'
             }
         )
     }

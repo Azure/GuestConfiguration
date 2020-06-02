@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v1.20.3
+
+- Fix error when creating Linux policy, "RPName" variable no longer used
+
 ## v1.20.2
 
 - Throw error if PSDesiredStateConfiguration resources are included

@@ -1,22 +1,4 @@
 pr: 'none'
-trigger:
-  batch: 'true'
-  branches:
-    include:
-      - master
-      - prerelease
-  paths:
-    exclude:
-    - /bin/*
-    - /tools/azure-pipelines-pr.yml
-    - /tools/azure-pipelines-release.yml
-    - README.md
-    - CODE_OF_CONDUCT.md
-    - SECURITY.md
-    - LICENSE
-    - changelog.md
-    - .gitignore
-    - .github/*
 
 jobs:
   - job: Test

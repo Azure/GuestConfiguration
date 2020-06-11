@@ -116,44 +116,9 @@ $Cert = Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object { ($_.Subject -
 Export-Certificate -FilePath "$TestDrive/exported.cer" -Cert $Cert
 Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\LocalMachine\Root
 '@                
-    powershell.exe -NoProfile -NonInteractive -Command $command
-}
-
-function New-TestDscConfiguration {
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $DestinationFolderPath,
-
-        [Parameter()]
-        [ValidateSet('DSC', 'InSpec')]
-        [String]
-        $Type = 'DSC'
-    )
-
-    if ($false -eq (Test-CurrentMachineIsWindows)) {
-        Import-Module 'PSDesiredStateConfiguration'
-    }
-
-    Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
-
-#region Windows DSC config
-if ('DSC' -eq $Type) {
-$dscConfig = @"
-Configuration DSCConfig
-{
-    Import-DSCResource -ModuleName ComputerManagementDsc
-    
-    Node 'localhost'
-    {
-        TimeZone TimeZoneExample
-        {
-            IsSingleInstance = 'Yes'
-            TimeZone         = 'Tonga Standard Time'
+            powershell.exe -NoProfile -NonInteractive -Command $command
         }
-        
+
         function New-TestDscConfiguration {
             [CmdletBinding()]
             param
@@ -161,17 +126,19 @@ Configuration DSCConfig
                 [Parameter(Mandatory = $true)]
                 [String]
                 $DestinationFolderPath,
-        
+
                 [Parameter()]
                 [ValidateSet('DSC', 'InSpec')]
                 [String]
                 $Type = 'DSC'
             )
-        
+
             if ($false -eq (Test-CurrentMachineIsWindows)) {
                 Import-Module 'PSDesiredStateConfiguration'
             }
-        
+
+            Install-Module -Name 'ComputerManagementDsc' -AllowClobber -Force
+
             #region Windows DSC config
             if ('DSC' -eq $Type) {
                 Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force

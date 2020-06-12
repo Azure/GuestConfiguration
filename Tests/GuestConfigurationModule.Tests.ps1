@@ -128,7 +128,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'InSpec')]
+                [ValidateSet('DSC', 'InSpec', 'WinDSC')]
                 [String]
                 $Type = 'DSC'
             )
@@ -196,6 +196,32 @@ describe file('/tmp') do
 it { should exist }
 end
 "@
+            }
+            #endregion
+
+            #region Windows DSC config using invalid resources
+            if ('WinDSC' -eq $Type) {
+                $dscConfig = @'
+instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
+{
+ResourceID = "[File]test";
+Ensure = "Present";
+Contents = "test";
+DestinationPath = "c:\\test";
+ModuleName = "PSDesiredStateConfiguration";
+SourceInfo = "::1::76::file";
+ModuleVersion = "1.0";
+ConfigurationName = "file";
+};
+
+instance of OMI_ConfigurationDocument
+{
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="DSCConfig";
+};
+'@
             }
             #endregion
         

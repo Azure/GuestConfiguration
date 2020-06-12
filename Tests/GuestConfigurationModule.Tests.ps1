@@ -127,7 +127,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'Inspec')]
+                [ValidateSet('DSC', 'InSpec', 'WinDSC')]
                 [String]
                 $Type = 'DSC'
             )
@@ -212,6 +212,39 @@ end
                 $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'InspecConfig' -ItemType Directory
                 $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
+            }
+            #endregion
+
+            #region Windows DSC config using invalid resources
+            if ('WinDSC' -eq $Type) {
+                $dscConfig = @'
+instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
+{
+ResourceID = "[File]test";
+Ensure = "Present";
+Contents = "test";
+DestinationPath = "c:\\test";
+ModuleName = "PSDesiredStateConfiguration";
+SourceInfo = "::1::76::file";
+ModuleVersion = "1.0";
+ConfigurationName = "file";
+};
+
+instance of OMI_ConfigurationDocument
+{
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="DSCConfig";
+};
+'@
+            }
+            #endregion
+        
+            $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
+            $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
+        
+            $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
 
                 # creates directory for Inspec profile
                 $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName

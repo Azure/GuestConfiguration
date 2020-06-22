@@ -589,6 +589,9 @@ function New-GuestConfigurationPolicy
     .Parameter Path
         Guest Configuration policy path.
 
+    .Parameter ManagementGroupId
+        Management Group ID
+
     .Example
         Publish-GuestConfigurationPolicy -Path ./git/custom_policy
 #>
@@ -602,7 +605,7 @@ function Publish-GuestConfigurationPolicy
         [string] $Path,
 
         [parameter(Mandatory = $false)]
-        [string] $ManagementGroupName
+        [string] $ManagementGroupId
     )
 
     $rmContext = Get-AzContext
@@ -630,8 +633,8 @@ function Publish-GuestConfigurationPolicy
             $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
         }
 
-        if ($ManagementGroupName) {
-            $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
+        if ($ManagementGroupId) {
+            $newAzureRmPolicyDefinitionParameters['ManagementGroupId'] = $ManagementGroupId
         }
 
         Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."

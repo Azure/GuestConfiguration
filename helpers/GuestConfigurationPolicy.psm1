@@ -1528,6 +1528,10 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
 
         [Parameter()]
         [String]
+        $Category,
+
+        [Parameter()]
+        [String]
         $Guid
     )
 
@@ -1547,7 +1551,7 @@ function New-GuestConfigurationPolicyInitiativeDefinition {
             policyType  = 'Custom'
             description = $Description
             metadata    = [Ordered]@{
-                category = 'Guest Configuration'
+                category = $Category
             }
         }
     }
@@ -1713,27 +1717,74 @@ function New-CustomGuestConfigPolicy {
         [Parameter()]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform = 'Windows',
+        $Platform = 'Windows',        
+
+        [Parameter()]
+        [String]
+        $ManagementGroupName,
 
         [Parameter(Mandatory = $false)]
         [string]
         $Category = 'Guest Configuration'
     )
 
-    $existingPolicies = Get-AzPolicyDefinition
+    if ($ManagementGroupName) {
+        $existingPolicies = Get-AzPolicyDefinition -ManagementGroupName $ManagementGroupName
+        $existingPolicySets = Get-AzPolicySetDefinition -ManagementGroupName $ManagementGroupName
+        
+        # Make sure we remove the parameter so that other underlying functions don't get this parameter
+        $PSBoundParameters.Remove('ManagementGroupName')
+    }
+
+    else {
+        $existingPolicies = Get-AzPolicyDefinition
+        $existingPolicySets = Get-AzPolicySetDefinition
+    }
+
     $existingDeployPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $DeployPolicyInfo.DisplayName) }
+
+    try {
+        if (($existingDeployPolicy).count -gt 1) {
+            throw "Found more than one [Deploy] policies with the same name. Please ensure that only one policy is named '$($DeployPolicyInfo.DisplayName)'"
+        }
+    }
+
+    catch [System.Management.Automation.PropertyNotFoundException] {
+        Write-Host "Zero or one [Deploy] policies found. Proceeding..."
+    }
+
     if ($null -ne $existingDeployPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingDeployPolicy.Properties.displayName)' and guid '$($existingDeployPolicy.Name)'..."
         $DeployPolicyInfo['Guid'] = $existingDeployPolicy.Name.ToString()
     }
 
     $existingAuditPolicy = $existingPolicies | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $AuditPolicyInfo.DisplayName) }
+    try {
+        if (($existingAuditPolicy).count -gt 1) {
+            throw "Found more than one [Audit] policies with the same name. Please ensure that only one policy is named '$($AuditPolicyInfo.DisplayName)'"
+        }
+    }
+
+    catch [System.Management.Automation.PropertyNotFoundException] {
+        Write-Host "Zero or one [Audit] policies found. Proceeding..."
+    }
+
     if ($null -ne $existingAuditPolicy) {
         Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
         $AuditPolicyInfo['Guid'] = $existingAuditPolicy.Name.ToString()
     }
 
-    $existingInitiative = Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $InitiativeInfo.DisplayName) }
+    $existingInitiative = $existingPolicySets | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName -eq $InitiativeInfo.DisplayName) }
+    try {
+        if (($existingInitiative).count -gt 1) {
+            throw "Found more than one [Initiative] policies with the same name. Please ensure that only one policy is named '$($InitiativeInfo.DisplayName)'"
+        }
+    }
+
+    catch [System.Management.Automation.PropertyNotFoundException] {
+        Write-Host "Zero or one [Initiative] policies found. Proceeding..."
+    }
+
     if ($null -ne $existingInitiative) {
         Write-Verbose -Message "Found initiative with name '$($existingInitiative.Properties.displayName)' and guid '$($existingInitiative.Name)'..."
         $InitiativeInfo['Guid'] = $existingInitiative.Name.ToString()

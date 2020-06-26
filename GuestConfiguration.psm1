@@ -402,6 +402,9 @@ function Protect-GuestConfigurationPackage
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Category
+        Policy category.
+
     .Example
         New-GuestConfigurationPolicy `
                                  -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
@@ -409,6 +412,7 @@ function Protect-GuestConfigurationPackage
                                  -Description 'Policy to monitor service on Windows machine.' `
                                  -Version 1.0.0.0 
                                  -Path ./git/custom_policy
+                                 -Category 'Contoso Apps'
 
         $PolicyParameterInfo = @(
             @{
@@ -448,6 +452,9 @@ function New-GuestConfigurationPolicy
         [parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Description,
+
+        [parameter(Mandatory = $false)]
+        [string] $ManagementGroupName,
 
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter,
@@ -526,15 +533,17 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."
-        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -DeployPolicyInfo $DeployPolicyInfo -AuditPolicyInfo $AuditPolicyInfo -InitiativeInfo $InitiativeInfo -Platform $Platform -Verbose:$verbose | Out-Null
+        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -DeployPolicyInfo $DeployPolicyInfo -AuditPolicyInfo $AuditPolicyInfo -InitiativeInfo $InitiativeInfo -ManagementGroupName $ManagementGroupName -Platform $Platform -Verbose:$verbose | Out-Null
 
         $result = [pscustomobject]@{
             Name = $policyName
@@ -609,9 +618,17 @@ function Publish-GuestConfigurationPolicy
     $initiativeFile = join-path $Path "Initiative.json"
     $jsonDefinition = Get-Content $initiativeFile | ConvertFrom-Json | ForEach-Object {$_}
 
-    # Update with subscriptionId
-    foreach($definitions in $jsonDefinition.properties.policyDefinitions){
-        $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
+    if ($ManagementGroupName) {
+        # Update with management group and subscriptionId
+        foreach ($definitions in $jsonDefinition.properties.policyDefinitions) {
+            $definitions.policyDefinitionId = "/providers/Microsoft.Management/managementGroups/" + $ManagementGroupName + $definitions.policyDefinitionId
+        }
+    }
+    else {
+        # Update with subscriptionId
+        foreach($definitions in $jsonDefinition.properties.policyDefinitions){
+            $definitions.policyDefinitionId = "/subscriptions/$subscriptionId" + $definitions.policyDefinitionId
+        }
     }
 
     Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
@@ -630,6 +647,10 @@ function Publish-GuestConfigurationPolicy
     if ($initiativeContent.PSObject.Properties.Name -contains 'parameters')
     {
         $newAzureRmPolicySetDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $initiativeContent.parameters -Depth 15
+    }
+
+    if ($ManagementGroupName) {
+        $newAzureRmPolicySetDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
     }
 
     New-AzPolicySetDefinition @newAzureRmPolicySetDefinitionParameters

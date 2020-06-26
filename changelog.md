@@ -1,7 +1,11 @@
 # Change Log for GuestConfiguration module
 
-## v1.19.4
+## v1.19.5
 
+- Added 'Category' parameter
+- Added 'ManagementGroupName' parameter
+
+## v1.19.4
 
 - Updated InSpec installation uri
 - Bug fix for Test-GuestConfigurationPackage functionality on Ubuntu 16.04

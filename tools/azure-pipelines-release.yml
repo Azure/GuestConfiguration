@@ -1,45 +1,22 @@
-pr:
-  autoCancel: true
-  branches:
-    include:
-      - prerelease
-      - master # retire asap
-trigger:
-  batch: true
-  branches:
-    include:
-      - master
-      - prerelease
-      - dev
-  paths:
-    exclude:
-    - /bin/*
-    - /tools/azure-pipelines-pr.yml
-    - /tools/azure-pipelines-release.yml
-    - README.md
-    - CODE_OF_CONDUCT.md
-    - SECURITY.md
-    - LICENSE
-    - changelog.md
-    - .gitignore
-    - .github/*
-variables:
-  releaseBuild: true
+pr: 'none'
+trigger: 'none'
 
 jobs:
   - job: Test
     strategy:
       matrix:
-        # comment out until bugs are resolved in PSDesiredStateConfiguration
-        #Ubuntu:
-        #  imageName: ubuntu-latest
-        MacOSMojave:
+        # Blocking issue in 18.04
+        # running cmdlets from Ubuntu 18.04:
+        #  imageName: ubuntu-18.04
+        running cmdlets from Ubuntu 16.04:
+          imageName: ubuntu-16.04
+        running cmdlets from macOS Mojave:
           imageName: macOS-10.14
-        MacOSCatalina:
+        running cmdlets from macOS Catalina:
           imageName: macOS-10.15
-        Windows2019:
-          imageName: windows-latest
-        Windows2016:
+        running cmdlets from Windows 2019:
+          imageName: windows-2019
+        running cmdlets from Windows 2016:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)
@@ -52,59 +29,68 @@ jobs:
           externalFeedCredentials: guestconfiguration
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: gc_agents
-          versionDownloadExternal: '*'
+          versionDownloadExternal: '0.0.2'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
-      - task: PowerShell@2
-        displayName: Install PowerShell Core
-        inputs:
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            $powerShellPath = Join-Path -Path $env:AGENT_TEMPDIRECTORY -ChildPath 'powershell'
-            Invoke-WebRequest -Uri https://raw.githubusercontent.com/PowerShell/PowerShell/master/tools/install-powershell.ps1 -outfile ./install-powershell.ps1
-            ./install-powershell.ps1 -Destination $powerShellPath
-            if ($IsMacOS -OR $IsLinux) {$delimiter=':'} else {$delimiter=';'}
-            $vstsCommandString = "vso[task.setvariable variable=PATH]$powerShellPath$delimiter$env:PATH"
-            Write-Host "sending " + $vstsCommandString
-            Write-Host "##$vstsCommandString"
       - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          failOnStderr: false
+          errorActionPreference: silentlycontinue
           script: |
-            $repositoryName = ('$(Build.Repository.Name)').split('/')[1]
-            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/$repositoryName.psd1").RequiredModules
-            $modules += @('Pester','PowerShellGet','PSScriptAnalyzer')
-            write-host "installing " $modules
-            Install-Module -Name $modules -Repository 'PSGallery' -Force -AllowClobber -SkipPublisherCheck
+            $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
+            $modules += @('PSScriptAnalyzer','Pester')
+            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck
       - task: PowerShell@2
-        displayName: Pester unit tests
+        enabled: 'true'
+        continueOnError: 'true'
+        displayName: Pester v4 unit tests
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
+          continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
-              Write-Error "$($Pester.FailedCount) tests failed."
+              Exit "$($Pester.FailedCount)"
             }
         env: 
           AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
           AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
           AZURE_TENANTID: $(AZURETENANTID)
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Install Pester v5
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          failOnStderr: true
+          errorActionPreference: stop
+          script: |
+            Install-Module -Name 'Pester' -Force -AllowPreRelease
+      - task: PowerShell@2
+        enabled: 'true'
+        displayName: Pester v5 unit tests
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          continueOnError: 'true'
+          script: |
+            Invoke-Pester -CI
+        env: 
+          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
+          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
+          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
+          AZURE_TENANTID: $(AZURETENANTID)
       - task: PublishTestResults@2
-        displayName: Publish test result
         condition: succeededOrFailed()
         inputs:
           testResultsFormat: NUnit
-          testResultsFiles: '$(Common.TestResultsDirectory)/TEST.xml'
+          testResultsFiles: 'testResults.xml'
+        displayName: Publish test result
   - job: CodeSign
     dependsOn: Test
     pool:

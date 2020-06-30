@@ -55,6 +55,9 @@ function New-GuestConfigurationPackage
         [ValidateNotNullOrEmpty()]
         [string] $ChefInspecProfilePath,
 
+        [ValidateNotNullOrEmpty()]
+        [string] $FilesToInclude,
+
         [string] $Path = '.'
     )
 
@@ -82,6 +85,18 @@ function New-GuestConfigurationPackage
         if ($null -ne $ChefInspecProfilePath) {
             # Copy Chef resource and profiles.
             Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
+        }
+
+        # Copy FilesToInclude
+        if(-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            if(Test-Path $FilesToInclude -PathType Leaf) {
+                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
+            }
+            else {
+                $filesToIncludeFolderName = Get-Item $FilesToInclude
+                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
+                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse
+            }
         }
         
         # Create Guest Configuration Package.
@@ -334,9 +349,12 @@ function Protect-GuestConfigurationPackage
             Write-Verbose "Signing catalog file : $catalogFilePath."
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
-            if ($CodeSignOutput.Status -match 'Error') {
-                Write-Error $CodeSignOutput.StatusMessage
-            }
+            $Signature = Get-AuthenticodeSignature $catalogFilePath
+            if ($null -ne $Signature.SignerCertificate) {
+                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                    throw $CodeSignOutput.StatusMessage
+                }
+            } else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if($osPlatform -eq "Windows") {
@@ -402,6 +420,12 @@ function Protect-GuestConfigurationPackage
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Category
+        Policy category.
+
+    .Parameter Tag
+        The name and value of a tag used in Azure.
+
     .Example
         New-GuestConfigurationPolicy `
                                  -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
@@ -409,6 +433,8 @@ function Protect-GuestConfigurationPackage
                                  -Description 'Policy to monitor service on Windows machine.' `
                                  -Version 1.0.0.0 
                                  -Path ./git/custom_policy
+                                 -Category 'Contoso Apps'
+                                 -Tag @{Owner = 'WebTeam'}
 
         $PolicyParameterInfo = @(
             @{
@@ -449,10 +475,10 @@ function New-GuestConfigurationPolicy
         [ValidateNotNullOrEmpty()]
         [string] $Description,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [Hashtable[]] $Parameter,
 
-        [parameter(Mandatory = $false)]
+        [parameter()]
         [ValidateNotNullOrEmpty()]
         [version] $Version = '1.0.0.0',
 
@@ -465,8 +491,11 @@ function New-GuestConfigurationPolicy
         [string]
         $Platform = 'Windows',
 
-        [parameter(Mandatory = $false)]
-        [string] $Category = 'Guest Configuration'
+        [parameter()]
+        [string] $Category = 'Guest Configuration',
+
+        [parameter()]
+        [Hashtable[]] $Tag
     )
 
     Try {
@@ -519,6 +548,7 @@ function New-GuestConfigurationPolicy
             ParameterInfo = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
             Category = $Category
+            Tag = $Tag
         }
         $AuditPolicyInfo = @{
             FileName = "AuditIfNotExists.json"
@@ -526,11 +556,14 @@ function New-GuestConfigurationPolicy
             Description = $Description 
             ConfigurationName = $policyName
             ReferenceId = "Audit_$policyName"
+            Category = $Category
+            Tag = $Tag
         }
         $InitiativeInfo = @{
             FileName = "Initiative.json"
             DisplayName = "[Initiative] $DisplayName"
-            Description = $Description 
+            Description = $Description
+            Category = $Category
         }
 
         Write-Verbose "Creating policy definitions at $policyDefinitionsPath path."

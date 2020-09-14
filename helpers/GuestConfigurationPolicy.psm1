@@ -1343,10 +1343,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [Parameter(Mandatory = $false)]
         [String]
         $Category = 'Guest Configuration',
-        
-        [Parameter()]
-        [Hashtable[]]
-        $ParameterInfo,
 
         [Parameter()]
         [String]
@@ -1356,10 +1352,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform = 'Windows',
-
-        [Parameter(Mandatory = $false)]
-        [String]
-        $Category = 'Guest Configuration',
 
         [Parameter()]
         [Hashtable[]]
@@ -1893,6 +1885,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
                         )
                     }
                 )
+            }
+        )
 
         $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
@@ -1986,10 +1980,6 @@ function New-GuestConfigurationPolicyDefinition {
         [Parameter(Mandatory = $true)]
         [String]
         $PolicyFolderPath,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $AuditIfNotExistsInfo,
 
         [Parameter(Mandatory = $true)]
         [Hashtable]

@@ -40,7 +40,7 @@ jobs:
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer','Pester')
-            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck
+            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck -Verbose
       - task: PowerShell@2
         enabled: 'true'
         continueOnError: 'true'
@@ -51,6 +51,7 @@ jobs:
           continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
+            Import-Module 'Pester'
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Exit "$($Pester.FailedCount)"

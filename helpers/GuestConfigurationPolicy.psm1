@@ -1949,8 +1949,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
             field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
             equals = 'Compliant'
         })
-    $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
-    $existenceConditionList['allOf'].Add($parametersExistenceCondition)
+    
+    if ($null -ne $ParameterInfo) {
+        $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
+        $existenceConditionList['allOf'].Add($parametersExistenceCondition)
+    }
 
     $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 

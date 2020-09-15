@@ -1378,7 +1378,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
-            policyType  = 'BuiltIn'
+            policyType  = 'Custom'
             mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{

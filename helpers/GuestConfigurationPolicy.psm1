@@ -1375,8 +1375,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
     }
 
-    $ParameterDefinitions += @{
-        ReferenceName   = 'IncludeArcServers'
+    $ParameterDefinitions['IncludeArcServers'] += @{
         Type            = "String"
         DisplayName     = 'Include Arc connected servers'
         Description     = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'

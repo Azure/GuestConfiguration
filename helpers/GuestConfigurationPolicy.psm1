@@ -1372,8 +1372,18 @@ function New-GuestConfigurationAuditPolicyDefinition {
     
     if ($null -ne $ParameterInfo) {
         $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
     }
+
+    $ParameterInfo += @{
+        Name = 'IncludeArcServers'
+        Type = "String"
+        DisplayName = 'Include Arc connected servers'
+        Description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        AllowedValues = @('True','False')
+        DefaultValue = 'False'
+    }
+    $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+
     
     $auditPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
@@ -1413,6 +1423,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
                 },
                 [Ordered]@{
                     allOf = @(
+                        [Ordered]@{
+                            value = "[parameters('IncludeArcMachines')]"
+                            equals = "true"
+                        },
                         [Ordered]@{
                             field = "type"
                             equals = "Microsoft.HybridCompute/machines"

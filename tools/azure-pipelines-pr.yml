@@ -51,8 +51,7 @@ jobs:
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: false
-          errorActionPreference: silentlycontinue
+          failOnStderr: true
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer','Pester','Az.Accounts','Az.Resources')
@@ -67,6 +66,7 @@ jobs:
           continueOnError: 'true'
           script: |
             write-host "ps version: $($PSVersionTable | % PSVersion)"
+            write-host "pester version: $(get-module 'pester')"
             $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
             if ($Pester.FailedCount -gt 0) {
               Exit "$($Pester.FailedCount)"

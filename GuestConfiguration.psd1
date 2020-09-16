@@ -25,10 +25,7 @@ Description = '[PREVIEW] The Guest Configuration module is an experimental tool 
 PowerShellVersion = '5.1'
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(
-    @{Name='Az.Accounts';Version='1.9.3'},
-    @{Name='Az.Resources';Version='2.5.0'}
-    )
+RequiredModules = @('Az.Accounts','Az.Resources')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

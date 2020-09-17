@@ -247,7 +247,7 @@ end
             
             $newGCPolicyParameters = @{
                 ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                DisplayName = "[Test] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+                DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
                 Description = 'Policy to audit a Windows service'
                 Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitions'
                 Version     = '1.0.0.0'

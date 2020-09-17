@@ -1377,8 +1377,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
     
     $ParameterDefinitions['IncludeArcServers'] += [Ordered]@{
         Type            = "String"
-        DisplayName     = 'Include Arc connected servers'
-        Description     = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        Metadata        = [Ordered]@{
+            DisplayName     = 'Include Arc connected servers'
+            Description     = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        }
         AllowedValues   = @('True','False')
         DefaultValue    = 'False'
     }

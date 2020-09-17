@@ -537,7 +537,7 @@ end
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
             $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should -BeTrue
-            $auditPolicyContent.properties.parameters.IncludeArcMachines | Should -Exist
+            $auditPolicyContent.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
             $auditPolicyContent.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContent.properties.policyRule.then.details.name | Should -Be $testPolicyName
         }

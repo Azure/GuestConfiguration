@@ -486,7 +486,7 @@ end
             $extractedInspecPath | Should -Exist
             $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'Inspec.yml'
             $inspecYmlExtractedFile | Should -Exist
-            $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'Controls'
+            $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'controls'
             $inspecControlsExtractedFile | Should -Exist
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             $inspecRbExtractedFile | Should -Exist

@@ -376,8 +376,8 @@ end
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
-        New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
-        New-TestDscConfiguration -DestinationFolderPath $inSpecFolderPath -Type 'InSpec'
+        New-TestDscConfiguration -DestinationFolderPath $TestDrive
+        New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'InSpec'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO

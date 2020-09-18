@@ -39,7 +39,6 @@ function Get-OSPlatform {
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
 $IsNotWindowsAndIsAzureDevOps = $IsNotWindows -AND (Get-IsAzureDevOps)
-$IsPester4 = (Get-Module 'Pester').version.Major -eq '4'
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
@@ -514,7 +513,7 @@ end
     }
     Context 'New-GuestConfigurationPolicy' {
 
-        It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
+        It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
                 Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
@@ -527,12 +526,12 @@ end
             Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
         }
 
-        It 'Generated Audit policy file should exist' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
+        It 'Generated Audit policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFile | Should -BeTrue
         }
 
-        It 'Audit policy should contain expected content' -Skip:($IsPester4 -or $IsNotWindowsAndIsAzureDevOps) {
+        It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
             $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
@@ -544,7 +543,7 @@ end
     }
     Context 'Publish-GuestConfigurationPolicy' {
 
-        It 'Should be able to publish policies' -Skip:($IsPester4 -or $notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
+        It 'Should be able to publish policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw

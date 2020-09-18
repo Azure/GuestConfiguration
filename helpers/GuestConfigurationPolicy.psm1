@@ -1375,7 +1375,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
     }
     
-    $ParameterDefinitions['IncludeArcServers'] += [Ordered]@{
+    $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
         Type            = "String"
         Metadata        = [Ordered]@{
             DisplayName     = 'Include Arc connected servers'

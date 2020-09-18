@@ -364,7 +364,6 @@ end
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
-        $chefInSpecProfilePath = Join-Path -Path $inSpecFolderPath -ChildPath 'linux-path'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath 'InSpec'
@@ -480,7 +479,7 @@ end
         }
 
         It 'Implements -ChefInspecProfilePath parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $ChefInSpecProfilePath
+            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedInspecPath | Should -BeTrue

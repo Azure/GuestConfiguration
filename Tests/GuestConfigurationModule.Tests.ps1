@@ -364,7 +364,7 @@ end
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
-        $chefInSpecProfilePath = Join-Path -Path $TestDrive -ChildPath 'linux-path'
+        $chefInSpecProfilePath = Join-Path -Path $inSpecFolderPath -ChildPath 'linux-path'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath 'InSpec'

@@ -127,7 +127,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'InSpec')]
+                [ValidateSet('DSC', 'Inspec')]
                 [String]
                 $Type = 'DSC'
             )
@@ -172,7 +172,7 @@ Name="DSCConfig";
             #endregion
         
             #region Linux DSC config
-            if ('InSpec' -eq $Type) {
+            if ('Inspec' -eq $Type) {
                 $dscConfig = @'
 instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
@@ -213,19 +213,19 @@ end
                 $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
 
-                # creates directory for InSpec profile
+                # creates directory for Inspec profile
                 $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
                 $null = New-Item -ItemType Directory -Path $InSpecProfilePath
         
-                # creates InSpec profile required Yml file
-                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'inspec.yml'
+                # creates Inspec profile required Yml file
+                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'Inspec.yml'
                 $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
         
-                # creates directory for InSpec controls (component of InSpec profile)
+                # creates directory for Inspec controls (component of Inspec profile)
                 $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
                 $null = New-Item -ItemType Directory -Path $InSpecControlsPath
         
-                # creates InSpec controls required Ruby file
+                # creates Inspec controls required Ruby file
                 $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
                 $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
             }
@@ -366,7 +366,8 @@ end
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
-        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath 'InSpec'
+        $inspecProfileName = 'linux-path'
+        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath $inspecProfileName
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -376,7 +377,7 @@ end
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
-        New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'InSpec'
+        New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO
@@ -483,11 +484,9 @@ end
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedInspecPath | Should -BeTrue
-            $extractedFile = Join-Path $extractedInSpecPath 'linux-path'
-            Test-Path -Path $extractedFile | Should -BeTrue
-            $inspecYmlExtractedFile = Join-Path $extractedFile 'inspec.yml'
+            $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'Inspec.yml'
             Test-Path -Path $inspecYmlExtractedFile | Should -BeTrue
-            $inspecControlsExtractedFile = Join-Path $extractedFile 'Controls'
+            $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'Controls'
             Test-Path -Path $inspecControlsExtractedFile | Should -BeTrue
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             Test-Path -Path $inspecRbExtractedFile | Should -BeTrue

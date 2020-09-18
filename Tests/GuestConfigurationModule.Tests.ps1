@@ -159,26 +159,40 @@ CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
 Name="DSCConfig";
 };
 '@
+
+            $dscDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'DSCConfig' -ItemType Directory
+            $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+            $null = Set-Content -Path $dscDestinationMOFPath -Value $dscConfig
+            
+            $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
+            New-Item $filesToIncludeFolderPath -ItemType Directory
+            $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
+            $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
             }
             #endregion
         
             #region Linux DSC config
             if ('InSpec' -eq $Type) {
-                $dscConfig = @"
-Configuration DSCConfig
+                $dscConfig = @'
+instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
-Import-DscResource -ModuleName 'GuestConfiguration'
+Name = "linux-path";
+ResourceID = "[ChefInSpecResource]Audit Linux path exists";
+ModuleVersion = "2.0.0";
+SourceInfo = "::7::1::ChefInSpecResource";
+ModuleName = "GuestConfiguration";
+ConfigurationName = "DSCConfig";
+};
 
-Node 'localhost'
+instance of OMI_ConfigurationDocument
 {
-ChefInSpecResource 'Audit Linux path exists'
-{
-    Name = 'linux-path'
-}
-}
-}
-inspecConfig -OutputPath $DestinationFolderPath
-"@
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="DSCConfig";
+};                
+'@
+
                 $inSpecProfileName = 'linux-path'
                 $inSpecProfile = @"
 name: $inSpecProfileName
@@ -195,24 +209,12 @@ describe file('/tmp') do
 it { should exist }
 end
 "@
-            }
-            #endregion
-        
-            $dscDestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
-            $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
-            $inspecDestinationFolderPath = New-Item -Path $TestDrive -Name 'inspecConfig' -ItemType Directory
-            $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
-        
-            $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
+                $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'inspecConfig' -ItemType Directory
+                $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
+                $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
 
-            $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
-            New-Item $filesToIncludeFolderPath -ItemType Directory
-            $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
-            $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
-        
-            if ('InSpec' -eq $Type) {
                 # creates directory for InSpec profile
-                $InSpecProfilePath = Join-Path -Path $TestDrive -ChildPath $inSpecProfileName
+                $InSpecProfilePath = Join-Path -Path $DestinationFolderPath -ChildPath $inSpecProfileName
                 $null = New-Item -ItemType Directory -Path $InSpecProfilePath
         
                 # creates InSpec profile required Yml file
@@ -227,8 +229,9 @@ end
                 $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
                 $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
             }
+            #endregion            
         }
-        
+    
         function New-TestGCPolicyParameters {
             [CmdletBinding()]
             param
@@ -373,8 +376,8 @@ end
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
-        New-TestDscConfiguration -dscDestinationFolderPath $dscConfigFolderPath
-        New-TestDscConfiguration -inspecDestinationFolderPath $inSpecFolderPath -Type 'InSpec'
+        New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
+        New-TestDscConfiguration -DestinationFolderPath $inSpecFolderPath -Type 'InSpec'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO

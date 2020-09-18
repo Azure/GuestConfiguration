@@ -62,7 +62,6 @@ function New-GuestConfigurationPackage {
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-        $reservedResourceName = @('OMI_ConfigurationDocument')
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
         $Configuration = Resolve-Path $Configuration
 
@@ -81,7 +80,7 @@ function New-GuestConfigurationPackage {
         # Copy DSC resources
         Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
 
-        if ($null -ne $ChefInspecProfilePath) {
+        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
             # Copy Chef resource and profiles.
             Copy-ChefInspecDependencies -PackagePath $unzippedPackagePath -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
         }

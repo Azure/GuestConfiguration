@@ -108,18 +108,15 @@ function Copy-DscResources {
     $modulePath = New-Item -ItemType Directory -Force -Path (Join-Path $Destination 'Modules')
     $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
     try {
-        $latestModule = @()
-        $latestModule += Get-Module GuestConfiguration
-        $latestModule += Get-Module GuestConfiguration -ListAvailable
-        $latestModule = ($latestModule | Sort-Object Version)[0]
+        $gcModule += Get-Module 'GuestConfiguration'
     }
     catch {
-        write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
+        write-error 'Unable to find the GuestConfiguration module to import DSC resources to the package. Please run import-module with the path of module manifest for the version you would like to use.'
     }
-    Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
-    Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
-    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
-    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
+    Copy-Item "$($gcModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse
+    Copy-Item "$($gcModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse
+    Copy-Item "$($gcModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1"
+    Copy-Item "$($gcModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1"
     
     # Copies DSC resource modules
     $modulesToCopy = @{ }
@@ -171,7 +168,7 @@ function Copy-DscResources {
     $resources = Get-DscResource -Module GuestConfiguration
     $resources | ForEach-Object {
         if ($_.ImplementedAs -eq 'Binary') {
-            $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
+            $binaryResourcePath = Join-Path (Join-Path $gcModule.ModuleBase 'DscResources') $_.ResourceType
             Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
             Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
         }
@@ -198,9 +195,9 @@ function Copy-ChefInspecDependencies {
         $ChefInspecProfilePath
     )
 
-    # Copy Chef resource and profiles.
+    # Copy Inspec profiles.
     $modulePath = Join-Path $PackagePath 'Modules'
-    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
+    $nativeResourcePath = Get-Item -Path (Join-Path $modulePath 'DscNativeResources')
     $missingDependencies = @()
     $chefInspecProfiles = @()
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)
@@ -209,21 +206,19 @@ function Copy-ChefInspecDependencies {
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
             $usingChefResource = $true
+
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
                 Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
 
             $inspecProfilePath = Join-Path $ChefInspecProfilePath $_.CimInstanceProperties['Name'].Value
+
             if (-not (Test-Path $inspecProfilePath)) {
                 $missingDependencies += $_.CimInstanceProperties['Name'].Value
             }
             else {
                 $chefInspecProfiles += $inspecProfilePath
             }
-
-            $chefResourcePath = Join-Path $nativeResourcePath 'MSFT_ChefInSpecResource'
-            Convert-FileToUnixLineEndings -FilePath $chefResourcePath/install_inspec.sh
-            Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }
 

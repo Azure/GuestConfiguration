@@ -549,7 +549,7 @@ end
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         }
 
-        It 'Should be able to retrieve 1 published policies' -Skip:$notReleaseBuild {
+        It 'Should be able to retrieve 1 published policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             write-host $($existingPolicies | % Properties)

@@ -367,7 +367,7 @@ end
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
-        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath $inspecProfileName
+        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -483,13 +483,13 @@ end
             $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
-            Test-Path -Path $extractedInspecPath | Should -BeTrue
+            $extractedInspecPath | Should -Exist
             $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'Inspec.yml'
-            Test-Path -Path $inspecYmlExtractedFile | Should -BeTrue
+            $inspecYmlExtractedFile | Should -Exist
             $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'Controls'
-            Test-Path -Path $inspecControlsExtractedFile | Should -BeTrue
+            $inspecControlsExtractedFile | Should -Exist
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
-            Test-Path -Path $inspecRbExtractedFile | Should -BeTrue
+            $inspecRbExtractedFile | Should -Exist
         }
     }
     Context 'Test-GuestConfigurationPackage' {

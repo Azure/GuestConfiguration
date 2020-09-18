@@ -214,7 +214,7 @@ end
                 $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
 
                 # creates directory for InSpec profile
-                $InSpecProfilePath = Join-Path -Path $DestinationFolderPath -ChildPath $inSpecProfileName
+                $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
                 $null = New-Item -ItemType Directory -Path $InSpecProfilePath
         
                 # creates InSpec profile required Yml file

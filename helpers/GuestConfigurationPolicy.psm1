@@ -206,9 +206,10 @@ function Copy-ChefInspecDependencies {
     $chefInspecProfiles = @()
     $usingChefResource = $false
 
+    Write-Host "MOF: $($resourcesInMofDocument.CimSystemProperties.ClassName)"
+
     # if mof contains Chef resource
     if ($resourcesInMofDocument.CimSystemProperties.ClassName -contains 'MSFT_ChefInSpecResource') {
-        Write-Host "MOF: $($resourcesInMofDocument.CimSystemProperties.ClassName)"
         $usingChefResource = $true
     }
     $resourcesInMofDocument | ForEach-Object {

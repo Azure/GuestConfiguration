@@ -207,7 +207,9 @@ function Copy-ChefInspecDependencies {
     $usingChefResource = $false
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
+            Write-Host "Resource: $($_.CimClass.CimClassName)"
             $usingChefResource = $true
+            Write-Host "usingCR1: $usingChefResource"
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
                 Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
@@ -225,6 +227,7 @@ function Copy-ChefInspecDependencies {
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }
+    Write-Host "usingCR2: $usingChefResource"
     if ($true -eq $usingChefResource) {
         if ($missingDependencies.Length) {
             Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."

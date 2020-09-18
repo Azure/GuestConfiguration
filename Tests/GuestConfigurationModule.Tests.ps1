@@ -177,7 +177,7 @@ ChefInSpecResource 'Audit Linux path exists'
 }
 }
 }
-DSCConfig -OutputPath $DestinationFolderPath
+inspecConfig -OutputPath $DestinationFolderPath
 "@
                 $inSpecProfileName = 'linux-path'
                 $inSpecProfile = @"
@@ -198,8 +198,10 @@ end
             }
             #endregion
         
-            $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
-            $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
+            $dscDestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
+            $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+            $inspecDestinationFolderPath = New-Item -Path $TestDrive -Name 'inspecConfig' -ItemType Directory
+            $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
         
             $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
 
@@ -371,8 +373,8 @@ end
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
-        New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
-        New-TestDscConfiguration -DestinationFolderPath $inSpecFolderPath -Type 'InSpec'
+        New-TestDscConfiguration -dscDestinationFolderPath $dscConfigFolderPath
+        New-TestDscConfiguration -inspecDestinationFolderPath $inSpecFolderPath -Type 'InSpec'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO

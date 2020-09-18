@@ -206,8 +206,8 @@ function Copy-ChefInspecDependencies {
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)
     $usingChefResource = $false
     $resourcesInMofDocument | ForEach-Object {
+        Write-Host "Resource: $($_.CimClass.CimClassName)"
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
-            Write-Host "Resource: $($_.CimClass.CimClassName)"
             $usingChefResource = $true
             Write-Host "usingCR1: $usingChefResource"
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {

@@ -209,7 +209,7 @@ function Copy-ChefInspecDependencies {
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
             $usingChefResource = $true
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
-                Throw "Failed to find Chef Inspec profile(s) '$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
+                Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
 
             $inspecProfilePath = Join-Path $ChefInspecProfilePath $_.CimInstanceProperties['Name'].Value
@@ -225,7 +225,7 @@ function Copy-ChefInspecDependencies {
             Copy-Item $chefResourcePath/install_inspec.sh  $modulePath -Force -ErrorAction SilentlyContinue
         }
     }
-    if ($usingChefResource) {
+    if ($true -eq $usingChefResource) {
         if ($missingDependencies.Length) {
             Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
         }
@@ -235,7 +235,7 @@ function Copy-ChefInspecDependencies {
     }
     else {
         if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
-            Throw 'ChefInspecProfilePath parameter is supported only for Linux packages.'
+            Throw 'Using the ChefInspecProfilePath parameter requires including the ChefInSpecResource DSC resource in the configuration MOF.'
         }
     }
 }

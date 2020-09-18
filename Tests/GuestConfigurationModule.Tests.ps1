@@ -346,17 +346,23 @@ end
     
         # Set up test paths
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
-        $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
+        $mofPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $newPolicyDirectory = Join-Path -Path $testOutputPath -ChildPath 'policyDefinitions'
+        $newPolicyDirectory = Join-Path -Path $testOutputPath -ChildPath 'PolicyDefinitions'
         $policyName = 'testPolicy'
-        $mofDocPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'package'
-        $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'filesToIncludePackage'
+        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
-        $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'filesToIncludeUnsignedPackage'
-        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
+        $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'FilesToIncludePackage'
+        $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
         $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
+        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
+        $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
+        $chefInSpecProfilePath = Join-Path -Path $TestDrive -ChildPath 'linux-path'
+        $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
+        $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
+        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath 'InSpec'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -366,6 +372,7 @@ end
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
 
         New-TestDscConfiguration -DestinationFolderPath $dscConfigFolderPath
+        New-TestDscConfiguration -DestinationFolderPath $inSpecFolderPath -Type 'InSpec'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO
@@ -423,8 +430,8 @@ end
     }
     Context 'New-GuestConfigurationPackage' {
 
-        It 'creates Custom policy package' {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+        It 'creates custom policy package' {
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             Test-Path -Path $package.Path | Should -BeTrue
             $package.Name | Should -Be $policyName
         }
@@ -436,7 +443,7 @@ end
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
         }
-  
+
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
         }
@@ -458,7 +465,7 @@ end
         }
 
         It 'Implements -FilesToInclude parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $filesToIncludeExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
@@ -466,11 +473,26 @@ end
             Test-Path -Path $extractedFile | Should -BeTrue
             Get-Content $extractedFile | Should -Be 'test'
         }
+
+        It 'Implements -ChefInspecProfilePath parameter' {
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $ChefInSpecProfilePath
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
+            Test-Path -Path $extractedInspecPath | Should -BeTrue
+            $extractedFile = Join-Path $extractedInSpecPath 'linux-path'
+            Test-Path -Path $extractedFile | Should -BeTrue
+            $inspecYmlExtractedFile = Join-Path $extractedFile 'inspec.yml'
+            Test-Path -Path $inspecYmlExtractedFile | Should -BeTrue
+            $inspecControlsExtractedFile = Join-Path $extractedFile 'Controls'
+            Test-Path -Path $inspecControlsExtractedFile | Should -BeTrue
+            $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
+            Test-Path -Path $inspecRbExtractedFile | Should -BeTrue
+        }
     }
     Context 'Test-GuestConfigurationPackage' {
 
         It 'Validate that the resource compliance results are as expected' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
@@ -482,7 +504,7 @@ end
     Context 'Protect-GuestConfigurationPackage' {
         
         It 'Signed package should exist at output path' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $mofDocPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1

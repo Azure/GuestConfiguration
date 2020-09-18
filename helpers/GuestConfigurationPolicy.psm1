@@ -212,6 +212,7 @@ function Copy-ChefInspecDependencies {
     if ($resourcesInMofDocument.CimSystemProperties.ClassName -contains 'MSFT_ChefInSpecResource') {
         $usingChefResource = $true
     }
+    
     $resourcesInMofDocument | ForEach-Object {
         Write-Host "Resource: $($_.CimClass.CimClassName)"
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {

@@ -480,7 +480,7 @@ end
         }
 
         It 'Implements -ChefInspecProfilePath parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $ChefInSpecProfilePath
+            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $ChefInSpecProfilePath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
             Test-Path -Path $extractedInspecPath | Should -BeTrue

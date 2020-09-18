@@ -201,7 +201,7 @@ function Copy-ChefInspecDependencies {
     # Copy Chef resource and profiles.
     $modulePath = Join-Path $PackagePath 'Modules'
     $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $resourcesInMofDocument = Get-GuestConfigurationMofContent -Name $Name -Path $SourcePath
+    $resourcesInMofDocument = Get-GuestConfigurationMofContent -Name 'Name' -Path $Configuration
     $missingDependencies = @()
     $chefInspecProfiles = @()
     $usingChefResource = $false

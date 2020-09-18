@@ -209,7 +209,7 @@ describe file('/tmp') do
 it { should exist }
 end
 "@
-                $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'inspecConfig' -ItemType Directory
+                $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'InspecConfig' -ItemType Directory
                 $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
 

@@ -349,13 +349,6 @@ function Get-GuestConfigurationMofContent {
     Write-Verbose "Parsing Configuration document '$Path'"
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Path, 4)
 
-    # Set the profile path for Chef resource
-    $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
-            $item.Value = "$Name/Modules/$($_.Name)"
-        }
-    }
-
     return $resourcesInMofDocument
 }
 

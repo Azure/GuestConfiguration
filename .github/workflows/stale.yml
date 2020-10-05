@@ -18,8 +18,4 @@ jobs:
         stale-issue-label: 'no-issue-activity'
         stale-pr-label: 'no-pr-activity'
         days-before-stale: 14
-<<<<<<< HEAD
         days-before-close: 180
-=======
-        days-before-close: -1
->>>>>>> 6ba8bdd... Label Issues/PRs stale after 14 days (#86)

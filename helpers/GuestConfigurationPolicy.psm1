@@ -1377,12 +1377,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
             metadata    = [Ordered]@{
                 category           = $Category
                 guestConfiguration = [Ordered]@{
-                    configurationParameter = $ParameterMapping
                     name                   = $ConfigurationName
                     version                = $ConfigurationVersion
                     contentType            = "Custom"
                     contentUri             = $ContentUri
                     contentHash            = $ContentHash
+                    configurationParameter = $ParameterMapping
                 }
             }
             parameters  = $ParameterDefinitions
@@ -1572,78 +1572,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
                                             [Ordered]@{
                                                 field = "Microsoft.Compute/imageOffer"
                                                 notLike = 'SQL2008*'
-                            }
-                        )
-                    },
-                    [Ordered]@{
-                        allOf = @(
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
-                                        exists = 'true'
-                                    },
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like  = 'Windows*'
-                                    }
-                                )
-                            },
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/imageSKU"
-                                        exists = 'false'
-                                    },
-                                    [Ordered]@{
-                                        allOf = @(
-                                            [Ordered]@{ 
-                                                field   = "Microsoft.Compute/imageSKU"
-                                                notLike = '2008*'
-                                            },
-                                            [Ordered]@{
-                                                field   = "Microsoft.Compute/imageOffer"
-                                                notLike = 'SQL2008*'
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-                        )
-                    },
-                    [Ordered]@{
-                        allOf = @(
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/virtualMachines/osProfile.windowsConfiguration"
-                                        exists = 'true'
-                                    },
-                                    [Ordered]@{
-                                        field = "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-                                        like  = 'Windows*'
-                                    }
-                                )
-                            },
-                            [Ordered]@{ 
-                                anyOf = @(
-                                    [Ordered]@{ 
-                                        field  = "Microsoft.Compute/imageSKU"
-                                        exists = 'false'
-                                    },
-                                    [Ordered]@{
-                                        allOf = @(
-                                            [Ordered]@{ 
-                                                field   = "Microsoft.Compute/imageSKU"
-                                                notLike = '2008*'
-                                            },
-                                            [Ordered]@{
-                                                field   = "Microsoft.Compute/imageOffer"
-                                                notLike = 'SQL2008*'
-                                            }
-                                        )
-                                    }
-                                )
                             }
                         )
                     }

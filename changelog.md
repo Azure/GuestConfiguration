@@ -1,5 +1,10 @@
 # Change Log for GuestConfiguration module
 
+## v2.0.0
+
+- Support for "AINE without DINE"
+- Arc for Servers parameter
+
 ## v1.20.3
 
 - Fix error when creating Linux policy, "RPName" variable no longer used
@@ -29,6 +34,7 @@
 - Support filtering policy for single tag name/value
 
 ## v1.19.4
+
 
 - Updated InSpec installation uri
 - Bug fix for Test-GuestConfigurationPackage functionality on Ubuntu 16.04

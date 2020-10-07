@@ -13,7 +13,6 @@ function Get-ResultsfromPesterScript {
     [CmdletBinding()]
     [OutputType([Hashtable])]
     param(
-        # Give the parameter a name that anyone will understand
         [Parameter(Mandatory = $true)]
         [string]
         $ScriptFilePath

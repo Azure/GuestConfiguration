@@ -211,14 +211,14 @@ end
             }
             #endregion
 
-            #region Operational Validation DSC config
+            #region Pester
             if ('Pester' -eq $Type) {
-                $dscConfig = @'
-Configuration DSCConfigOV_Windows
+                $pesterConfig = @'
+Configuration Pester
 {
     Import-DSCResource -ModuleName GuestConfiguration
 
-    Node DSCConfigOV_Windows
+    Node Pester
     {
         PesterResource EnvironmentVariables
         {
@@ -241,6 +241,9 @@ describe 'Test Environment' {
     }
 }
 '@
+                $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Pester' -ItemType Directory
+                $pesterDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+                $null = Set-Content -Path $pesterDestinationMOFPath -Value $pesterConfig
             }
             #endregion
         
@@ -477,6 +480,7 @@ describe 'Test Environment' {
         
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
+        New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Pester'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO

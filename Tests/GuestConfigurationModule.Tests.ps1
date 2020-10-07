@@ -240,55 +240,6 @@ Name="DSCConfig";
 '@
             }
             #endregion
-
-            #region Windows DSC config using invalid resources
-            if ('WinDSC' -eq $Type) {
-                $dscConfig = @'
-instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
-{
-ResourceID = "[File]test";
-Ensure = "Present";
-Contents = "test";
-DestinationPath = "c:\\test";
-ModuleName = "PSDesiredStateConfiguration";
-SourceInfo = "::1::76::file";
-ModuleVersion = "1.0";
-ConfigurationName = "file";
-};
-
-instance of OMI_ConfigurationDocument
-{
-Version="2.0.0";
-MinimumCompatibleVersion = "1.0.0";
-CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-Name="DSCConfig";
-};
-'@
-            }
-            #endregion
-        
-            $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
-            $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
-        
-            $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
-
-                # creates directory for Inspec profile
-                $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
-                $null = New-Item -ItemType Directory -Path $InSpecProfilePath
-        
-                # creates Inspec profile required Yml file
-                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'Inspec.yml'
-                $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
-        
-                # creates directory for Inspec controls (component of Inspec profile)
-                $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
-                $null = New-Item -ItemType Directory -Path $InSpecControlsPath
-        
-                # creates Inspec controls required Ruby file
-                $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
-                $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
-            }
-            #endregion            
         }
     
         function New-TestGCPolicyParameters {

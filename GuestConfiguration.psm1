@@ -393,7 +393,92 @@ function Protect-GuestConfigurationPackage {
 
 <#
     .SYNOPSIS
-        Creates policy definitions on specified Destination Path.
+        Publish a Guest Configuration policy package to Azure blob storage.
+        The goal is to simplify the number of steps by scoping to a specific
+        task.
+
+        Generates a SAS token with a 3-year lifespan, to mitigate the risk
+        of a malicious person discovering the published content.
+
+        Requires a resource group, storage account, and container
+        to be pre-staged. For details on how to pre-stage these things see the 
+        documentation for the Az Storage cmdlets.
+        https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-powershell.
+
+    .Parameter Path
+        Location of the .zip file containing the Guest Configuration artifacts
+
+    .Parameter ResourceGroupName
+        The Azure resource group for the storage account
+
+    .Parameter StorageAccountName
+        The name of the storage account for where the package will be published
+        Storage account names must be globally unique
+
+    .Parameter StorageContainerName
+        Name of the storage container in Azure Storage account (default: "guestconfiguration")
+
+    .Example
+        Publish-GuestConfigurationPackage -Path ./package.zip -ResourceGroupName 'resourcegroup' -StorageAccountName 'sa12345'
+
+    .OUTPUTS
+        Return a publicly accessible URI containing a SAS token with a 3-year expiration.
+#>
+
+function Publish-GuestConfigurationPackage {
+    [CmdletBinding()]
+    param (
+        [parameter(Position = 0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Path,
+
+        [parameter(Position = 1, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ResourceGroupName,
+
+        [parameter(Position = 2, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $StorageAccountName,
+
+        [string] $StorageContainerName = 'guestconfiguration',
+        
+        [switch] $Force
+    )
+
+    # Get Storage Context
+    $Context = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName `
+        -Name $StorageAccountName | `
+        ForEach-Object { $_.Context }
+
+    # Blob name from file name
+    $BlobName = Get-Item $Path | ForEach-Object {$_.Name}
+
+    # Upload file
+    $SetBlobParameters = @{
+        Context     = $Context
+        Container   = $StorageContainerName
+        File        = $Path
+        Blob        = $BlobName
+        Force       = $Force
+    }
+    $Blob = Set-AzStorageBlobContent @SetBlobParameters
+
+    # Get url with SAS token
+    $newSASTokenParameters = @{
+      Container    = $StorageContainerName
+      StartTime    = (Get-Date)
+      ExpiraryTime = (Get-Date).AddYears('3')  # THREE YEAR EXPIRATION
+      Permission   = 'rl'
+    }
+    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -Context $Context -Blob $Blob -FullUri
+
+    # Output
+    return $SAS
+}
+
+<#
+    .SYNOPSIS
+        Creates Audit, DeployIfNotExists and Initiative policy definitions on specified Destination Path.
 
     .Parameter ContentUri
         Public http uri of Guest Configuration content package.
@@ -614,4 +699,4 @@ function Publish-GuestConfigurationPolicy {
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
 }
 
-Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

@@ -266,7 +266,7 @@ end
             (
                 [Parameter(Mandatory = $true)]
                 [String]
-                $PackagePath,
+                $Path,
 
                 [Parameter(Mandatory = $true)]
                 [String]
@@ -290,7 +290,7 @@ end
             New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
             
             $publishGCPackageParameters = @{
-                Path                 = $PackagePath
+                Path                 = $Path
                 ResourceGroupName    = "GC_Module_$DateStamp"
                 StorageAccountName   = "sa$randomString"
             }
@@ -444,9 +444,7 @@ end
             # TODO
             # Az PowerShell login from macOS currently has issue
             # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
-            Install-AzLibraries
-            Login-ToTestAzAccount
-            $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath $DateStamp
+            Install-AzLibraries            
         }
     }
     Context 'Module fundamentals' {
@@ -582,6 +580,8 @@ end
 
         It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage @publishGCPackageParameters | Should -Not -Throw
             $Uri | Should -Not -BeNullOrEmpty
             $Uri | Should -BeOfType 'String'

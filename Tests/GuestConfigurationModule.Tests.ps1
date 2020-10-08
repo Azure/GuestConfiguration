@@ -416,8 +416,7 @@ end
         $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
-        $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath $DateStamp
-
+        
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
 
@@ -446,6 +445,8 @@ end
             # Az PowerShell login from macOS currently has issue
             # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
             Install-AzLibraries
+            Login-ToTestAzAccount
+            $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath $DateStamp
         }
     }
     Context 'Module fundamentals' {

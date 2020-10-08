@@ -260,6 +260,30 @@ end
             return $newGCPolicyParameters
         }
 
+        function New-PublishGCPackageParameters {
+            [CmdletBinding()]
+            param
+            (
+                [Parameter(Mandatory = $true)]
+                [String]
+                $PackagePath
+            )
+
+            # Storage Account
+            #TODO create unique to this test
+
+            # Storage Container
+            #TODO create
+            
+            $publishGCPackageParameters = @{
+                Path                 = $PackagePath
+                StorageAccountName   = $StorageAccountName
+                StorageContainerName = $StorageContainerName
+            }
+        
+            return $publishGCPackageParameters
+        }
+
         function Get-AzMocks {
             [CmdletBinding()]
             param
@@ -375,6 +399,7 @@ end
         $testPolicyName = 'AuditWindowsService'
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
+        $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath
 
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
@@ -535,6 +560,16 @@ end
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
+    Context 'Publish-GuestConfigurationPackage' {
+
+        It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
+            Login-ToTestAzAccount
+            $Uri = Publish-GuestConfigurationPackage @publishGCPackageParameters | Should -Not -Throw
+            $Uri | Should -Not -BeNullOrEmpty
+            $Uri | Should -BeOfType 'String'
+            Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip
+        }
+    }
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
@@ -586,6 +621,7 @@ end
             Login-ToTestAzAccount
             # Cleanup
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+            #TODO storage account
 
             foreach ($existingInitiative in $existingInitiatives) {
                 $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
@@ -594,6 +630,8 @@ end
             foreach ($existingPolicy in $existingPolicies) {
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
             }
+
+            #TODO delete storage account
         }
     }
 }

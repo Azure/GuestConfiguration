@@ -278,7 +278,7 @@ end
 
             # Create test Storage Account
             $randomString = (get-date).ticks.tostring().Substring(12)
-            $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup `
+            $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName `
                 -Name "sa$randomString" `
                 -SkuName Standard_LRS `
                 -Location 'westus' `

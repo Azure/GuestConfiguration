@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v2.1.0
+
+- New cmdlet publish-guestconfigurationpackage
+
 ## v2.0.0
 
 - Support for "AINE without DINE"

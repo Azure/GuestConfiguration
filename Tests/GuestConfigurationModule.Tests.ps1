@@ -212,8 +212,24 @@ end
                 $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'InspecConfig' -ItemType Directory
                 $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
+
+                # creates directory for Inspec profile
+                $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
+                $null = New-Item -ItemType Directory -Path $InSpecProfilePath
+        
+                # creates Inspec profile required Yml file
+                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'Inspec.yml'
+                $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
+        
+                # creates directory for Inspec controls (component of Inspec profile)
+                $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
+                $null = New-Item -ItemType Directory -Path $InSpecControlsPath
+        
+                # creates Inspec controls required Ruby file
+                $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
+                $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
             }
-            #endregion
+            #endregion 
 
             #region Windows DSC config using invalid resources
             if ('WinDSC' -eq $Type) {

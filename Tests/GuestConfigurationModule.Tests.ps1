@@ -241,8 +241,9 @@ describe 'Test Environment' {
     }
 }
 '@
+
                 $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Pester' -ItemType Directory
-                $pesterDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+                $pesterDestinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $pesterDestinationMOFPath -Value $pesterConfig
             }
             #endregion

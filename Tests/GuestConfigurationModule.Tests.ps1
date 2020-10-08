@@ -291,6 +291,7 @@ end
             
             $publishGCPackageParameters = @{
                 Path                 = $PackagePath
+                ResourceGroupName    = "GC_Module_$DateStamp"
                 StorageAccountName   = "sa$randomString"
             }
         
@@ -637,7 +638,6 @@ end
             Login-ToTestAzAccount
             # Cleanup
             $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
-            #TODO storage account
 
             foreach ($existingInitiative in $existingInitiatives) {
                 $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
@@ -647,7 +647,9 @@ end
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
             }
 
-            #TODO delete storage account
+            if ($null -ne (Get-AzResourceGroup $publishGCPackageParameters.ResourceGroupName -ErrorAction SilentlyContinue)) {
+                Remove-AzResourceGroup $publishGCPackageParameters.ResourceGroupName -Force
+            }
         }
     }
 }

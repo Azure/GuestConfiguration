@@ -266,19 +266,32 @@ end
             (
                 [Parameter(Mandatory = $true)]
                 [String]
-                $PackagePath
+                $PackagePath,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $DateStamp
             )
 
-            # Storage Account
-            #TODO create unique to this test
+            # Create test Resource Group
+            $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp"
+
+            # Create test Storage Account
+            $randomString = (get-date).ticks.tostring().Substring(12)
+            $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup `
+                -Name "sa$randomString" `
+                -SkuName Standard_LRS `
+                -Location 'westus' `
+
+            $ctx = $storageAccount.Context
 
             # Storage Container
-            #TODO create
+            $containerName = "guestconfiguration"
+            New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
             
             $publishGCPackageParameters = @{
                 Path                 = $PackagePath
-                StorageAccountName   = $StorageAccountName
-                StorageContainerName = $StorageContainerName
+                StorageAccountName   = "sa$randomString"
             }
         
             return $publishGCPackageParameters
@@ -397,9 +410,12 @@ end
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
         $testPolicyName = 'AuditWindowsService'
+
+        $Date = Get-Date
+        $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
-        $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath
+        $publishGCPackageParameters = New-PublishGCPackageParameters $testOutputPath $DateStamp
 
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'

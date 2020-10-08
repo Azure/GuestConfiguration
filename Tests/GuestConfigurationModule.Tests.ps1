@@ -274,7 +274,7 @@ end
             )
 
             # Create test Resource Group
-            $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp"
+            $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp" -Location 'westus'
 
             # Create test Storage Account
             $randomString = (get-date).ticks.tostring().Substring(12)

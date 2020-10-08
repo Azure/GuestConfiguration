@@ -86,8 +86,8 @@ function New-GuestConfigurationPackage {
         }
 
         # Copy FilesToInclude
-        if(-not [string]::IsNullOrEmpty($FilesToInclude)) {
-            if(Test-Path $FilesToInclude -PathType Leaf) {
+        if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            if (Test-Path $FilesToInclude -PathType Leaf) {
                 Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
             }
             else {
@@ -347,10 +347,11 @@ function Protect-GuestConfigurationPackage {
 
             $Signature = Get-AuthenticodeSignature $catalogFilePath
             if ($null -ne $Signature.SignerCertificate) {
-                if($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+                if ($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
                     throw $CodeSignOutput.StatusMessage
                 }
-            } else { throw $CodeSignOutput.StatusMessage }
+            }
+            else { throw $CodeSignOutput.StatusMessage }
         }
         else {
             if ($osPlatform -eq "Windows") {

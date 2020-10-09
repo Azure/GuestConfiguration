@@ -643,7 +643,6 @@ describe 'Test Environment' {
 
         It 'Adds the Pester module when Pester content is included' {
             Test-Path $pesterMofPath | Should -BeTrue
-            Test-Path $pesterPackagePath | Should -BeTrue
             $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw

@@ -460,18 +460,19 @@ function Publish-GuestConfigurationPackage {
         Blob        = $BlobName
         Force       = $Force
     }
-    Write-Host 'Setting Blob content'
     $Blob = Set-AzStorageBlobContent @SetBlobParameters -Context $Context
 
     # Get url with SAS token
+    $StartTime = (Get-Date)
     $newSASTokenParameters = @{
       Container    = $StorageContainerName
-      StartTime    = (Get-Date)
-      ExpiraryTime = (Get-Date).AddYears('3')  # THREE YEAR EXPIRATION
+      Blob         = $BlobName
+      StartTime    = $StartTime
+      ExpiraryTime = $StartTime.AddYears('3')  # THREE YEAR EXPIRATION
       Permission   = 'rl'
     }
-    Write-Host 'Getting SAS Token'
-    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -Blob $Blob -FullUri
+    Write-Host 'Getting SAS'
+    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -FullUri
 
     # Output
     return $SAS

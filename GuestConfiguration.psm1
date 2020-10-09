@@ -474,7 +474,7 @@ function Publish-GuestConfigurationPackage {
     $SAS = New-AzStorageBlobSASToken -Container $StorageContainerName `
         -Blob $BlobName `
         -StartTime $StartTime `
-        -ExpiraryTime $StartTime.AddYears('3') `
+        -ExpiryTime $StartTime.AddYears('3') `
         -Permission 'rl' `
         -FullUri
 

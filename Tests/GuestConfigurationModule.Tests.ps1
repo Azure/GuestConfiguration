@@ -586,7 +586,7 @@ end
             $Uri | Should -Not -BeNullOrEmpty
             $Uri | Should -BeOfType 'String'
             $Uri | Should -Not -Contain '@'
-            Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip | Should -Not -Throw
+            {Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip} | Should -Not -Throw
         }
     }
     Context 'New-GuestConfigurationPolicy' {

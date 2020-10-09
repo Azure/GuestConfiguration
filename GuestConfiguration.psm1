@@ -469,7 +469,7 @@ function Publish-GuestConfigurationPackage {
       ExpiraryTime = (Get-Date).AddYears('3')  # THREE YEAR EXPIRATION
       Permission   = 'rl'
     }
-    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -Context $Context -Blob $Blob -FullUri
+    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -Blob $Blob -FullUri
 
     # Output
     return $SAS

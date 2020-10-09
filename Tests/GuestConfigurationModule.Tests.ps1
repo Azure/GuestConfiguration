@@ -274,12 +274,10 @@ end
             )
 
             # Create test Resource Group
-            write-host 'creating resource group'
             $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp" -Location 'westus'
 
             # Create test Storage Account
             $randomString = (get-date).ticks.tostring().Substring(12)
-            write-host 'creating storage accouint'
             $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName `
                 -Name "sa$randomString" `
                 -SkuName Standard_LRS `
@@ -289,7 +287,6 @@ end
 
             # Storage Container
             $containerName = "guestconfiguration"
-            write-host 'creating container'
             New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
             
             $publishGCPackageParameters = @{
@@ -584,15 +581,10 @@ end
         It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
-            write-host 'Generating parameter values'
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
-            Write-Host $($publishGCPackageParameters.ResourceGroupName)
-            Write-Host $($publishGCPackageParameters.StorageAccountName)
-            Write-Host $($publishGCPackageParameters.Path)
-            Write-Host 'Running Publish package command'
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName | Should -Not -Throw
-            $Uri | Should -Not -BeNullOrEmpty
-            $Uri | Should -BeOfType 'String'
+            "$Uri" | Should -Not -BeNullOrEmpty
+            "$Uri" | Should -BeOfType 'String'
             Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip
         }
     }

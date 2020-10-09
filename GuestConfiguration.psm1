@@ -451,15 +451,23 @@ function Publish-GuestConfigurationPackage {
         ForEach-Object { $_.Context }
 
     # Blob name from file name
-    $BlobName = Get-Item $Path | ForEach-Object {$_.Name}
+    $BlobName = Get-Item $Path | ForEach-Object { $_.Name }
 
     # Upload file
     Write-Host "Running set content for $BlobName without splat"
-    $Blob = Set-AzStorageBlobContent -Container $StorageContainerName `
-        -File $Path `
-        -Blob $BlobName `
-        -Force $Force `
-        -Context $Context
+    if ($true -eq $Force) {
+        $Blob = Set-AzStorageBlobContent -Context $Context `
+            -Container $StorageContainerName `
+            -Blob $BlobName `
+            -File $Path `
+            -Force
+    }
+    else {
+        $Blob = Set-AzStorageBlobContent -Context $Context `
+            -Container $StorageContainerName `
+            -Blob $BlobName `
+            -File $Path
+    }
 
     # Get url with SAS token
     Write-Host 'Getting SAS'
@@ -467,7 +475,7 @@ function Publish-GuestConfigurationPackage {
         -Blob $BlobName `
         -StartTime $StartTime `
         -ExpiraryTime $StartTime.AddYears('3') ` # THREE YEAR EXPIRATION
-        -Permission 'rl' `
+    -Permission 'rl' `
         -FullUri
 
     # Output

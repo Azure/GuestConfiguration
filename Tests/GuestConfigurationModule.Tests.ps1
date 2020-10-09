@@ -583,9 +583,6 @@ end
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName | Should -Not -Throw
-            "$Uri" | Should -Not -BeNullOrEmpty
-            "$Uri" | Should -BeOfType 'String'
-            "$Uri" | Should -Not -Contain '@'
             Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip
         }
     }

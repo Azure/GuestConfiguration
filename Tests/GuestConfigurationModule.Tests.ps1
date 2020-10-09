@@ -256,6 +256,10 @@ describe 'Test Environment' {
                 $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Pester' -ItemType Directory
                 $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $pesterDestinationMOFPath -Value $pesterConfig
+
+                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
+                $pesterScriptDestinationPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
+                $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterResourceScript
             }
             #endregion
         
@@ -463,6 +467,7 @@ describe 'Test Environment' {
         $policyName = 'testPolicy'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
+        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'FilesToIncludePackage'
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
@@ -475,7 +480,13 @@ describe 'Test Environment' {
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
+        $pesterFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
+        $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
+        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Pester'
+        $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
+        $extractedPesterPath = Join-Path -Path $pesterExtractionPath -ChildPath (Join-Path 'Modules' 'Pester')
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
+
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
@@ -629,6 +640,13 @@ describe 'Test Environment' {
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             $inspecRbExtractedFile | Should -Exist
         }
+
+        It 'Adds the Pester module when Pester content is included' {
+            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
+            Test-Path -Path $extractedPesterPath | Should -BeTrue
+        }        
     }
     Context 'Test-GuestConfigurationPackage' {
 
@@ -649,6 +667,16 @@ describe 'Test Environment' {
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
+        }
+        
+        It 'Supports Pester as a language abstraction' -Skip:$IsNotWindows {
+            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            $testPackageResult.complianceStatus | Should -Be $false
+            $testPackageResult.resources[0].ModuleName | Should -Be 'PesterResource'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'Pester'
+            $testPackageResult.resources[0].TestFileName | Should -Be 'EnvironmentVariables'
         }
     } 
     Context 'Protect-GuestConfigurationPackage' {

@@ -454,30 +454,21 @@ function Publish-GuestConfigurationPackage {
     $BlobName = Get-Item $Path | ForEach-Object {$_.Name}
 
     # Upload file
-    $SetBlobParameters = @{
-        Container   = $StorageContainerName
-        File        = $Path
-        Blob        = $BlobName
-        Force       = $Force
-    }
     Write-Host "Running set content for $BlobName without splat"
-    $Blob = Set-AzStorageBlobContent -Container $SetBlobParameters.Container `
-        -File $SetBlobParameters.File `
-        -Blob $SetBlobParameters.Blob `
-        -Force $SetBlobParameters.Force `
+    $Blob = Set-AzStorageBlobContent -Container $StorageContainerName `
+        -File $Path `
+        -Blob $BlobName `
+        -Force $Force `
         -Context $Context
 
     # Get url with SAS token
-    $StartTime = (Get-Date)
-    $newSASTokenParameters = @{
-      Container    = $StorageContainerName
-      Blob         = $BlobName
-      StartTime    = $StartTime
-      ExpiraryTime = $StartTime.AddYears('3')  # THREE YEAR EXPIRATION
-      Permission   = 'rl'
-    }
     Write-Host 'Getting SAS'
-    $SAS = New-AzStorageBlobSASToken @$newSASTokenParameters -FullUri
+    $SAS = New-AzStorageBlobSASToken -Container $StorageContainerName `
+        -Blob $BlobName `
+        -StartTime $StartTime `
+        -ExpiraryTime $StartTime.AddYears('3') ` # THREE YEAR EXPIRATION
+        -Permission 'rl' `
+        -FullUri
 
     # Output
     return $SAS

@@ -133,7 +133,6 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
             )
         
             if ($false -eq (Test-CurrentMachineIsWindows)) {
-                Write-Verbose 'Importing PSDesiredStateConfiguration module'
                 Import-Module 'PSDesiredStateConfiguration'
             }
         
@@ -275,10 +274,12 @@ end
             )
 
             # Create test Resource Group
+            write-host 'creating resource group'
             $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp" -Location 'westus'
 
             # Create test Storage Account
             $randomString = (get-date).ticks.tostring().Substring(12)
+            write-host 'creating storage accouint'
             $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName `
                 -Name "sa$randomString" `
                 -SkuName Standard_LRS `
@@ -288,6 +289,7 @@ end
 
             # Storage Container
             $containerName = "guestconfiguration"
+            write-host 'creating container'
             New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
             
             $publishGCPackageParameters = @{
@@ -338,7 +340,6 @@ end
             $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
         
             $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
-            Write-Verbose 'Importing GuestConfiguration module'
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
         }
@@ -583,11 +584,13 @@ end
         It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            write-host 'Generating parameter values'
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
-            $publishGCPackageParameters.ResourceGroupName | Should -Not -BeNullOrEmpty
-            $publishGCPackageParameters.StorageAccountName | Should -Not -BeNullOrEmpty
-            $publishGCPackageParameters.Path | Should -Not -BeNullOrEmpty
-            $Uri = Publish-GuestConfigurationPackage @publishGCPackageParameters | Should -Not -Throw
+            Write-Host $($publishGCPackageParameters.ResourceGroupName)
+            Write-Host $($publishGCPackageParameters.StorageAccountName)
+            Write-Host $($publishGCPackageParameters.Path)
+            Write-Host 'Running Publish package command'
+            $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName | Should -Not -Throw
             $Uri | Should -Not -BeNullOrEmpty
             $Uri | Should -BeOfType 'String'
             Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip

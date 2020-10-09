@@ -583,7 +583,7 @@ end
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName | Should -Not -Throw
-            Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip
+            Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip | Should -Not -Throw
         }
     }
     Context 'New-GuestConfigurationPolicy' {

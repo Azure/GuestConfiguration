@@ -482,7 +482,7 @@ describe 'Test Environment' {
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $pesterConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
         $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
-        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Pester'
+        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $extractedPesterPath = Join-Path -Path $pesterExtractionPath -ChildPath (Join-Path 'Modules' 'Pester')
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
@@ -642,6 +642,8 @@ describe 'Test Environment' {
         }
 
         It 'Adds the Pester module when Pester content is included' {
+            Test-Path $pesterMofPath | Should -BeTrue
+            Test-Path $pesterPackagePath | Should -BeTrue
             $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw

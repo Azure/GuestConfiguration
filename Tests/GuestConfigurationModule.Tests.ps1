@@ -582,6 +582,9 @@ end
             Login-ToTestAzAccount
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
+            $publishGCPackageParameters.ResourceGroupName | Should -Not -BeNullOrEmpty
+            $publishGCPackageParameters.StorageAccountName | Should -Not -BeNullOrEmpty
+            $publishGCPackageParameters.Path | Should -Not -BeNullOrEmpty
             $Uri = Publish-GuestConfigurationPackage @publishGCPackageParameters | Should -Not -Throw
             $Uri | Should -Not -BeNullOrEmpty
             $Uri | Should -BeOfType 'String'
@@ -648,8 +651,9 @@ end
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
             }
 
-            if ($null -ne (Get-AzResourceGroup $publishGCPackageParameters.ResourceGroupName -ErrorAction SilentlyContinue)) {
-                Remove-AzResourceGroup $publishGCPackageParameters.ResourceGroupName -Force
+            $RG = Get-AzResourceGroup "GC_Module_$DateStamp" -ErrorAction SilentlyContinue
+            if ($null -ne $RG) {
+                $null = Remove-AzResourceGroup "GC_Module_$DateStamp" -Force
             }
         }
     }

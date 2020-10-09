@@ -451,7 +451,9 @@ function Publish-GuestConfigurationPackage {
         ForEach-Object { $_.Context }
 
     # Blob name from file name
+    Write-Host "Path is $Path"
     $BlobName = Get-Item $Path | ForEach-Object {$_.Name}
+    Write-Host "Blob name is $BlobName"
 
     # Upload file
     $SetBlobParameters = @{

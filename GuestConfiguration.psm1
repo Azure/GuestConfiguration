@@ -471,11 +471,12 @@ function Publish-GuestConfigurationPackage {
     # Get url with SAS token
     # THREE YEAR EXPIRATION
     $StartTime = Get-Date
-    $SAS = New-AzStorageBlobSASToken -Container $StorageContainerName `
+    $SAS = New-AzStorageBlobSASToken -Context $Context `
+        -Container $StorageContainerName `
         -Blob $BlobName `
         -StartTime $StartTime `
         -ExpiryTime $StartTime.AddYears('3') `
-        -Permission 'rl' `
+        -Permission 'rl'
         -FullUri
 
     # Output

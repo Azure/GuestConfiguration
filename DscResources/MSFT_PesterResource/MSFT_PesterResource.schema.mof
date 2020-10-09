@@ -5,7 +5,7 @@ class Reason
     [Read] String Phrase;
 };
 
-[ClassVersion("1.0.0.0"), FriendlyName("Pester")]
+[ClassVersion("1.0.0.0"), FriendlyName("PesterResource")]
 class MSFT_PesterResource : OMI_BaseResource
 {
     [Key, Description("Specifies the name of the Pester script included in the module")] String TestFileName;

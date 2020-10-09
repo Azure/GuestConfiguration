@@ -222,25 +222,27 @@ end
 }
 #endregion    
 
-            #region Pester
-            if ('Pester' -eq $Type) {
-                $pesterConfig = @'
-Configuration Pester
+#region Pester
+if ('Pester' -eq $Type) {
+    $dscConfig = @'
+instance of MSFT_PesterResource as $MSFT_PesterResource1ref
 {
-    Import-DSCResource -ModuleName GuestConfiguration
-
-    Node Pester
-    {
-        PesterResource EnvironmentVariables
-        {
-            TestFileName = 'EnvironmentVariables'
-        }
-
-        
-    }
-}
+ModuleVersion = "2.1.0";
+TestFileName = "EnvironmentVariables";
+ModuleName = "GuestConfiguration";
+ResourceID = "[PesterResource]EnvironmentVariables";
+SourceInfo = "::7::9::PesterResource";
+ConfigurationName = "Pester";
+};
+instance of OMI_ConfigurationDocument
+{
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="Pester";
+};
 '@
-                $PesterResourceScript = @'
+    $PesterScript = @'
 describe 'Test Environment' {
     context 'Simple' {
         It 'PSModulePath is not null or empty' {
@@ -253,38 +255,15 @@ describe 'Test Environment' {
 }
 '@
 
-                $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterConfig' -ItemType Directory
-                $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
-                $null = Set-Content -Path $pesterDestinationMOFPath -Value $pesterConfig
+    $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterConfig' -ItemType Directory
+    $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
+    $null = Set-Content -Path $pesterDestinationMOFPath -Value $dscConfig
 
-                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
-                $pesterScriptDestinationPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
-                $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterResourceScript
-            }
-            #endregion
-        
-            $DestinationFolderPath = New-Item -Path $TestDrive -Name 'DSCConfig' -ItemType Directory
-            $destinationMOFPath = Join-Path -Path $DestinationFolderPath -ChildPath 'localhost.mof'
-        
-            $null = Set-Content -Path $destinationMOFPath -Value $dscConfig
-        
-            if ('InSpec' -eq $Type) {
-                # creates directory for InSpec profile
-                $InSpecProfilePath = Join-Path -Path $TestDrive -ChildPath $inSpecProfileName
-                $null = New-Item -ItemType Directory -Path $InSpecProfilePath
-        
-                # creates Inspec profile required Yml file
-                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'inspec.yml'
-                $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
-        
-                # creates directory for Inspec controls (component of Inspec profile)
-                $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
-                $null = New-Item -ItemType Directory -Path $InSpecControlsPath
-        
-                # creates Inspec controls required Ruby file
-                $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
-                $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
-            }
+    $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
+    $pesterScriptDestinationPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
+    $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
+}
+#endregion
         }
         #TODO
         function New-TestGCPolicyParameters {

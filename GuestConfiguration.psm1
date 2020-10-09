@@ -476,7 +476,7 @@ function Publish-GuestConfigurationPackage {
         -Blob $BlobName `
         -StartTime $StartTime `
         -ExpiryTime $StartTime.AddYears('3') `
-        -Permission 'rl'
+        -Permission 'rl' `
         -FullUri
 
     # Output

@@ -133,6 +133,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
             )
         
             if ($false -eq (Test-CurrentMachineIsWindows)) {
+                Write-Verbose 'Importing PSDesiredStateConfiguration module'
                 Import-Module 'PSDesiredStateConfiguration'
             }
         
@@ -337,6 +338,7 @@ end
             $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
         
             $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
+            Write-Verbose 'Importing GuestConfiguration module'
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
         }

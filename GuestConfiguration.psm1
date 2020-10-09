@@ -455,13 +455,12 @@ function Publish-GuestConfigurationPackage {
 
     # Upload file
     $SetBlobParameters = @{
-        Context     = $Context
         Container   = $StorageContainerName
         File        = $Path
         Blob        = $BlobName
         Force       = $Force
     }
-    $Blob = Set-AzStorageBlobContent @SetBlobParameters
+    $Blob = Set-AzStorageBlobContent @SetBlobParameters -Context $Context
 
     # Get url with SAS token
     $newSASTokenParameters = @{

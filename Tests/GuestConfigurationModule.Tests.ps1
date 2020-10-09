@@ -281,7 +281,7 @@ end
             $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName `
                 -Name "sa$randomString" `
                 -SkuName Standard_LRS `
-                -Location 'westus' `
+                -Location 'westus'
 
             $ctx = $storageAccount.Context
 

@@ -253,7 +253,7 @@ describe 'Test Environment' {
 }
 '@
 
-                $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Pester' -ItemType Directory
+                $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterConfig' -ItemType Directory
                 $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
                 $null = Set-Content -Path $pesterDestinationMOFPath -Value $pesterConfig
 
@@ -480,7 +480,7 @@ describe 'Test Environment' {
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
-        $pesterFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
+        $pesterConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
         $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Pester'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'

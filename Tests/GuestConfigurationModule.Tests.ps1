@@ -259,8 +259,8 @@ describe 'Test Environment' {
     $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
     $null = Set-Content -Path $pesterDestinationMOFPath -Value $dscConfig
 
-    $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
-    $pesterScriptDestinationPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
+    $scriptsDestinationFolderPath = New-Item -Path $pesterDestinationFolderPath -Name 'Scripts' -ItemType Directory
+    $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
     $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
 }
 #endregion

@@ -461,9 +461,9 @@ describe 'Test Environment' {
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $pesterConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
         $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
+        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'Scripts'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
-        $extractedPesterPath = Join-Path -Path $pesterExtractionPath -ChildPath 'Scripts'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
@@ -618,15 +618,7 @@ describe 'Test Environment' {
             $inspecControlsExtractedFile | Should -Exist
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             $inspecRbExtractedFile | Should -Exist
-        }
-
-        It 'Adds the Pester module when Pester content is included' {
-            Test-Path $pesterMofPath | Should -BeTrue
-            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
-            Test-Path -Path $extractedPesterPath | Should -BeTrue
-        }        
+        }      
     }
     Context 'Test-GuestConfigurationPackage' {
 
@@ -650,7 +642,7 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'PesterResource'

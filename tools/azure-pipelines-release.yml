@@ -1,4 +1,4 @@
-pr: 'none'
+trigger: 'none'
 
 jobs:
   - job: Test

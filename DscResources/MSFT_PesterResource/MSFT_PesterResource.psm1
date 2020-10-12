@@ -77,7 +77,7 @@ function Get-TargetResource {
         $TestFileName
     )
 
-    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../Scripts/$TestFileName.ps1"
+    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Scripts/$TestFileName.ps1"
 
     return $Return
 }

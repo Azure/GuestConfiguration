@@ -463,7 +463,7 @@ describe 'Test Environment' {
         $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
-        $extractedPesterPath = Join-Path -Path $pesterExtractionPath -ChildPath (Join-Path 'Modules' 'Pester')
+        $extractedPesterPath = Join-Path -Path $pesterExtractionPath -ChildPath 'Scripts'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
 
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"

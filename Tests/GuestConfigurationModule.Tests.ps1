@@ -646,7 +646,11 @@ describe 'Test Environment' {
             
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
-            Test-Path -Path (Join-Path $pesterExtractionPath 'Scripts') | Should -BeTrue
+            $unzip = Resolve-Path $pesterExtractionPath
+            $files = Get-ChildItem $unzip
+            $files | ForEach-Object {write-host $_.FullName}
+            
+            Test-Path -Path (Join-Path $unzip 'Scripts') | Should -BeTrue
             
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false

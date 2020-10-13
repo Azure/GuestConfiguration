@@ -150,7 +150,7 @@ function Copy-DscResources {
         }
         else {
             $pesterResourceID = $_.ResourceID.Substring(0, 16)
-            write-verbose "resource id is $resourceID"
+            write-verbose "resource id is $pesterResourceID"
             if ($pesterResourceID.Substring(0, 16) -eq '[PesterResource]') {
                 $powershellModulesToCopy[$_.Name] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
                 Write-Verbose "$($_.Name) is a required PowerShell module"

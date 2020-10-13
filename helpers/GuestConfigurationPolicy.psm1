@@ -135,7 +135,7 @@ function Copy-DscResources {
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
         $moduleObject = $_
-        $moduleObject | gm
+        $moduleObject | gm | % name | set-content c:\debug.txt
         write-verbose "Module name $($moduleObject.modulename)"
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable

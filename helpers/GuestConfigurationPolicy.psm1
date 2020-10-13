@@ -150,10 +150,9 @@ function Copy-DscResources {
         }
         else {
             $pesterResourceID = $_.ResourceID.Substring(0, 16)
-            write-verbose "resource id is $pesterResourceID"
             if ($pesterResourceID.Substring(0, 16) -eq '[PesterResource]') {
-                $powershellModulesToCopy[$_.Name] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
-                Write-Verbose "$($_.Name) is a required PowerShell module"
+                $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+                Write-Verbose "Pester is a required PowerShell module"
             }
         }
     }
@@ -161,7 +160,7 @@ function Copy-DscResources {
     $modulesToCopy += $powershellModulesToCopy
 
     $modulesToCopy.Values | ForEach-Object {
-        if (@('Pester','GuestConfiguration') -notcontains $_.ModuleName) {
+        if (@('Pester', 'GuestConfiguration') -notcontains $_.ModuleName) {
             $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if ($null -ne $moduleToCopy) {
                 if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
@@ -209,7 +208,7 @@ function Copy-DscResources {
     Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
 
     # Remove addition to module path
-    $Env:PSModulePath = $Env:PSModulePath.replace($latestModulePSModulePath,'')
+    $Env:PSModulePath = $Env:PSModulePath.replace($latestModulePSModulePath, '')
 }
 
 function Copy-ChefInspecDependencies {

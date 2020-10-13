@@ -127,9 +127,7 @@ function Copy-DscResources {
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            if ($_.ModuleName -ne 'GuestConfiguration') {
-                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-            }
+            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
         }
     }
 
@@ -165,7 +163,7 @@ function Copy-DscResources {
     $modulesToCopy += $powershellModulesToCopy
 
     $modulesToCopy.Values | ForEach-Object {
-        if ($_.ModuleName -ne 'Pester') {
+        if (@('Pester','GuestConfiguration') -notcontains $_.ModuleName) {
             $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if ($null -ne $moduleToCopy) {
                 if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
@@ -180,7 +178,7 @@ function Copy-DscResources {
             $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
             Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force:$Force
         }
-        else {
+        elseif ($_.ModuleName -eq 'Pester') {
             $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; MinimumVersion = $_.ModuleVersion } -ListAvailable
             if ($null -ne $moduleToCopy) {
                 $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)

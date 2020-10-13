@@ -161,7 +161,7 @@ function Copy-DscResources {
     $modulesToCopy += $powershellModulesToCopy
 
     $modulesToCopy.Values | ForEach-Object {
-        if ($_ModuleName -ne 'Pester') {
+        if ($_.ModuleName -ne 'Pester') {
             $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if ($null -ne $moduleToCopy) {
                 if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {

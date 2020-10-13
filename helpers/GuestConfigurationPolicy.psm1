@@ -125,9 +125,13 @@ function Copy-DscResources {
     
     # Copies DSC resource modules
     $modulesToCopy = @{ }
+    $IncludePesterModule = $false
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion; ResourceID = $_.ResourceID }
+            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+        }
+        if ($_.ResourceID.Substring(0, 16) -eq '[PesterResource]') {
+            $IncludePesterModule = $true
         }
     }
 
@@ -148,12 +152,11 @@ function Copy-DscResources {
                 }
             }
         }
-        else {
-            $pesterResourceID = $_.ResourceID.Substring(0, 16)
-            if ($pesterResourceID.Substring(0, 16) -eq '[PesterResource]') {
-                $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
-                Write-Verbose "Pester is a required PowerShell module"
-            }
+    }
+
+    if ($true -eq $IncludePesterModule) {
+            $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+            Write-Verbose "Pester is a required PowerShell module"
         }
     }
 

@@ -133,10 +133,8 @@ function Copy-DscResources {
 
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
+    $modulesToCopy.Values | convertto-json -depth 15 | set-content debug.txt
     $modulesToCopy.Values | ForEach-Object {
-        $moduleObject = $_
-        $moduleObject | gm | % name | set-content c:\debug.txt
-        write-verbose "Module name $($moduleObject.modulename)"
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {

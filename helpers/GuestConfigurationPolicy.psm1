@@ -136,6 +136,7 @@ function Copy-DscResources {
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
+        write-verbose "Module name is $($_.ModuleName)"
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
@@ -151,7 +152,6 @@ function Copy-DscResources {
             }
         }
         else {
-            write-verbose 'Processing GC Module'
             $resourceID = $_.ResourceID.Substring(0, 16)
             write-verbose "resource id is $resourceID"
             if ($_.ResourceID.Substring(0, 16) -eq '[PesterResource]') {

@@ -155,9 +155,8 @@ function Copy-DscResources {
     }
 
     if ($true -eq $IncludePesterModule) {
-            $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
-            Write-Verbose "Pester is a required PowerShell module"
-        }
+        $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+        Write-Verbose "Pester is a required PowerShell module"
     }
 
     $modulesToCopy += $powershellModulesToCopy

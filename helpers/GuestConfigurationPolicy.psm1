@@ -127,13 +127,12 @@ function Copy-DscResources {
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion; ResourceID = $_.ResourceID }
         }
     }
 
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
-    $modulesToCopy.Values | convertto-json -depth 15 | set-content debug.txt
     $modulesToCopy.Values | ForEach-Object {
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable

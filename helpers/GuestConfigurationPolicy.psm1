@@ -127,14 +127,17 @@ function Copy-DscResources {
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            if ($_.ModuleName -ne 'GuestConfiguration') {
+                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
+            }
         }
     }
 
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
-        write-verbose "Module name is $($_.ModuleName)"
+        $moduleObject = $_
+        write-verbose "Module name $($moduleObject.modulename) resource $($moduleObject.resourceId)"
         if ($_.ModuleName -ne 'GuestConfiguration') {
             $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
             if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
@@ -150,9 +153,9 @@ function Copy-DscResources {
             }
         }
         else {
-            $resourceID = $_.ResourceID.Substring(0, 16)
+            $pesterResourceID = $_.ResourceID.Substring(0, 16)
             write-verbose "resource id is $resourceID"
-            if ($_.ResourceID.Substring(0, 16) -eq '[PesterResource]') {
+            if ($pesterResourceID.Substring(0, 16) -eq '[PesterResource]') {
                 $powershellModulesToCopy[$_.Name] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
                 Write-Verbose "$($_.Name) is a required PowerShell module"
             }

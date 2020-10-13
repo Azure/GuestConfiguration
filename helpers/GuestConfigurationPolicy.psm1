@@ -127,9 +127,7 @@ function Copy-DscResources {
     $modulesToCopy = @{ }
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            if ($_.ModuleName -ne 'GuestConfiguration') {
-                $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-            }
+            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
         }
     }
 

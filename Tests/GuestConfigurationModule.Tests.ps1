@@ -642,17 +642,9 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath
-            
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
-            $unzip = Resolve-Path $pesterExtractionPath
-            $files = Get-ChildItem $unzip
-            $files | ForEach-Object {write-host $_.FullName}
-            
-            Test-Path -Path (Join-Path $unzip 'Scripts') | Should -BeTrue
-            
+            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath            
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'PesterResource'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true

@@ -150,21 +150,41 @@ function Copy-DscResources {
                 }
             }
         }
+        else {
+            if ($_.ResourceID.Substring(0,16) -eq '[PesterResource]') {
+                    $powershellModulesToCopy[$_.Name] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+                    Write-Verbose "$($_.Name) is a required PowerShell module"
+            }
+        }
     }
 
     $modulesToCopy += $powershellModulesToCopy
 
     $modulesToCopy.Values | ForEach-Object {
-        $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
-        if ($null -ne $moduleToCopy) {
-            if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
-                Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration" that are not available in PowerShell Core. Switch to the "PSDSCResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available in "PSDSCResources".'
+        if ($_ModuleName -ne 'Pester') {
+            $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
+            if ($null -ne $moduleToCopy) {
+                if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
+                    Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration" that are not available in PowerShell Core. Switch to the "PSDSCResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available in "PSDSCResources".'
+                }
+                $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
+                Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force
+            }
+            else {
+                Write-Error "Module $($_.ModuleName) version $($_.ModuleVersion) could not be found in `$env:PSModulePath"
             }
             $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
             Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force:$Force
         }
         else {
-            Write-Error "Module $($_.ModuleName) version $($_.ModuleVersion) could not be found in `$env:PSModulePath"
+            $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; MinimumVersion = $_.ModuleVersion } -ListAvailable
+            if ($null -ne $moduleToCopy) {
+                $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
+                Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force
+            }
+            else {
+                Write-Error "The configuration includes PesterResource. This resource requires Pester version 5.0.0 or later, which could not be found in `$env:PSModulePath"
+            }
         }
     }
 

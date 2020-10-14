@@ -286,6 +286,44 @@ Name="DSCConfig";
             return $newGCPolicyParameters
         }
 
+        function New-PublishGCPackageParameters {
+            [CmdletBinding()]
+            param
+            (
+                [Parameter(Mandatory = $true)]
+                [String]
+                $Path,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $DateStamp
+            )
+
+            # Create test Resource Group
+            $resourceGroup = New-AzResourceGroup "GC_Module_$DateStamp" -Location 'westus'
+
+            # Create test Storage Account
+            $randomString = (get-date).ticks.tostring().Substring(12)
+            $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName `
+                -Name "sa$randomString" `
+                -SkuName Standard_LRS `
+                -Location 'westus'
+
+            $ctx = $storageAccount.Context
+
+            # Storage Container
+            $containerName = "guestconfiguration"
+            New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
+            
+            $publishGCPackageParameters = @{
+                Path                 = $Path
+                ResourceGroupName    = "GC_Module_$DateStamp"
+                StorageAccountName   = "sa$randomString"
+            }
+        
+            return $publishGCPackageParameters
+        }
+
         function Get-AzMocks {
             [CmdletBinding()]
             param
@@ -399,9 +437,12 @@ Name="DSCConfig";
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
         $testPolicyName = 'AuditWindowsService'
+
+        $Date = Get-Date
+        $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         
         $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
-
+        
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
 
@@ -429,7 +470,7 @@ Name="DSCConfig";
             # TODO
             # Az PowerShell login from macOS currently has issue
             # https://github.com/microsoft/azure-pipelines-tasks/issues/12030
-            Install-AzLibraries
+            Install-AzLibraries            
         }
     }
     Context 'Module fundamentals' {
@@ -474,7 +515,6 @@ Name="DSCConfig";
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
         }
-
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
         }
@@ -562,6 +602,19 @@ Name="DSCConfig";
             $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
         }
     }
+    Context 'Publish-GuestConfigurationPackage' {
+
+        It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
+            Login-ToTestAzAccount
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
+            $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName
+            $Uri | Should -Not -BeNullOrEmpty
+            $Uri | Should -BeOfType 'String'
+            $Uri | Should -Not -Contain '@'
+            {Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip} | Should -Not -Throw
+        }
+    }
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
@@ -620,6 +673,11 @@ Name="DSCConfig";
 
             foreach ($existingPolicy in $existingPolicies) {
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
+            }
+
+            $RG = Get-AzResourceGroup "GC_Module_$DateStamp" -ErrorAction SilentlyContinue
+            if ($null -ne $RG) {
+                $null = Remove-AzResourceGroup "GC_Module_$DateStamp" -Force
             }
         }
     }

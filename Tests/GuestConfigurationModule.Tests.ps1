@@ -665,6 +665,7 @@ Name="DSCConfig";
         if ($ReleaseBuild) {
             Login-ToTestAzAccount
             # Cleanup
+            
             $existingPolicy = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
             if ($null -ne $existingPolicy) {
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force

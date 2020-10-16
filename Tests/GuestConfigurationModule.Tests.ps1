@@ -665,13 +665,8 @@ Name="DSCConfig";
         if ($ReleaseBuild) {
             Login-ToTestAzAccount
             # Cleanup
-            $existingInitiatives = @(Get-AzPolicySetDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
-
-            foreach ($existingInitiative in $existingInitiatives) {
-                $null = Remove-AzPolicySetDefinition -Name $existingInitiative.Name -Force
-            }
-
-            foreach ($existingPolicy in $existingPolicies) {
+            $existingPolicy = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+            if ($null -ne $existingPolicy) {
                 $null = Remove-AzPolicyDefinition -Name $existingPolicy.Name -Force
             }
 

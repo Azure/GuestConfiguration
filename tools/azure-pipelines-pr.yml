@@ -73,7 +73,6 @@ jobs:
           continueOnError: 'true'
           script: |
             Invoke-Pester -CI
-            Get-ChildItem '$(Build.SourcesDirectory)/bin/'
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

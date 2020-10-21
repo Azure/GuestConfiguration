@@ -205,6 +205,7 @@ function Test-GuestConfigurationPackage {
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
             }
             [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
+            Get-ChildItem $gcBinPath
         }
 
         # Publish policy package

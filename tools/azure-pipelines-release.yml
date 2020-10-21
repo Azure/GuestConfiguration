@@ -24,17 +24,20 @@ jobs:
         displayName: Download Linux agent
         inputs:
           command: download
-          vstsFeed: guestconfiguration
-          vstsFeedPackage: linux_agent
-          vstsPackageVersion: '*'
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: linux_agent
+          versionDownloadExternal: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: UniversalPackages@0
         displayName: Download Windows agent
         inputs:
           command: download
-          vstsFeed: guestconfiguration
-          vstsFeedPackage: windows_agent
-          vstsPackageVersion: '*'
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: windows_agent
+          versionDownloadExternal: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules

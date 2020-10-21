@@ -34,6 +34,7 @@ jobs:
         displayName: Download Windows agent
         inputs:
           command: download
+          feedsToUse: external
           externalFeedCredentials: guestconfiguration
           feedDownloadExternal: guestconfiguration
           packageDownloadExternal: windows_agent

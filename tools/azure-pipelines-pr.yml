@@ -72,8 +72,8 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            Get-ChildItem '$(Build.SourcesDirectory)/bin/'
             Invoke-Pester -CI
+            Get-ChildItem '$(Build.SourcesDirectory)/bin/'
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

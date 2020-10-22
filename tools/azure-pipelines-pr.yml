@@ -39,12 +39,20 @@ jobs:
       vmImage: $(imageName)
     steps:
       - task: UniversalPackages@0
-        displayName: Universal download
+        displayName: Download Linux agent
         inputs:
           command: download
           vstsFeed: guestconfiguration
-          vstsFeedPackage: gc_agents
-          vstsPackageVersion: '0.0.2'
+          vstsFeedPackage: linux_agent
+          vstsPackageVersion: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+      - task: UniversalPackages@0
+        displayName: Download Windows agent
+        inputs:
+          command: download
+          vstsFeed: guestconfiguration
+          vstsFeedPackage: windows_agent
+          vstsPackageVersion: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules

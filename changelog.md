@@ -34,6 +34,15 @@
 - Support for "AINE without DINE"
 - Arc for Servers parameter
 
+## v2.1.0
+
+- New cmdlet publish-guestconfigurationpackage
+
+## v2.0.0
+
+- Support for "AINE without DINE"
+- Arc for Servers parameter
+
 ## v1.20.3
 
 - Fix error when creating Linux policy, "RPName" variable no longer used

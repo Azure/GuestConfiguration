@@ -1,5 +1,14 @@
 # Change Log for GuestConfiguration module
 
+## v2.1.0
+
+- New cmdlet publish-guestconfigurationpackage
+
+## v2.0.0
+
+- Support for "AINE without DINE"
+- Arc for Servers parameter
+
 ## v1.20.3
 
 - Fix error when creating Linux policy, "RPName" variable no longer used
@@ -9,6 +18,26 @@
 - Throw error if PSDesiredStateConfiguration resources are included
 
 ## v1.20.1
+
+- Fix issue with filestoinclude not finding temp package folder
+
+## v1.20.0
+
+- Update API version for Managed Service Identity
+- Support for custom Policy categories
+- Adds support for additional Linux distributions
+- Download location for InSpec requirements
+- Support custom VM images
+- Support Arc machines
+- Re-implements FilesToInclude parameter for New-GCPackage for adding arbitrary files to content artifact
+- Return error when attempting to protect package using invalid certificate
+- Ensures shell script to install Inspec has Linux line endings
+- Include PowerShell modules when they are required for DSC modules in packages
+- More target file copy when creating custom packages
+- Remove DataBricks from policy IF statements
+- Support filtering policy for single tag name/value
+
+## v1.19.4
 
 - Fix issue with filestoinclude not finding temp package folder
 

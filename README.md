@@ -12,6 +12,7 @@ There are three tasks that this module automates:
 - Functional validation of the content package
   - Contains required files
   - Runs the Audit against the local machine using the agent binaries used in Azure
+- Publish the package to Azure blob storage
 - Create the JSON files for the Azure Policy definitions (auditifnotexists, deployifnotexists, initiative)
 - Publish the Azure Policy definitions to the currently selected subscription
 

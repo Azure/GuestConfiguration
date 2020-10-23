@@ -1,4 +1,3 @@
-pr: 'none'
 trigger: 'none'
 
 jobs:
@@ -22,55 +21,35 @@ jobs:
       vmImage: $(imageName)
     steps:
       - task: UniversalPackages@0
-        displayName: Universal download
+        displayName: Download Linux agent
         inputs:
           command: download
           feedsToUse: external
           externalFeedCredentials: guestconfiguration
           feedDownloadExternal: guestconfiguration
-          packageDownloadExternal: gc_agents
-          versionDownloadExternal: '0.0.2'
+          packageDownloadExternal: linux_agent
+          versionDownloadExternal: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+      - task: UniversalPackages@0
+        displayName: Download Windows agent
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: windows_agent
+          versionDownloadExternal: '*'
           downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules
         inputs:
           pwsh: 'true'
           targetType: inline
-          failOnStderr: false
-          errorActionPreference: silentlycontinue
+          failOnStderr: true
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
             $modules += @('PSScriptAnalyzer','Pester')
-            Install-Module -Name $modules -Force -AllowClobber -SkipPublisherCheck
-      - task: PowerShell@2
-        enabled: 'true'
-        continueOnError: 'true'
-        displayName: Pester v4 unit tests
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          continueOnError: 'true'
-          script: |
-            write-host "ps version: $($PSVersionTable | % PSVersion)"
-            $Pester = Invoke-Pester -OutputFile "$env:COMMON_TESTRESULTSDIRECTORY/TEST.xml" -OutputFormat NUnitXml -PassThru
-            if ($Pester.FailedCount -gt 0) {
-              Exit "$($Pester.FailedCount)"
-            }
-        env: 
-          AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
-          AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
-          AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
-          AZURE_TENANTID: $(AZURETENANTID)
-      - task: PowerShell@2
-        enabled: 'true'
-        displayName: Install Pester v5
-        inputs:
-          pwsh: 'true'
-          targetType: inline
-          failOnStderr: true
-          errorActionPreference: stop
-          script: |
-            Install-Module -Name 'Pester' -Force -AllowPreRelease
+            Install-Module -Name $modules -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v5 unit tests

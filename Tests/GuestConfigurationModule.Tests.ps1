@@ -38,6 +38,7 @@ function Get-OSPlatform {
 
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
 $IsNotWindows = 'Windows' -ne (Get-OSPlatform)
+$IsWindows = 'Windows' -eq (Get-OSPlatform)
 $IsNotWindowsAndIsAzureDevOps = $IsNotWindows -AND (Get-IsAzureDevOps)
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
@@ -515,6 +516,7 @@ Name="DSCConfig";
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
         }
+
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
         }
@@ -560,7 +562,7 @@ Name="DSCConfig";
     }
     Context 'Test-GuestConfigurationPackage' {
 
-        It 'Validate that the resource compliance results are as expected' -Skip:$IsNotWindows {
+        It 'Validate that the resource compliance results are as expected on Windows' -Skip:$IsNotWindows {
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
@@ -568,6 +570,15 @@ Name="DSCConfig";
             $testPackageResult.resources[0].complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
             $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
+        }
+
+        It 'Validate that the resource compliance results are as expected on Linux' -Skip:$IsWindows {
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            $testPackageResult.complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
         }
     } 
     Context 'Protect-GuestConfigurationPackage' {

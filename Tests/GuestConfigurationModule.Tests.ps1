@@ -37,9 +37,7 @@ function Get-OSPlatform {
 }
 
 $IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
-$IsNotWindows = 'Windows' -ne (Get-OSPlatform)
-$IsWindows = 'Windows' -eq (Get-OSPlatform)
-$IsNotWindowsAndIsAzureDevOps = $IsNotWindows -AND (Get-IsAzureDevOps)
+$IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND (Get-IsAzureDevOps)
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
@@ -562,7 +560,7 @@ Name="DSCConfig";
     }
     Context 'Test-GuestConfigurationPackage' {
 
-        It 'Validate that the resource compliance results are as expected on Windows' -Skip:$IsNotWindows {
+        It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
@@ -583,7 +581,7 @@ Name="DSCConfig";
     } 
     Context 'Protect-GuestConfigurationPackage' {
         
-        It 'Signed package should exist at output path' -Skip:$IsNotWindows {
+        It 'Signed package should exist at output path' -Skip:($IsLinux -or $IsMacOS) {
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
@@ -592,7 +590,7 @@ Name="DSCConfig";
             Test-Path -Path $protectPackageResult.Path | Should -BeTrue
         }
     
-        It 'Signed package should be extractable' -Skip:$IsNotWindows {
+        It 'Signed package should be extractable' -Skip:($IsLinux -or $IsMacOS) {
             $signedFileName = $policyName + "_signed.zip"
             $package = Get-Item "$testPackagePath/$policyName/$signedFileName"
             # Set up type needed for package extraction
@@ -600,12 +598,12 @@ Name="DSCConfig";
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw
         }
 
-        It '.cat file should exist in the extracted package' -Skip:$IsNotWindows {
+        It '.cat file should exist in the extracted package' -Skip:($IsLinux -or $IsMacOS) {
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
             Test-Path -Path $catFilePath | Should -BeTrue
         }
 
-        It 'Extracted .cat file thumbprint should match certificate thumbprint' -Skip:$IsNotWindows {
+        It 'Extracted .cat file thumbprint should match certificate thumbprint' -Skip:($IsLinux -or $IsMacOS) {
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"

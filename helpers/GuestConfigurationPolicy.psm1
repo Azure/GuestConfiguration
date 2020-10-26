@@ -208,6 +208,7 @@ function Copy-ChefInspecDependencies {
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
             $usingChefResource = $true
+            write-warning "The configuration is using the Inspec resource"
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
                 Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
@@ -232,7 +233,8 @@ function Copy-ChefInspecDependencies {
         }
     }
     else {
-        if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
+        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
+            Write-Warning "Resource: $usingChefResource `n Profile: $ChefInspecProfilePath"
             Throw 'Using the ChefInspecProfilePath parameter requires including the ChefInSpecResource DSC resource in the configuration MOF.'
         }
     }

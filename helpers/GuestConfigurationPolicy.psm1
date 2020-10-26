@@ -221,9 +221,6 @@ function Copy-ChefInspecDependencies {
             }
 
         }
-        else {
-            write-warning "InSpec resource check CIM class is $($_.CimClass.CimClassName)"
-        }
     }
 
     if ($true -eq $usingChefResource) {
@@ -235,7 +232,7 @@ function Copy-ChefInspecDependencies {
         }
     }
     else {
-        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
+        if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
             Throw 'Using the ChefInspecProfilePath parameter requires including the ChefInSpecResource DSC resource in the configuration MOF.'
         }
     }

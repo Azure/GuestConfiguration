@@ -572,7 +572,11 @@ Name="DSCConfig";
 
         It 'Validate that the resource compliance results are as expected on Linux' -Skip:$IsWindows {
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
-            { sudo pwsh {Test-GuestConfigurationPackage -Path $package.Path }} | Should -Not -Throw
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            $testPackageResult.complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
         }
     } 
     Context 'Protect-GuestConfigurationPackage' {

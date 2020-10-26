@@ -72,7 +72,8 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            Invoke-Pester -CI
+            if ($IsWindows) { Invoke-Pester -CI }
+            else { sudo pwsh { Invoke-Pester -CI }}
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:

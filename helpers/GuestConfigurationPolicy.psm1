@@ -221,6 +221,9 @@ function Copy-ChefInspecDependencies {
             }
 
         }
+        else {
+            write-warning "InSpec resource check CIM class is $($_.CimClass.CimClassName)"
+        }
     }
 
     if ($true -eq $usingChefResource) {

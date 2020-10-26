@@ -375,6 +375,15 @@ function Publish-DscConfiguration
     $gcBinPath = Get-GuestConfigBinaryPath
     $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
 
+    $testGCbinPath = Test-Path $gcBinPath
+    if ($false -eq $testGCbinPath) {throw "Guest Config binaries not found at path $gcBinPath"}
+
+    $testDSClibPath = Test-Path $dsclibPath
+    if ($false -eq $testDSClibPath) {throw "Guest Config binaries not found at path $dsclibPath"}
+    
+    $testPath = Test-Path $Path
+    if ($false -eq $testPath) {throw "Guest Config binaries not found at path $testPath"}
+
     if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
         $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
         Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'

@@ -29,7 +29,7 @@ function Get-OSPlatform {
     return $platform
 }
 
-$IsNotAzureDevOps = $($false -eq $env:ADO)
+$IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
 $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {

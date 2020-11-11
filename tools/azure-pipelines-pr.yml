@@ -18,9 +18,6 @@ pr:
         - .gitignore
         - .github/*
 
-variables:
-  ADO: 'true'
-
 jobs:
   - job: Test
     strategy:
@@ -70,6 +67,8 @@ jobs:
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v5 unit tests
+        variables:
+          ADO: 'true'
         inputs:
           pwsh: 'true'
           targetType: inline

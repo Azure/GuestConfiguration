@@ -4,13 +4,6 @@
 #  configuration assignement.
 ######################################################
 
-function Get-IsAzureDevOps {
-    if ($env:AGENT_JOBSTATUS -eq 'Succeeded' ) {
-        $true
-    }
-    else { $false }
-}
-
 function Get-OSPlatform {
     [OutputType([String])]
     [CmdletBinding()]
@@ -36,7 +29,7 @@ function Get-OSPlatform {
     return $platform
 }
 
-$IsNotAzureDevOps = $false -eq (Get-IsAzureDevOps)
+$IsNotAzureDevOps = $($false -eq $env:ADO)
 $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND (Get-IsAzureDevOps)
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
@@ -402,7 +395,6 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
-            $ADO = $env:AGENT_JOBSTATUS -eq 'Succeeded'
             Write-Verbose "Running in Azure DevOps: $ADO" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
             Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose

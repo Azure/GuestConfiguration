@@ -1,5 +1,8 @@
 trigger: 'none'
 
+variables:
+  ado: 'true'
+
 jobs:
   - job: Test
     strategy:

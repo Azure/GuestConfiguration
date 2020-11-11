@@ -18,6 +18,9 @@ pr:
         - .gitignore
         - .github/*
 
+variables:
+  ado: 'true'
+
 jobs:
   - job: Test
     strategy:

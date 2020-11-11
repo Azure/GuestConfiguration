@@ -5,7 +5,7 @@
 ######################################################
 
 function Get-IsAzureDevOps {
-    if ($Env:AGENT_JOBSTATUS -eq 'Succeeded' ) {
+    if ($env:AGENT_JOBSTATUS -eq 'Succeeded' ) {
         $true
     }
     else { $false }
@@ -402,6 +402,10 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
+            $ADO = Get-IsAzureDevOps
+            Write-Verbose "Running in Azure DevOps: $ADO"
+            $NotWindows = $($IsLinux -or $IsMacOS)
+            Write-Verbose "Running on Linux or MacOS: $NotWindows"
             $psTitleLine = "POWERSHELL INFO"
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'

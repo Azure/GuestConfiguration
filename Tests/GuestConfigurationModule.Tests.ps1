@@ -402,7 +402,7 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
-            $ADO = Get-IsAzureDevOps
+            $ADO = $env:AGENT_JOBSTATUS -eq 'Succeeded'
             Write-Verbose "Running in Azure DevOps: $ADO"
             $NotWindows = $($IsLinux -or $IsMacOS)
             Write-Verbose "Running on Linux or MacOS: $NotWindows"

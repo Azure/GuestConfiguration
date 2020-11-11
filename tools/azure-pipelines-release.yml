@@ -58,9 +58,8 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            $env:ADO = $true
-            if ($IsWindows) { Invoke-Pester -CI }
-            else { sudo pwsh { Invoke-Pester -CI }}
+            if ($IsWindows) { $env:ADO = $true; Invoke-Pester -CI }
+            else { sudo pwsh { $env:ADO = $true; Invoke-Pester -CI }}
         env: 
           AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)

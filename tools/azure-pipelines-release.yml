@@ -20,8 +20,8 @@ jobs:
     pool:
       vmImage: $(imageName)
     variables:
-        - name: 'ADO'
-          value: 'true'
+      - name: ADO
+        value: 'true'
     steps:
       - task: UniversalPackages@0
         displayName: Download Linux agent

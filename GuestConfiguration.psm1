@@ -155,9 +155,9 @@ function Test-GuestConfigurationPackage {
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
     )
-
+    
     if (-not (Test-Path $Path -PathType Leaf)) {
-        Throw 'Invalid Guest Configuration package path.'
+        Throw 'Invalid Guest Configuration package path : $($Path)'
     }
 
     $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))

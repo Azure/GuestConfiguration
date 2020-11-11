@@ -30,7 +30,7 @@ function Get-OSPlatform {
 }
 
 $IsNotAzureDevOps = $($false -eq $env:ADO)
-$IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND (Get-IsAzureDevOps)
+$IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 
 if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
     $releaseBuild = $true
@@ -395,7 +395,7 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
-            Write-Verbose "Running in Azure DevOps: $ADO" -Verbose
+            Write-Verbose "Running in Azure DevOps: $env:ADO" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
             Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"

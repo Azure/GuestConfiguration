@@ -203,18 +203,18 @@ function Copy-ChefInspecDependencies {
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)
     $missingDependencies = @()
     $chefInspecProfiles = @()
+    $usingChefResource = $false
     
     $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {            
-
+        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
+            $usingChefResource = $true
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
                 Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
 
             $inspecProfilePath = Join-Path $ChefInspecProfilePath $_.CimInstanceProperties['Name'].Value
-
             if (-not (Test-Path $inspecProfilePath)) {
-                Throw "Failed to find Chef Inspec profile for '$($_.CimInstanceProperties['Name'].Value)'. Please make sure profile is present on $ChefInspecProfilePath path."
+                $missingDependencies += $_.CimInstanceProperties['Name'].Value
             }
             else {
                 $chefInspecProfiles += $inspecProfilePath
@@ -222,8 +222,20 @@ function Copy-ChefInspecDependencies {
 
         }
     }
-    
-    $chefInspecProfiles | ForEach-Object { Copy-Item $_ $modulePath -Recurse -Force -ErrorAction SilentlyContinue }
+
+    if ($true -eq $usingChefResource) {
+        if ($missingDependencies.Length) {
+            Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
+        }
+        else {
+            $chefInspecProfiles | ForEach-Object { Copy-Item $_ $modulePath -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+    else {
+        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
+            Throw 'Using the ChefInspecProfilePath parameter requires including the ChefInSpecResource DSC resource in the configuration MOF.'
+        }
+    }
 }
 
 function Convert-FileToUnixLineEndings {

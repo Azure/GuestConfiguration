@@ -174,6 +174,7 @@ ModuleVersion = "2.2.0";
 SourceInfo = "::7::1::ChefInSpecResource";
 ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";
+GithubPath = "linux-path/Modules/linux-path/"
 };
 
 instance of OMI_ConfigurationDocument

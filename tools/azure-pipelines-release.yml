@@ -19,9 +19,6 @@ jobs:
           imageName: vs2017-win2016
     pool:
       vmImage: $(imageName)
-    variables:
-      - name: ADO
-        value: 'true'
     steps:
       - task: UniversalPackages@0
         displayName: Download Linux agent
@@ -61,7 +58,9 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            Invoke-Pester -CI
+            $env:ADO = $true
+            if ($IsWindows) { Invoke-Pester -CI }
+            else { sudo pwsh { Invoke-Pester -CI }}
         env: 
           AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)

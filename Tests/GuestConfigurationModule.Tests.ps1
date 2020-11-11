@@ -403,9 +403,9 @@ Name="DSCConfig";
             param ()
         
             $ADO = $env:AGENT_JOBSTATUS -eq 'Succeeded'
-            Write-Verbose "Running in Azure DevOps: $ADO"
+            Write-Verbose "Running in Azure DevOps: $ADO" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
-            Write-Verbose "Running on Linux or MacOS: $NotWindows"
+            Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'

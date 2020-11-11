@@ -203,11 +203,9 @@ function Copy-ChefInspecDependencies {
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Configuration, 4)
     $missingDependencies = @()
     $chefInspecProfiles = @()
-    $usingChefResource = $false
     
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
-            $usingChefResource = $true
             if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
                 Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
@@ -223,19 +221,12 @@ function Copy-ChefInspecDependencies {
         }
     }
 
-    if ($true -eq $usingChefResource) {
-        if ($missingDependencies.Length) {
-            Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
-        }
-        else {
-            $chefInspecProfiles | ForEach-Object { Copy-Item $_ $modulePath -Recurse -Force -ErrorAction SilentlyContinue }
-        }
+    if ($missingDependencies.Length) {
+        Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
     }
-    else {
-        if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
-            Throw 'Using the ChefInspecProfilePath parameter requires including the ChefInSpecResource DSC resource in the configuration MOF.'
-        }
-    }
+
+    $chefInspecProfiles | ForEach-Object { Copy-Item $_ $modulePath -Recurse -Force -ErrorAction SilentlyContinue }
+
 }
 
 function Convert-FileToUnixLineEndings {

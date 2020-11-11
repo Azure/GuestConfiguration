@@ -19,7 +19,7 @@ pr:
         - .github/*
 
 variables:
-  ado: 'true'
+  ADO: 'true'
 
 jobs:
   - job: Test

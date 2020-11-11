@@ -395,7 +395,7 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
-            Write-Verbose "Running in Azure DevOps: $env:ADO" -Verbose
+            Write-Verbose "Running in Azure DevOps: $($env:ADO)" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
             Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"

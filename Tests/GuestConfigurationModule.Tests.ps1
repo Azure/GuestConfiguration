@@ -211,7 +211,7 @@ end
                 $null = New-Item -ItemType Directory -Path $InSpecProfilePath
         
                 # creates Inspec profile required Yml file
-                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'Inspec.yml'
+                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'inspec.yml'
                 $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
         
                 # creates directory for Inspec controls (component of Inspec profile)
@@ -547,7 +547,7 @@ Name="DSCConfig";
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
             $extractedInspecPath | Should -Exist
-            $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'Inspec.yml'
+            $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'inspec.yml'
             $inspecYmlExtractedFile | Should -Exist
             $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'controls'
             $inspecControlsExtractedFile | Should -Exist
@@ -568,7 +568,7 @@ Name="DSCConfig";
         }
 
         It 'Validate that the resource compliance results are as expected on Linux' -Skip:$IsWindows {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'

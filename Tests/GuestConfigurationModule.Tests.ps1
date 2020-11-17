@@ -152,14 +152,14 @@ Name="DSCConfig";
 };
 '@
 
-            $dscDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'DSCConfig' -ItemType Directory
-            $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
-            $null = Set-Content -Path $dscDestinationMOFPath -Value $dscConfig
+                $dscDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'DSCConfig' -ItemType Directory
+                $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+                $null = Set-Content -Path $dscDestinationMOFPath -Value $dscConfig
             
-            $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
-            New-Item $filesToIncludeFolderPath -ItemType Directory
-            $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
-            $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
+                $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
+                New-Item $filesToIncludeFolderPath -ItemType Directory
+                $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
+                $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
             }
             #endregion
         
@@ -250,14 +250,19 @@ Name="DSCConfig";
             }
             #endregion
         }
-    
+        #TODO
         function New-TestGCPolicyParameters {
             [CmdletBinding()]
             param
             (
                 [Parameter(Mandatory = $true)]
                 [String]
-                $DestinationFolderPath
+                $DestinationFolderPath,
+
+                [Parameter()]
+                [ValidateSet('Windows', 'Linux')]
+                [String]
+                $Platform = 'Windows'
             )
         
             if (Test-CurrentMachineIsWindows) {
@@ -268,12 +273,23 @@ Name="DSCConfig";
                 $currentWindowsOSString = 'Non-Windows'
             }
             
-            $newGCPolicyParameters = @{
-                ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-                Description = 'Policy to audit a Windows service'
-                Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitions'
-                Version     = '1.0.0.0'
+            if ('Windows' -eq $Platform) {
+                $newGCPolicyParameters = @{
+                    ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                    DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+                    Description = 'Policy to audit a Windows service'
+                    Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitions'
+                    Version     = '1.0.0.0'
+                }
+            }
+            elseif ('Linux' -eq $Platform) {
+                $newGCPolicyParameters = @{
+                    ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                    DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
+                    Description = 'Policy to audit a Linux path'
+                    Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitions'
+                    Version     = '1.0.0.0'
+                }
             }
         
             return $newGCPolicyParameters
@@ -309,9 +325,9 @@ Name="DSCConfig";
             New-AzStorageContainer -Name $containerName -Context $ctx -Permission blob
             
             $publishGCPackageParameters = @{
-                Path                 = $Path
-                ResourceGroupName    = "GC_Module_$DateStamp"
-                StorageAccountName   = "sa$randomString"
+                Path               = $Path
+                ResourceGroupName  = "GC_Module_$DateStamp"
+                StorageAccountName = "sa$randomString"
             }
         
             return $publishGCPackageParameters
@@ -353,9 +369,11 @@ Name="DSCConfig";
             else {
                 $delimiter = ":"
             }
-            $Env:PSModulePath = "$gcModuleFolderPath" + "$delimiter" + "$Env:PSModulePath"
+
+            $firstPSModulePathFolder = ($Env:PSModulePath -split $delimiter)[0]
+            Copy-Item $gcModuleFolderPath $firstPSModulePathFolder -Recurse
         
-            $gcModulePath = Join-Path $gcModuleFolderPath 'GuestConfiguration.psd1'
+            $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
         }
@@ -432,12 +450,16 @@ Name="DSCConfig";
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-        $testPolicyName = 'AuditWindowsService'
+        $testPolicyNameWindows = 'AuditWindowsService'
+        $testPolicyNameLinux = 'AuditLinuxPath'
+        $testOutputPathWindows = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Windows'
+        $testOutputPathLinux = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Linux'
 
         $Date = Get-Date
         $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         
-        $newGCPolicyParameters = New-TestGCPolicyParameters $testOutputPath
+        $newGCPolicyParametersWindows = New-TestGCPolicyParameters $testOutputPath
+        $newGCPolicyParametersLinux = New-TestGCPolicyParameters $testOutputPath -Platform 'Linux'
         
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
@@ -618,7 +640,7 @@ Name="DSCConfig";
             $Uri | Should -Not -BeNullOrEmpty
             $Uri | Should -BeOfType 'String'
             $Uri | Should -Not -Contain '@'
-            {Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip} | Should -Not -Throw
+            { Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
         }
     }
     Context 'New-GuestConfigurationPolicy' {
@@ -631,24 +653,41 @@ Name="DSCConfig";
             else {
                 Login-ToTestAzAccount
             }
-            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
-            $newGCPolicyResult.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResult.Path | Should -BeTrue
+            $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
+            $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
+            Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
+            
+            $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyParametersLinux
+            $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
+            Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
         }
 
         It 'Generated Audit policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFile | Should -BeTrue
+            $auditPolicyFileWindows = Join-Path -Path $newPolicyDirectoryWindows -ChildPath 'AuditIfNotExists.json'
+            Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
+            
+            $auditPolicyFileLinux = Join-Path -Path $newPolicyDirectoryLinux -ChildPath 'AuditIfNotExists.json'
+            Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
         }
 
         It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $auditPolicyFile = Join-Path -Path $newPolicyDirectory -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContent = Get-Content $auditPolicyFile | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContent.properties.displayName.Contains($newGCPolicyParameters.DisplayName) | Should -BeTrue
-            $auditPolicyContent.properties.description.Contains($newGCPolicyParameters.Description) | Should -BeTrue
-            $auditPolicyContent.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContent.properties.policyType | Should -Be $expectedPolicyType
-            $auditPolicyContent.properties.policyRule.then.details.name | Should -Be $testPolicyName
+            $auditPolicyFileWindows = Join-Path -Path $newPolicyDirectoryWindows -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
+            $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyParametersWindows.DisplayName) | Should -BeTrue
+            $auditPolicyContentWindows.properties.description.Contains($newGCPolicyParametersWindows.Description) | Should -BeTrue
+            $auditPolicyContentWindows.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
+            $auditPolicyContentWindows.properties.policyType | Should -Be $expectedPolicyType
+            $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be $testPolicyNameWindows
+            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf.equals | Should -Be 'MicrosoftWindowsServer'
+
+            $auditPolicyFileLinux = Join-Path -Path $newPolicyDirectoryLinux -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
+            $auditPolicyContentLinux.properties.displayName.Contains($newGCPolicyParametersLinux.DisplayName) | Should -BeTrue
+            $auditPolicyContentLinux.properties.description.Contains($newGCPolicyParametersLinux.Description) | Should -BeTrue
+            $auditPolicyContentLinux.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
+            $auditPolicyContentLinux.properties.policyType | Should -Be $expectedPolicyType
+            $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be $testPolicyNameLinux
+            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf.equals | Should -Be 'OpenLogic'
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {

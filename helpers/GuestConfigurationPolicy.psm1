@@ -172,7 +172,8 @@ function Copy-DscResources {
     $resources | ForEach-Object {
         if ($_.ImplementedAs -eq 'Binary') {
             $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
-            Get-ChildItem $binaryResourcePath/* -Include *.sh | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
+            Get-ChildItem $binaryResourcePath/* -Include *.sh -Recurse | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
+            Copy-Item $binaryResourcePath/* -Include *.sh $modulePath -Recurse -Force
             Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
         }
     }

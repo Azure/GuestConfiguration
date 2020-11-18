@@ -513,10 +513,10 @@ function New-GuestConfigurationDeployPolicyDefinition {
         [String]
         $Guid,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform = 'Windows',
+        $Platform,
 
         [Parameter()]
         [bool]

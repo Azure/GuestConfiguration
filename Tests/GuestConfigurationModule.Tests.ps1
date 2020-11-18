@@ -259,10 +259,10 @@ Name="DSCConfig";
                 [String]
                 $DestinationFolderPath,
 
-                [Parameter()]
+                [Parameter(Mandatory = $true)]
                 [ValidateSet('Windows', 'Linux')]
                 [String]
-                $Platform = 'Windows'
+                $Platform
             )
         
             if (Test-CurrentMachineIsWindows) {
@@ -456,8 +456,8 @@ Name="DSCConfig";
         $Date = Get-Date
         $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         
-        $newGCPolicyParametersWindows = New-TestGCPolicyParameters $testOutputPath
-        $newGCPolicyParametersLinux = New-TestGCPolicyParameters $testOutputPath -Platform 'Linux'
+        $newGCPolicyParametersWindows = New-TestGCPolicyParameters -DestinationFolderPath $testOutputPathWindows -Platform 'Windows'
+        $newGCPolicyParametersLinux = New-TestGCPolicyParameters -DestinationFolderPath $testOutputPathLinux -Platform 'Linux'
         
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'

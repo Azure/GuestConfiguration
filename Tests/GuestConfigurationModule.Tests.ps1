@@ -674,7 +674,7 @@ Name="DSCConfig";
             $auditPolicyContentWindows.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
             $auditPolicyContentWindows.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be $testPolicyNameWindows
-            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf.equals | Should -Be 'MicrosoftWindowsServer'
+            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
 
             $auditPolicyFileLinux = Join-Path -Path $newPolicyDirectoryLinux -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -683,7 +683,7 @@ Name="DSCConfig";
             $auditPolicyContentLinux.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
             $auditPolicyContentLinux.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be $testPolicyNameLinux
-            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf.equals | Should -Be 'OpenLogic'
+            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {
@@ -697,7 +697,7 @@ Name="DSCConfig";
         It 'Should be able to retrieve 1 published policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
             $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
-            write-host $($existingPolicies | % Properties)
+            write-host $($existingPolicies | ForEach-Object Properties)
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 1
         }

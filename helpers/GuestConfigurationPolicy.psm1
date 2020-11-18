@@ -1341,7 +1341,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [Parameter(Mandatory = $false)]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform = 'Windows',
+        $Platform,
 
         [Parameter()]
         [Hashtable[]]

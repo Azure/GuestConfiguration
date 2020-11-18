@@ -278,7 +278,7 @@ Name="DSCConfig";
                     ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
                     DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
                     Description = 'Policy to audit a Windows service'
-                    Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitionsWindows'
+                    Path        = $DestinationFolderPath
                     Version     = '1.0.0.0'
                     Platform    = 'Windows'
                 }
@@ -288,7 +288,7 @@ Name="DSCConfig";
                     ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
                     DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
                     Description = 'Policy to audit a Linux path'
-                    Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitionsLinux'
+                    Path        = $DestinationFolderPath
                     Version     = '1.0.0.0'
                     Platform    = 'Linux'
                 }

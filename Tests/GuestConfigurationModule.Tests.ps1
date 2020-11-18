@@ -280,6 +280,7 @@ Name="DSCConfig";
                     Description = 'Policy to audit a Windows service'
                     Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitionsWindows'
                     Version     = '1.0.0.0'
+                    Platform    = 'Windows'
                 }
             }
             elseif ('Linux' -eq $Platform) {
@@ -289,6 +290,7 @@ Name="DSCConfig";
                     Description = 'Policy to audit a Linux path'
                     Path        = Join-Path -Path $DestinationFolderPath -ChildPath 'policyDefinitionsLinux'
                     Version     = '1.0.0.0'
+                    Platform    = 'Linux'
                 }
             }
         
@@ -447,7 +449,7 @@ Name="DSCConfig";
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
         $testPolicyNameWindows = 'AuditWindowsService'
-        $testPolicyNameLinux = 'AuditLinuxPath'
+        $testPolicyNameLinux = 'AuditWindowsService'
         $testOutputPathWindows = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Windows'
         $testOutputPathLinux = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Linux'
 

@@ -335,12 +335,7 @@ Name="DSCConfig";
 
         function Get-AzMocks {
             [CmdletBinding()]
-            param
-            (
-                [Parameter(Mandatory = $true)]
-                [Hashtable]
-                $newGCPolicyParameters
-            )
+            param()
             Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable          
             Mock Get-AzPolicyDefinition -Verifiable
             Mock New-AzPolicyDefinition -Verifiable
@@ -648,7 +643,7 @@ Name="DSCConfig";
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
             if ($notReleaseBuild) {
                 function Get-AzContext {}
-                Get-AzMocks -newGCPolicyParameters $newGCPolicyParameters
+                Get-AzMocks
             }
             else {
                 Login-ToTestAzAccount

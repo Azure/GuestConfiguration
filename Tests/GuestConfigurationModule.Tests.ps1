@@ -428,8 +428,6 @@ Name="DSCConfig";
         $dscConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'DSCConfig'
         $mofPath = Join-Path -Path $dscConfigFolderPath -ChildPath 'localhost.mof'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $newPolicyDirectoryWindows = Join-Path -Path $testOutputPath -ChildPath 'PolicyDefinitionsWindows'
-        $newPolicyDirectoryLinux = Join-Path -Path $testOutputPath -ChildPath 'PolicyDefinitionsLinux'
         $policyName = 'testPolicy'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
@@ -661,15 +659,15 @@ Name="DSCConfig";
         }
 
         It 'Generated Audit policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $auditPolicyFileWindows = Join-Path -Path $newPolicyDirectoryWindows -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
             
-            $auditPolicyFileLinux = Join-Path -Path $newPolicyDirectoryLinux -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
         }
 
         It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $auditPolicyFileWindows = Join-Path -Path $newPolicyDirectoryWindows -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyParametersWindows.DisplayName) | Should -BeTrue
             $auditPolicyContentWindows.properties.description.Contains($newGCPolicyParametersWindows.Description) | Should -BeTrue
@@ -678,7 +676,7 @@ Name="DSCConfig";
             $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be $testPolicyNameWindows
             $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
 
-            $auditPolicyFileLinux = Join-Path -Path $newPolicyDirectoryLinux -ChildPath 'AuditIfNotExists.json'
+            $auditPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContentLinux.properties.displayName.Contains($newGCPolicyParametersLinux.DisplayName) | Should -BeTrue
             $auditPolicyContentLinux.properties.description.Contains($newGCPolicyParametersLinux.Description) | Should -BeTrue

@@ -371,7 +371,7 @@ Name="DSCConfig";
             }
 
             $firstPSModulePathFolder = ($Env:PSModulePath -split $delimiter)[0]
-            Copy-Item $gcModuleFolderPath $firstPSModulePathFolder -Recurse
+            Copy-Item $gcModuleFolderPath (Join-Path $firstPSModulePathFolder 'GuestConfiguration') -Recurse
         
             $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force

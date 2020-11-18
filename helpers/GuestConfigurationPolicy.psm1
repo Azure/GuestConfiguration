@@ -1356,7 +1356,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
     }
 
     #TODO
-    Write-Warning "Platform: $Platform"
+    Write-Verbose "Platform: $Platform" -Verbose
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     $ParameterMapping = @{ }

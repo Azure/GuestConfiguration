@@ -667,6 +667,8 @@ Name="DSCConfig";
         }
 
         It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+            $newGCPolicyParametersLinux.Platform | Should -Be 'Linux'
+
             $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
             $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyParametersWindows.DisplayName) | Should -BeTrue

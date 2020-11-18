@@ -1338,7 +1338,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [String]
         $Guid,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $true)]
         [ValidateSet('Windows', 'Linux')]
         [String]
         $Platform,
@@ -1918,12 +1918,7 @@ function New-GuestConfigurationPolicyDefinition {
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditIfNotExistsInfo,
-
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows'
+        $AuditIfNotExistsInfo
     )
 
     if (Test-Path -Path $PolicyFolderPath) {
@@ -1949,12 +1944,7 @@ function New-CustomGuestConfigPolicy {
         
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditIfNotExistsInfo,
-
-        [Parameter()]
-        [ValidateSet('Windows', 'Linux')]
-        [String]
-        $Platform = 'Windows'
+        $AuditIfNotExistsInfo
     )
 
     $existingPolicies = Get-AzPolicyDefinition

@@ -628,6 +628,7 @@ function New-GuestConfigurationPolicy {
             FileName                 = 'AuditIfNotExists.json'
             DisplayName              = $DisplayName
             Description              = $Description
+            Platform                 = $Platform
             ConfigurationName        = $policyName
             ConfigurationVersion     = $Version
             ContentUri               = $ContentUri

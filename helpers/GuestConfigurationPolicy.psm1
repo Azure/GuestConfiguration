@@ -1834,7 +1834,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
 
-        $hybridSection['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like  = "linux*"

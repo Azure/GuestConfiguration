@@ -585,7 +585,7 @@ Name="DSCConfig";
             $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
         }
 
-        It 'Validate that the resource compliance results are as expected on Linux' -Skip:$IsWindows {
+        It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
             $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $true

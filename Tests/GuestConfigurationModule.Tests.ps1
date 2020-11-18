@@ -448,8 +448,8 @@ Name="DSCConfig";
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
         $testPolicyNameWindows = 'AuditWindowsService'
         $testPolicyNameLinux = 'AuditWindowsService'
-        $testOutputPathWindows = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Windows'
-        $testOutputPathLinux = Join-Path -Path (Join-Path -Path $TestDrive -ChildPath 'output') -ChildPath 'Linux'
+        $testOutputPathWindows = Join-Path -Path $TestDrive -ChildPath 'policyDefinitionsWindows'
+        $testOutputPathLinux = Join-Path -Path $TestDrive -ChildPath 'policyDefinitionsLinux'
 
         $Date = Get-Date
         $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"

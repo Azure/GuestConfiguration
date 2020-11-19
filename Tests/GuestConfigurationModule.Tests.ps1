@@ -697,7 +697,7 @@ Name="DSCConfig";
 
         It 'Should be able to retrieve 1 published policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
-            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParameters.DisplayName) ) } )
+            $existingPolicies = @(Get-AzPolicyDefinition | Where-Object { ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and ($_.Properties.displayName.Contains($newGCPolicyParametersWindows.DisplayName) ) } )
             write-host $($existingPolicies | ForEach-Object Properties)
             $null -ne $existingPolicies | Should -BeTrue
             $existingPolicies.Count | Should -Be 1

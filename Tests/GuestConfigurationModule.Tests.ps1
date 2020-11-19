@@ -667,7 +667,6 @@ Name="DSCConfig";
         }
 
         It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $newGCPolicyParametersLinux.Platform | Should -Be 'Linux'
 
             $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
             $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
@@ -685,7 +684,7 @@ Name="DSCConfig";
             $auditPolicyContentLinux.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
             $auditPolicyContentLinux.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be $testPolicyNameLinux
-            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
+            $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {

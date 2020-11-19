@@ -1355,9 +1355,6 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $auditPolicyGuid = [Guid]::NewGuid()
     }
 
-    #TODO
-    Write-Verbose "Platform: $Platform" -Verbose
-
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     $ParameterMapping = @{ }
     $ParameterDefinitions = @{ }

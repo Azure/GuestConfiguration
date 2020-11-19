@@ -691,7 +691,7 @@ Name="DSCConfig";
 
         It 'Should be able to publish policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
-            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParameters
+            $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
             { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         }
 

@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v2.2.0
+
+- Update to path for GC lib was not updated
+
 ## v2.1.0
 
 - New cmdlet publish-guestconfigurationpackage

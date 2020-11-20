@@ -58,7 +58,8 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            Invoke-Pester -CI
+            if ($IsWindows) { $env:ADO = $true; Invoke-Pester -CI }
+            else { sudo pwsh { $env:ADO = $true; Invoke-Pester -CI }}
         env: 
           AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
@@ -85,7 +86,9 @@ jobs:
           script: |
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
+            Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
       - task: UniversalPackages@0
         displayName: Universal download

@@ -72,7 +72,8 @@ jobs:
           targetType: inline
           continueOnError: 'true'
           script: |
-            Invoke-Pester -CI
+            if ($IsWindows) { $env:ADO = $true; Invoke-Pester -CI }
+            else { sudo pwsh { $env:ADO = $true; Invoke-Pester -CI }}
       - task: PublishTestResults@2
         condition: succeededOrFailed()
         inputs:
@@ -92,7 +93,6 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse

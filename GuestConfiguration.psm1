@@ -628,6 +628,7 @@ function New-GuestConfigurationPolicy {
             FileName                 = 'AuditIfNotExists.json'
             DisplayName              = $DisplayName
             Description              = $Description
+            Platform                 = $Platform
             ConfigurationName        = $policyName
             ConfigurationVersion     = $Version
             ContentUri               = $ContentUri
@@ -638,7 +639,7 @@ function New-GuestConfigurationPolicy {
             Category                 = $Category
             Tag                      = $Tag
         }
-        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Platform $Platform -Verbose:$verbose | Out-Null
+        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose | Out-Null
             
         $result = [pscustomobject]@{
             Name = $policyName

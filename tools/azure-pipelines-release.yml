@@ -84,9 +84,7 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            Install-Module 'Az.Accounts','Az.Resources' -Repository 'PSGallery' -Force
             New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
-            #Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/* $env:BUILD_SOURCESDIRECTORY/GuestConfiguration -Recurse -Force
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1

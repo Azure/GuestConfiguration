@@ -155,6 +155,10 @@ function Test-GuestConfigurationPackage {
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
     )
+
+    if ($IsMacOS) {
+        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
+    }
     
     if (-not (Test-Path $Path -PathType Leaf)) {
         Throw 'Invalid Guest Configuration package path : $($Path)'

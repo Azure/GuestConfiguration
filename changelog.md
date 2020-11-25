@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v2.3.0
+
+- Catch the Test-GuestConfigurationPackage cmdlet when attempting to run on MacOS
+
 ## v2.2.0
 
 - Update to path for GC lib was not updated

@@ -155,6 +155,10 @@ function Test-GuestConfigurationPackage {
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
     )
+
+    if ($IsMacOS) {
+        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
+    }
     
     if (-not (Test-Path $Path -PathType Leaf)) {
         Throw 'Invalid Guest Configuration package path : $($Path)'
@@ -509,9 +513,6 @@ function Publish-GuestConfigurationPackage {
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
-    .Parameter Category
-        Policy category.
-
     .Parameter Tag
         The name and value of a tag used in Azure.
 
@@ -522,7 +523,6 @@ function Publish-GuestConfigurationPackage {
                                  -Description 'Policy to monitor service on Windows machine.' `
                                  -Version 1.0.0.0 
                                  -Path ./git/custom_policy
-                                 -Category 'Contoso Apps'
                                  -Tag @{Owner = 'WebTeam'}
 
         $PolicyParameterInfo = @(
@@ -580,11 +580,11 @@ function New-GuestConfigurationPolicy {
         $Platform = 'Windows',
 
         [parameter()]
-        [string] $Category = 'Guest Configuration',
-
-        [parameter()]
         [Hashtable[]] $Tag
     )
+
+    # This value must be static for AINE policies due to service configuration
+    $Category = 'Guest Configuration'
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))

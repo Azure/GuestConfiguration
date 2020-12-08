@@ -1,7 +1,8 @@
 # Change Log for GuestConfiguration module
 
-## v2.3.0
+## v3.0.0
 
+- Deprecate the 'Category' parameter due to service changes for Guest Assignment automatic creation
 - Catch the Test-GuestConfigurationPackage cmdlet when attempting to run on MacOS
 
 ## v2.2.0

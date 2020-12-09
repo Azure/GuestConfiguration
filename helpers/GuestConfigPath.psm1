@@ -75,7 +75,7 @@ function Get-DscLibPath
         return Join-Path $gcBinPath 'gclib.dll'
     }
 
-    return Join-Path $gcBinPath 'libdsclib.so'
+    return Join-Path $gcBinPath 'libgclib.so'
 }
 
 function Get-OSPlatform

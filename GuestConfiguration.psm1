@@ -432,7 +432,7 @@ function Protect-GuestConfigurationPackage {
 function Publish-GuestConfigurationPackage {
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true)]
+        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
@@ -483,8 +483,13 @@ function Publish-GuestConfigurationPackage {
         -Permission 'rl' `
         -FullUri
 
+    # Create object to use property names
+    $ContentUri = New-Object -TypeName PSObject -Property @{
+        ContentUri = $SAS
+    }
+
     # Output
-    return $SAS
+    return $ContentUri
 }
 
 <#
@@ -551,7 +556,7 @@ function Publish-GuestConfigurationPackage {
 function New-GuestConfigurationPolicy {
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ContentUri,
 

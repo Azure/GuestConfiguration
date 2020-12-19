@@ -1,5 +1,10 @@
 # Change Log for GuestConfiguration module
 
+## v3.1.0
+
+- Add pipeline input support for Publish-GCPackage and New-GCPolicy
+- Publish-GCPackage returns object containing ContentURI property, in support of New-GCPolicy input from pipeline
+
 ## v3.0.0
 
 - Deprecate the 'Category' parameter due to service changes for Guest Assignment automatic creation

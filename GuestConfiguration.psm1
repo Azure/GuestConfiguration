@@ -72,7 +72,8 @@ function New-GuestConfigurationPackage {
     if (Test-Path $PesterScriptsPath) {
         Write-Warning 'Pester content is an expiremental feature and not officially supported'
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
-            $Configuration = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
+            $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
+            $Configuration = $ConfigMOF.Path
             $FilesToInclude = $PesterScriptsPath
         }
         else {

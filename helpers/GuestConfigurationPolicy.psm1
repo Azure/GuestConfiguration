@@ -2132,13 +2132,19 @@ function New-PesterResourceSection {
     param (
         [Parameter(Mandatory = $true)]
         [String]
-        $TestFileName
+        $TestFileName,
+
+        [String]
+        $index = 1
     )
 
     $Version = Get-Module 'GuestConfiguration' | ForEach-Object Version
+    
+    # this is a workaround for inserting the variable in the middle of a word inside a here-string
+    $ref = '$MSFT_PesterResource'+$Index+'ref'
 
     $MOFResourceSection = @"
-instance of MSFT_PesterResource as `$MSFT_PesterResource1ref
+instance of MSFT_PesterResource as $ref
 {
     ModuleName = "GuestConfiguration";
     SourceInfo = "Pester scripts";
@@ -2171,9 +2177,11 @@ function New-MofFileforPester {
     $MOFContent = ''
 
     # Create resource section of MOF for each script
+    $index = 1
     foreach ($script in $Scripts) {
         $ResourceSection = $null
-        $ResourceSection = New-PesterResourceSection -TestFileName $script.Name
+        $ResourceSection = New-PesterResourceSection -TestFileName $script.Name -Index $index
+        $index++
         $MOFContent += $ResourceSection
         $MOFContent += "`n"
     }
@@ -2195,7 +2203,11 @@ instance of OMI_ConfigurationDocument
     $MOFPath = Join-Path $Path 'Pester.mof'
     # Write file
     Set-Content -Value $MOFContent -Path $MOFPath
+    
+    $return = New-Object -TypeName PSObject -Property @{
+        Path = $MOFPath
+    }
 
     # Output the path to the new file
-    return $MOFPath
+    return $return
 }

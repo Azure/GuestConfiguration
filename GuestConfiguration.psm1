@@ -69,15 +69,18 @@ function New-GuestConfigurationPackage {
         [switch] $Force
     )
 
-    if ($PSBoundParameters.ContainsKey('$PesterScriptsPath')) {
+    if (Test-Path $PesterScriptsPath) {
+        Write-Warning 'Pester content is an expiremental feature and not officially supported'
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
-            $PesterMof = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
-            $Configuration = $PesterMof.Path
+            $Configuration = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
             $FilesToInclude = $PesterScriptsPath
         }
         else {
             throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
         }
+    }
+    else {
+        throw 'The PesterScriptsPath parameter resolved to a location that does not exist'
     }
 
     Try {

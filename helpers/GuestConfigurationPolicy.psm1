@@ -2190,15 +2190,12 @@ instance of OMI_ConfigurationDocument
 '@
 
     # Make sure path exists
-    $Path = New-Item -ItemType Directory -Force -Path $Path
+    $PackageFolder = New-Item -ItemType Directory -Force -Path $Path
     # Set file name
-    $Path = Join-Path $Path 'Pester.mof'
+    $MOFPath = Join-Path $Path 'Pester.mof'
     # Write file
-    Set-Content -Value $MOFContent -Path $Path
+    Set-Content -Value $MOFContent -Path $MOFPath
 
     # Output the path to the new file
-    $return = New-Object -TypeName PSObject -Property @{
-        Path = $Path
-    }
-    return $return
+    return $MOFPath
 }

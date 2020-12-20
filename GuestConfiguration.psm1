@@ -69,7 +69,7 @@ function New-GuestConfigurationPackage {
         [switch] $Force
     )
 
-    if ($null -ne $PesterScriptsPath) {
+    if ($PesterScriptsPath) {
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
             $PesterMof = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
             $Configuration = $PesterMof.Path

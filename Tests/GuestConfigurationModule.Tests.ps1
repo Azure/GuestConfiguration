@@ -227,7 +227,7 @@ if ('Pester' -eq $Type) {
     $dscConfig = @'
 instance of MSFT_PesterResource as $MSFT_PesterResource1ref
 {
-ModuleVersion = "2.1.0";
+ModuleVersion = "3.1.0";
 TestFileName = "EnvironmentVariables";
 ModuleName = "GuestConfiguration";
 ResourceID = "[PesterResource]EnvironmentVariables";

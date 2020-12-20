@@ -51,9 +51,16 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 
+        [parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Pester')]
+        [Experimental("GuestConfiguration.Pester", "Show")]
+        [ValidateNotNullOrEmpty()]
+        [string] $PesterScriptsPath,
+
+        [parameter(ParameterSetName = 'Configuration')]
         [ValidateNotNullOrEmpty()]
         [string] $ChefInspecProfilePath,
 
+        [parameter(ParameterSetName = 'Configuration')]
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
@@ -61,6 +68,17 @@ function New-GuestConfigurationPackage {
 
         [switch] $Force
     )
+
+    if ($null -ne $PesterScriptsPath) {
+        if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
+            $PesterMof = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
+            $Configuration = $PesterMof.Path
+            $FilesToInclude = $PesterScriptsPath
+        }
+        else {
+            throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
+        }
+    }
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))

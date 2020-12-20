@@ -129,9 +129,9 @@ function Copy-DscResources {
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-        }
-        if ($_.ResourceID.Substring(0, 16) -eq '[PesterResource]') {
-            $IncludePesterModule = $true
+            if ($_.ResourceID.Substring(0, 16) -eq '[PesterResource]') {
+                $IncludePesterModule = $true
+            }
         }
     }
 
@@ -155,7 +155,7 @@ function Copy-DscResources {
     }
 
     if ($true -eq $IncludePesterModule) {
-        $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.0' }
+        $powershellModulesToCopy['Pester'] = @{ModuleName = 'Pester'; ModuleVersion = '5.0.4' }
         Write-Verbose "Pester is a required PowerShell module"
     }
 
@@ -178,7 +178,7 @@ function Copy-DscResources {
             Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force:$Force
         }
         elseif ($_.ModuleName -eq 'Pester') {
-            $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; MinimumVersion = $_.ModuleVersion } -ListAvailable
+            $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion } -ListAvailable
             if ($null -ne $moduleToCopy) {
                 $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
                 Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force
@@ -2124,4 +2124,79 @@ function Get-ParameterDefinitionsAINE {
         }
     }
     return $paramDefinition
+}
+
+function New-PesterResourceSection {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $TestFileName
+    )
+
+    $Version = Get-Module 'GuestConfiguration' | ForEach-Object Version
+
+    $MOFResourceSection = @"
+instance of MSFT_PesterResource as `$MSFT_PesterResource1ref
+{
+    ModuleName = "GuestConfiguration";
+    TestFileName = "$TestFileName";
+    ResourceID = "[PesterResource]$TestFileName";
+    ModuleVersion = "$Version";
+    ConfigurationName = "Pester";
+};
+"@
+
+    return $MOFResourceSection
+}
+
+function New-MofFileforPester {
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $PesterScriptsPath,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $Path
+    )
+
+    Write-Verbose "Getting Pester script files from '$PesterScriptsPath'"
+    $Scripts = Get-ChildItem $PesterScriptsPath -Filter "*.ps1"
+
+    $MOFContent = ''
+
+    # Create resource section of MOF for each script
+    foreach ($script in $Scripts) {
+        $ResourceSection = $null
+        $ResourceSection = New-PesterResourceSection -TestFileName $script.Name
+        $MOFContent += $ResourceSection
+        $MOFContent += "`n"
+    }
+
+    # Append configuration info
+    $MOFContent += @'
+instance of OMI_ConfigurationDocument
+{
+    Version="2.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+    Name="Pester";
+};
+'@
+
+    # Make sure path exists
+    $Path = New-Item -ItemType Directory -Force -Path $Path
+    # Set file name
+    $Path = Join-Path $Path 'Pester.mof'
+    # Write file
+    Set-Content -Value $MOFContent -Path $Path
+
+    # Output the path to the new file
+    $return = New-Object -TypeName PSObject -Property @{
+        Path = $Path
+    }
+    return $return
 }

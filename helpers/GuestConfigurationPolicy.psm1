@@ -2141,6 +2141,7 @@ function New-PesterResourceSection {
 instance of MSFT_PesterResource as `$MSFT_PesterResource1ref
 {
     ModuleName = "GuestConfiguration";
+    SourceInfo = "Pester scripts";
     TestFileName = "$TestFileName";
     ResourceID = "[PesterResource]$TestFileName";
     ModuleVersion = "$Version";

@@ -62,7 +62,8 @@ jobs:
           failOnStderr: true
           script: |
             $modules = (Import-PowerShellDataFile "$env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1").RequiredModules
-            Install-Module -Name $modules,'PSScriptAnalyzer' -Repository 'PSGallery' -Force
+            $modules += 'PSScriptAnalyzer'
+            Install-Module -Name $modules -Repository 'PSGallery' -Force
             Install-Module -Name 'Pester' -RequiredVersion 5.0.4 -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
         enabled: 'true'

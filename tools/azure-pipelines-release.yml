@@ -68,7 +68,6 @@ jobs:
             $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force
             Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-            Write-ModuleInfo -ModuleName 'GuestConfiguration'
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v5 unit tests

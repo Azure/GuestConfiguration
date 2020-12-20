@@ -532,6 +532,7 @@ Name="DSCConfig";
         }
 
         It 'Verify the package can be extracted' {
+            ls $testPackagePath -recurse
             $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
 
             # Set up type needed for package extraction

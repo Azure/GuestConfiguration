@@ -452,7 +452,6 @@ describe 'Test Environment' {
         $policyName = 'testPolicy'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
         $unsignedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'UnsignedPackage'
-        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'FilesToIncludePackage'
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
@@ -469,7 +468,6 @@ describe 'Test Environment' {
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
-
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
         $expectedContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'

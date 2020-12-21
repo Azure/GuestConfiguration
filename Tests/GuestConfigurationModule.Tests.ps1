@@ -224,24 +224,6 @@ end
 
 #region Pester
 if ('Pester' -eq $Type) {
-    $dscConfig = @'
-instance of MSFT_PesterResource as $MSFT_PesterResource1ref
-{
-ModuleVersion = "3.1.0";
-TestFileName = "EnvironmentVariables";
-ModuleName = "GuestConfiguration";
-ResourceID = "[PesterResource]EnvironmentVariables";
-SourceInfo = "::7::9::PesterResource";
-ConfigurationName = "Pester";
-};
-instance of OMI_ConfigurationDocument
-{
-Version="2.0.0";
-MinimumCompatibleVersion = "1.0.0";
-CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-Name="Pester";
-};
-'@
     $PesterScript = @'
 describe 'Test Environment' {
     context 'Simple' {
@@ -254,10 +236,6 @@ describe 'Test Environment' {
     }
 }
 '@
-
-    $pesterDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterConfig' -ItemType Directory
-    $pesterDestinationMOFPath = Join-Path -Path $pesterDestinationFolderPath -ChildPath 'localhost.mof'
-    $null = Set-Content -Path $pesterDestinationMOFPath -Value $dscConfig
 
     $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
     $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'

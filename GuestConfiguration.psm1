@@ -69,22 +69,23 @@ function New-GuestConfigurationPackage {
         [switch] $Force
     )
 
-    if (-not [string]::IsNullOrEmpty($PesterScriptsPath)) {
-        Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
-        if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
-            $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
-            $Configuration = $ConfigMOF.Path
-            $Destination = Join-Path (Join-Path $unzippedPackagePath 'Modules') 'PesterScripts'
-            Copy-Item -Path $PesterScriptsPath -Destination $Destination -Recurse
-        }
-        else {
-            throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
-        }
-    }
-
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
+
+        if (-not [string]::IsNullOrEmpty($PesterScriptsPath)) {
+            Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
+            if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
+                $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
+                $Configuration = $ConfigMOF.Path
+                $Destination = Join-Path (Join-Path $unzippedPackagePath 'Modules') 'PesterScripts'
+                Copy-Item -Path $PesterScriptsPath -Destination $Destination -Recurse
+            }
+            else {
+                throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
+            }
+        }
+
         $Configuration = Resolve-Path $Configuration
 
         if (-not (Test-Path -Path $Configuration -PathType Leaf)) {

@@ -237,13 +237,13 @@ describe 'Test Environment' {
 }
 '@
 
-    $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'Scripts' -ItemType Directory
+    $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'scripts' -ItemType Directory
     $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
     $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
 }
 #endregion
         }
-        #TODO
+
         function New-TestGCPolicyParameters {
             [CmdletBinding()]
             param
@@ -437,9 +437,7 @@ describe 'Test Environment' {
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
-        $pesterConfigFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterConfig'
-        $pesterMofPath = Join-Path -Path $pesterConfigFolderPath -ChildPath 'localhost.mof'
-        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'Scripts'
+        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'

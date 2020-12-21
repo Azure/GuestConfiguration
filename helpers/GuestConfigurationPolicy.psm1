@@ -129,7 +129,7 @@ function Copy-DscResources {
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-            if ($_.ResourceID -match '[PesterResource]') {
+            if ($_.ResourceID -match 'PesterResource') {
                 $IncludePesterModule = $true
             }
         }

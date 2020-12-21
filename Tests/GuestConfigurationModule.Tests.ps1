@@ -119,7 +119,7 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'InSpec', 'Pester')]
+                [ValidateSet('DSC', 'InSpec', 'WinDSC', 'Pester')]
                 [String]
                 $Type = 'DSC'
             )
@@ -128,10 +128,10 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 Import-Module 'PSDesiredStateConfiguration'
             }
         
-#region Windows DSC config
-if ('DSC' -eq $Type) {
-    Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force
-    $dscConfig = @'
+            #region Windows DSC config
+            if ('DSC' -eq $Type) {
+                Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force
+                $dscConfig = @'
 instance of DSC_TimeZone as $DSC_TimeZone1ref
 {
 ModuleName = "ComputerManagementDsc";
@@ -142,6 +142,7 @@ TimeZone = "Tonga Standard Time";
 ModuleVersion = "8.2.0";
 ConfigurationName = "DSCConfig";
 };
+
 instance of OMI_ConfigurationDocument
 {
 Version="2.0.0";
@@ -151,20 +152,20 @@ Name="DSCConfig";
 };
 '@
 
-$dscDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'DSCConfig' -ItemType Directory
-$dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
-$null = Set-Content -Path $dscDestinationMOFPath -Value $dscConfig
-
-$filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
-New-Item $filesToIncludeFolderPath -ItemType Directory
-$filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
-$filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
-}
-#endregion
-
-#region Linux DSC config
-if ('Inspec' -eq $Type) {
-    $dscConfig = @'
+                $dscDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'DSCConfig' -ItemType Directory
+                $dscDestinationMOFPath = Join-Path -Path $dscDestinationFolderPath -ChildPath 'localhost.mof'
+                $null = Set-Content -Path $dscDestinationMOFPath -Value $dscConfig
+            
+                $filesToIncludeFolderPath = Join-Path -Path $DestinationFolderPath -ChildPath 'FilesToInclude'
+                New-Item $filesToIncludeFolderPath -ItemType Directory
+                $filesToIncludeFilePath = Join-Path -Path $filesToIncludeFolderPath -ChildPath 'file.txt'
+                $filesToIncludeContent = 'test' | Set-Content -Path $filesToIncludeFilePath
+            }
+            #endregion
+        
+            #region Linux DSC config
+            if ('Inspec' -eq $Type) {
+                $dscConfig = @'
 instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
 Name = "linux-path";
@@ -175,6 +176,7 @@ ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";
 GithubPath = "linux-path/Modules/linux-path/";
 };
+
 instance of OMI_ConfigurationDocument
 {
 Version="2.0.0";
@@ -184,8 +186,8 @@ Name="DSCConfig";
 };                
 '@
 
-    $inSpecProfileName = 'linux-path'
-    $inSpecProfile = @"
+                $inSpecProfileName = 'linux-path'
+                $inSpecProfile = @"
 name: $inSpecProfileName
 title: Test profile
 maintainer: Test
@@ -195,36 +197,62 @@ version: 1.0.0
 supports:
 - os-family: unix
 "@
-    $inSpecProfileRB = @"
+                $inSpecProfileRB = @"
 describe file('/tmp') do
 it { should exist }
 end
 "@
-    $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'InspecConfig' -ItemType Directory
-    $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
-    $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
+                $inspecDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'InspecConfig' -ItemType Directory
+                $inspecDestinationMOFPath = Join-Path -Path $inspecDestinationFolderPath -ChildPath 'localhost.mof'
+                $null = Set-Content -Path $inspecDestinationMOFPath -Value $dscConfig    
 
-    # creates directory for Inspec profile
-    $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
-    $null = New-Item -ItemType Directory -Path $InSpecProfilePath
+                # creates directory for Inspec profile
+                $InSpecProfilePath = Join-Path -Path $inspecDestinationFolderPath -ChildPath $inSpecProfileName
+                $null = New-Item -ItemType Directory -Path $InSpecProfilePath
+        
+                # creates Inspec profile required Yml file
+                $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'inspec.yml'
+                $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
+        
+                # creates directory for Inspec controls (component of Inspec profile)
+                $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
+                $null = New-Item -ItemType Directory -Path $InSpecControlsPath
+        
+                # creates Inspec controls required Ruby file
+                $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
+                $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
+            }
+            #endregion 
 
-    # creates Inspec profile required Yml file
-    $InSpecProfileYmlFilePath = Join-Path -Path $InSpecProfilePath -ChildPath 'Inspec.yml'
-    $null = Set-Content -Path $InSpecProfileYmlFilePath -Value $inSpecProfile
+            #region Windows DSC config using invalid resources
+            if ('WinDSC' -eq $Type) {
+                $dscConfig = @'
+instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
+{
+ResourceID = "[File]test";
+Ensure = "Present";
+Contents = "test";
+DestinationPath = "c:\\test";
+ModuleName = "PSDesiredStateConfiguration";
+SourceInfo = "::1::76::file";
+ModuleVersion = "1.0";
+ConfigurationName = "file";
+};
 
-    # creates directory for Inspec controls (component of Inspec profile)
-    $InSpecControlsPath = Join-Path -Path $InSpecProfilePath -ChildPath 'controls'
-    $null = New-Item -ItemType Directory -Path $InSpecControlsPath
+instance of OMI_ConfigurationDocument
+{
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="DSCConfig";
+};
+'@
+            }
+            #endregion
 
-    # creates Inspec controls required Ruby file
-    $InSpecControlsRubyFilePath = Join-Path -Path $InSpecControlsPath -ChildPath "$inSpecProfileName.rb"
-    $null = Set-Content -Path $InSpecControlsRubyFilePath -Value $inSpecProfileRB
-}
-#endregion    
-
-#region Pester
-if ('Pester' -eq $Type) {
-    $PesterScript = @'
+            #region Pester
+            if ('Pester' -eq $Type) {
+                $PesterScript = @'
 describe 'Test Environment' {
     context 'Simple' {
         It 'PSModulePath is not null or empty' {
@@ -237,11 +265,11 @@ describe 'Test Environment' {
 }
 '@
 
-    $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'scripts' -ItemType Directory
-    $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
-    $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
-}
-#endregion
+                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'scripts' -ItemType Directory
+                $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
+                $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
+            }
+            #endregion
         }
 
         function New-TestGCPolicyParameters {

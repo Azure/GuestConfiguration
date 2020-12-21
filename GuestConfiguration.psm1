@@ -69,7 +69,7 @@ function New-GuestConfigurationPackage {
         [switch] $Force
     )
 
-    if (Test-Path $PesterScriptsPath) {
+    if (PSBoundParameters.ContainsKey($PesterScriptsPath)) {
         Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
             $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path

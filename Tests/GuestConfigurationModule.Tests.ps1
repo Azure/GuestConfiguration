@@ -642,7 +642,7 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:$IsNotWindows {
-            $package = New-GuestConfigurationPackage -Configuration $pesterMofPath -Name $policyName -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath            
+            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             
             $testPackageResult.complianceStatus | Should -Be $false

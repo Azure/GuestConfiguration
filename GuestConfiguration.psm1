@@ -71,6 +71,8 @@ function New-GuestConfigurationPackage {
 
     if (-not [string]::IsNullOrEmpty($PesterScriptsPath)) {
         Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
+        Write-Host "the value of pesterscriptspath is: $PesterScriptsPath"
+        write-host "the type is: $($PesterScriptsPath.gettype())"
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
             $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
             $Configuration = $ConfigMOF.Path

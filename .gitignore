@@ -2,7 +2,6 @@
 /.vagrant
 /bin
 /DSCConfig
-/temp
 localhost.mof
 Vagrantfile
 VagrantRun.ps1

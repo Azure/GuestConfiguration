@@ -74,7 +74,8 @@ function New-GuestConfigurationPackage {
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
             $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path
             $Configuration = $ConfigMOF.Path
-            $FilesToInclude = $PesterScriptsPath
+            $Destination = Join-Path (Join-Path $unzippedPackagePath 'Modules') 'PesterScripts'
+            Copy-Item -Path $PesterScriptsPath -Destination $Destination -Recurse
         }
         else {
             throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'

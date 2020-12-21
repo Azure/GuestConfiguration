@@ -3,10 +3,7 @@
         Run Pester tests and return results as reasons
     .DESCRIPTION
         This module will run tests stored in folder
-        'Scripts' at the root of the module.
-        This is a proof of concept to validate
-        running Pester from Guest Configuration
-        policies.
+        'PesterScripts' in the PowerShell Modules folder.
 #>
 
 function Get-ResultsfromPesterScript {
@@ -77,7 +74,7 @@ function Get-TargetResource {
         $TestFileName
     )
 
-    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Scripts/$TestFileName.ps1"
+    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Modules/PesterScripts/$TestFileName.ps1"
 
     return $Return
 }

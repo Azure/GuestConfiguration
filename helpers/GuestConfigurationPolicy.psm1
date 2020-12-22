@@ -129,7 +129,7 @@ function Copy-DscResources {
     $resourcesInMofDocument | ForEach-Object {
         if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
             $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-            if ($_.ResourceID -match 'PesterResource') {
+            if ($_.ResourceID -match 'MSFT_PesterResource') {
                 $IncludePesterModule = $true
             }
         }
@@ -2141,13 +2141,13 @@ function New-PesterResourceSection {
     $Version = Get-Module 'GuestConfiguration' | ForEach-Object Version
     
     # this is a workaround for inserting the variable in the middle of a word inside a here-string
-    $ref = '$PesterResource'+$Index+'ref'
+    $ref = '$MSFT_PesterResource'+$Index+'ref'
 
     # MOF should not contain the file extension since that is added by the resource
     $TestFileName = $TestFileName.replace('.ps1','')
 
     $MOFResourceSection = @"
-instance of PesterResource as $ref
+instance of MSFT_PesterResource as $ref
 {
     ModuleName = "GuestConfiguration";
     SourceInfo = "Pester scripts";

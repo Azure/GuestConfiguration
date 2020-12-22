@@ -1,7 +1,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'PesterResource.psm1'
+    RootModule = 'MSFT_PesterResource.psm1'
     
     # Version number of this module.
     moduleVersion = '2.0.0'

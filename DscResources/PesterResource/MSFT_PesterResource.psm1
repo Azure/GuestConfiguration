@@ -106,8 +106,6 @@ function Set-TargetResource {
     throw 'Set functionality is not supported in this version of the DSC resource.'
 }
 
-Export-ModuleMember -Function *-TargetResource
-
 <#
     DSC Resource
     Class implementation holding for PWSH 7.2

@@ -1,29 +1,29 @@
 
-Describe "PesterResource Tests" {
+Describe "MSFT_PesterResource Tests" {
 
     BeforeAll {
-        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Parent) -ChildPath "PesterResource.psm1"
+        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Parent) -ChildPath "MSFT_PesterResource.psm1"
         Import-Module -Name $resourceModulePath -Force
     }
 
-    Context 'PesterResource\Get-ResultsfromPesterScript' {
+    Context 'MSFT_PesterResource\Get-ResultsfromPesterScript' {
 
         It 'Should return a hashtable that can be used by Get/Test' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 $function1 = Get-ResultsfromPesterScript -ScriptFilePath "$psscriptroot/TestScript.ps1"
                 $function1 | Should -BeOfType 'Hashtable'
             }
         }
 
         It 'Should have status of False' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 $function1 = Get-ResultsfromPesterScript -ScriptFilePath "$psscriptroot/TestScript.ps1"
                 $function1.status | Should -BeTrue
             }
         }
 
         It 'Should have Reasons' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 $function1 = Get-ResultsfromPesterScript -ScriptFilePath "$psscriptroot/TestScript.ps1"
                 $function1.reasons | Should -Not -BeNullOrEmpty
             }
@@ -31,7 +31,7 @@ Describe "PesterResource Tests" {
 
     }
 
-    Context "PesterResource\Set-TargetResource" {
+    Context "MSFT_PesterResource\Set-TargetResource" {
 
         It 'Should always throw' {
             { Set-TargetResource -TestFileName 'Value' } | Should -Throw
@@ -41,7 +41,7 @@ Describe "PesterResource Tests" {
     Context "when the system is in the desired state\Get-TargetResource" {
 
         It 'Should call the function that returns information' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -52,7 +52,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should return status as true' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -63,7 +63,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should return an empty array for the property Reasons' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -77,7 +77,7 @@ Describe "PesterResource Tests" {
     Context "when the system is in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -88,7 +88,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should pass Test' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -102,7 +102,7 @@ Describe "PesterResource Tests" {
     Context "when the system is not in the desired state\Get-TargetResource" {
 
         It 'Should call the function that returns information' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
@@ -113,7 +113,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should return status as true' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
@@ -124,7 +124,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should return a hashtable for the property Reasons' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
@@ -135,7 +135,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should have at least one reasons code' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
@@ -147,7 +147,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should have at least one reasons phrase' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
@@ -161,7 +161,7 @@ Describe "PesterResource Tests" {
     Context "when the system is not in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $true
                         reasons = @()
@@ -172,7 +172,7 @@ Describe "PesterResource Tests" {
         }
 
         It 'Should fail Test' {
-            InModuleScope PesterResource {
+            InModuleScope MSFT_PesterResource {
                 Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
                         status  = $false
                         reasons = @()

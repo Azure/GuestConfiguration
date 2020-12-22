@@ -112,7 +112,9 @@ function Set-TargetResource {
 #>
 class reasons
 {
+    [DscProperty(Mandatory)]
     [string]$code
+    [DscProperty(Mandatory)]
     [string]$phrase
 }
 
@@ -122,7 +124,7 @@ class PesterResource
     [DscProperty(Key)]
     [string]$TestFileName;
     
-    [DscProperty()]
+    [DscProperty(NotConfigurable)]
     [reasons[]]$reasons;
 
     [void] Set()
@@ -139,8 +141,8 @@ class PesterResource
     [PesterResource] Get()
     {
         $get = Get-TargetResource -path $this.TestFileName
-        $this.TestFileName  = $get.TestFileName
-        $this.reasons       = $get.reasons
+        $this.TestFileName  = $get['TestFileName']
+        $this.reasons       = $get['reasons']
         return $this
     }
 }

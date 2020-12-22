@@ -61,7 +61,7 @@ Describe "PesterResource Tests" {
             $get.reasons | Should -Be $null
         }
     }
-
+<#
     Context "when the system is in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
@@ -137,4 +137,5 @@ Describe "PesterResource Tests" {
         }
 
     }
+#>
 }

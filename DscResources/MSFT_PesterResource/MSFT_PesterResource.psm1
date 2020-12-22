@@ -119,7 +119,7 @@ class reasons
 }
 
 [DscResource()]
-class PesterResource
+class MSFT_PesterResource
 {
     [DscProperty(Key)]
     [string]$TestFileName;
@@ -138,7 +138,7 @@ class PesterResource
         return $test
     }
 
-    [PesterResource] Get()
+    [MSFT_PesterResource] Get()
     {
         $get = Get-TargetResource -path $this.TestFileName
         $this.TestFileName  = $get['TestFileName']

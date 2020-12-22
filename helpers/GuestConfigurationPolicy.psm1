@@ -2141,13 +2141,13 @@ function New-PesterResourceSection {
     $Version = Get-Module 'GuestConfiguration' | ForEach-Object Version
     
     # this is a workaround for inserting the variable in the middle of a word inside a here-string
-    $ref = '$MSFT_PesterResource'+$Index+'ref'
+    $ref = '$PesterResource'+$Index+'ref'
 
     # MOF should not contain the file extension since that is added by the resource
     $TestFileName = $TestFileName.replace('.ps1','')
 
     $MOFResourceSection = @"
-instance of MSFT_PesterResource as $ref
+instance of PesterResource as $ref
 {
     ModuleName = "GuestConfiguration";
     SourceInfo = "Pester scripts";

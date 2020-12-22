@@ -119,13 +119,13 @@ class reasons
 }
 
 [DscResource()]
-class MSFT_PesterResource
+class PesterResource
 {
     [DscProperty(Key)]
-    [string]$TestFileName;
+    [string]$TestFileName
     
     [DscProperty(NotConfigurable)]
-    [reasons[]]$reasons;
+    [reasons[]]$reasons
 
     [void] Set()
     {
@@ -138,7 +138,7 @@ class MSFT_PesterResource
         return $test
     }
 
-    [MSFT_PesterResource] Get()
+    [PesterResource] Get()
     {
         $get = Get-TargetResource -path $this.TestFileName
         $this.TestFileName  = $get['TestFileName']

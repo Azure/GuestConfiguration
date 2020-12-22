@@ -145,7 +145,7 @@ Describe "PesterResource Tests" {
 
         It 'Should fail Test' {
             Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
-                status  = $true
+                status  = $false
                 reasons = @()
             } } -Verifiable
             $test = Test-TargetResource -TestFileName 'TestScript'

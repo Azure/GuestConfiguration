@@ -455,7 +455,7 @@ describe 'Test Environment' {
         $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'FilesToIncludePackage'
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
-        $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
+        $extractedFilesToIncludePath = Join-Path -Path (Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'Modules') -ChildPath 'FilesToInclude'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'install_inspec.sh')
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'

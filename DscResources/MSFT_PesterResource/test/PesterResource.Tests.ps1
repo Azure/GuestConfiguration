@@ -24,14 +24,14 @@ Describe "PesterResource Tests" {
         }
 
     }
-<#
+
     Context "PesterResource\Set-TargetResource" {
 
         It 'Should always throw' {
             { Set-TargetResource -TestFileName 'Value' } | Should -Throw
         }
     }
-
+<#
     Context "when the system is in the desired state\Get-TargetResource" {
 
         It 'Should call the function that returns information' {

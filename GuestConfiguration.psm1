@@ -73,7 +73,7 @@ function New-GuestConfigurationPackage {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
 
-        if (-not [string]::IsNullOrEmpty($PesterScriptsPath)) {
+        if ($PSBoundParameters.ContainsKey('PesterScriptsPath')) {
             Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
             if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
                 $ConfigMOF = New-MofFileforPester -PesterScriptsPath $PesterScriptsPath -Path $Path

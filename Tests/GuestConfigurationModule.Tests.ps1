@@ -124,10 +124,6 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $Type = 'DSC'
             )
         
-            if ($false -eq (Test-CurrentMachineIsWindows)) {
-                Import-Module 'PSDesiredStateConfiguration'
-            }
-        
             #region Windows DSC config
             if ('DSC' -eq $Type) {
                 Install-Module -Name 'ComputerManagementDsc' -RequiredVersion '8.2.0' -Force
@@ -378,6 +374,7 @@ describe 'Test Environment' {
         
             if (Test-CurrentMachineIsWindows) {
                 Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
+                Import-Module 'PSDesiredStateConfiguration'
             }
         
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
@@ -439,7 +436,9 @@ describe 'Test Environment' {
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'
             Write-EnvironmentVariableInfo
-            Write-Verbose "Available DSC Resources:`n$(Get-DSCResource | Select Name, Module, Path)" -Verbose
+            if ($IsWindows) {
+                Write-Verbose "Available DSC Resources:`n$(Get-DSCResource | Select-Object Name, Module, Path)" -Verbose
+            }
         }
     
         Initialize-MachineForGCTesting
@@ -627,7 +626,7 @@ describe 'Test Environment' {
         It 'Implements -PesterScriptsPath parameter' {
             $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
             $pesterExtractionPath | Should -Exist
             Test-Path -Path $pesterMofFilePath | Should -BeTrue
             $extractedModulesPath = Join-Path -Path $pesterExtractionPath -ChildPath 'Modules'

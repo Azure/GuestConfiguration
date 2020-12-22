@@ -636,7 +636,7 @@ Name="DSCConfig";
             $Uri.ContentUri | Should -Not -BeNullOrEmpty
             $Uri.ContentUri | Should -BeOfType 'String'
             $Uri.ContentUri | Should -Not -Contain '@'
-            { Invoke-WebRequest -Uri $Uri.Path -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
+            { Invoke-WebRequest -Uri $Uri.ContentUri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
         }
     }
     Context 'New-GuestConfigurationPolicy' {

@@ -633,9 +633,9 @@ Name="DSCConfig";
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName
-            $Uri.Path | Should -Not -BeNullOrEmpty
-            $Uri.Path | Should -BeOfType 'String'
-            $Uri.Path | Should -Not -Contain '@'
+            $Uri.ContentUri | Should -Not -BeNullOrEmpty
+            $Uri.ContentUri | Should -BeOfType 'String'
+            $Uri.ContentUri | Should -Not -Contain '@'
             { Invoke-WebRequest -Uri $Uri.Path -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
         }
     }

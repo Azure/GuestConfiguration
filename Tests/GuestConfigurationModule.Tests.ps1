@@ -643,7 +643,7 @@ describe 'Test Environment' {
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
         }
         
-        It 'Supports Pester as a language abstraction' -Skip:$IsNotWindows {
+        It 'Supports Pester as a language abstraction' -Skip:($IsLinux -or $IsMacOS) {
             $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             

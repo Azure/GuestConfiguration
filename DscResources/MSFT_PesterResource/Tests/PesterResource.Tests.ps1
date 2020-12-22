@@ -61,15 +61,23 @@ Describe "PesterResource Tests" {
             $get.reasons | Should -Be $null
         }
     }
-<#
+
     Context "when the system is in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
+            Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                    status  = $true
+                    reasons = @()
+                } } -Verifiable
             $test = Test-TargetResource -TestFileName "TestScript"
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
         It 'Should pass Test' {
+            Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                status  = $true
+                reasons = @()
+            } } -Verifiable
             $test = Test-TargetResource -TestFileName 'TestScript'
             $test | Should -BeTrue
         }
@@ -127,15 +135,22 @@ Describe "PesterResource Tests" {
     Context "when the system is not in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
+            Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                status  = $true
+                reasons = @()
+            } } -Verifiable
             $test = Test-TargetResource -TestFileName 'TestScript'
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
         It 'Should fail Test' {
+            Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                status  = $true
+                reasons = @()
+            } } -Verifiable
             $test = Test-TargetResource -TestFileName 'TestScript'
             $test | Should -BeFalse
         }
 
     }
-#>
 }

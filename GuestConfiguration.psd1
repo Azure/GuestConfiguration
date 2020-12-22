@@ -16,7 +16,7 @@ Author = 'Azure Guest Configuration'
 CompanyName = 'MicrosoftCorporation'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 Microsoft Corporation. All rights reserved.'
+Copyright = '(c) 2020 Microsoft Corporation. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'

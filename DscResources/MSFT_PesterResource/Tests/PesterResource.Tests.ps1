@@ -31,7 +31,7 @@ Describe "PesterResource Tests" {
             { Set-TargetResource -TestFileName 'Value' } | Should -Throw
         }
     }
-<#
+
     Context "when the system is in the desired state\Get-TargetResource" {
 
         It 'Should call the function that returns information' {
@@ -137,5 +137,4 @@ Describe "PesterResource Tests" {
         }
 
     }
-    #>
 }

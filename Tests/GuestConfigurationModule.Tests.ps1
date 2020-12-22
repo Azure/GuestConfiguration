@@ -439,6 +439,7 @@ describe 'Test Environment' {
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'
             Write-EnvironmentVariableInfo
+            Write-Verbose "Available DSC Resources:`n$(Get-DSCResource | Select Name, Module, Path)" -Verbose
         }
     
         Initialize-MachineForGCTesting
@@ -467,6 +468,7 @@ describe 'Test Environment' {
         $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
+        $pesterMofFilePath = Join-Path -Path $pesterExtractionPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -620,7 +622,24 @@ describe 'Test Environment' {
             $inspecControlsExtractedFile | Should -Exist
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             $inspecRbExtractedFile | Should -Exist
-        }      
+        }
+        
+        It 'Implements -PesterScriptsPath parameter' {
+            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath
+            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
+            $pesterExtractionPath | Should -Exist
+            Test-Path -Path $pesterMofFilePath | Should -BeTrue
+            $extractedModulesPath = Join-Path -Path $pesterExtractionPath -ChildPath 'Modules'
+            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMofFilePath, 4) 
+            for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
+                if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
+                    $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
+                    $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
+                    Test-Path -Path $resourceModulePath | Should -BeTrue
+                }
+            }
+        } 
     }
     Context 'Test-GuestConfigurationPackage' {
 

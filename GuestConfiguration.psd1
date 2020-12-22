@@ -4,7 +4,7 @@
 RootModule = 'GuestConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '3.1.0'
+moduleVersion = '3.2.0'
 
 # ID used to uniquely identify this module
 GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -37,7 +37,7 @@ CmdletsToExport = @()
 AliasesToExport = @()
 
 # DSC resources to export from this module
-DscResourcesToExport = @( 'ChefInSpecResource' )
+DscResourcesToExport = @( 'ChefInSpecResource','PesterResource' )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{

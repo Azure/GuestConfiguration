@@ -2138,7 +2138,7 @@ function New-PesterResourceSection {
         $index = 1
     )
 
-    $Version = Get-Module 'GuestConfiguration' | ForEach-Object Version
+    $Version = (Get-Module 'GuestConfiguration').Version
     
     # this is a workaround for inserting the variable in the middle of a word inside a here-string
     $ref = '$MSFT_PesterResource'+$Index+'ref'

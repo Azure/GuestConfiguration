@@ -429,15 +429,16 @@ describe 'Test Environment' {
             [CmdletBinding()]
             param ()
         
-            Write-Verbose "Running in Azure DevOps: $env:ADO" -Verbose
+            Write-Verbose -Message "Running in Azure DevOps: $env:ADO" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
-            Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose
+            Write-Verbose -Message "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
             Write-ModuleInfo -ModuleName 'Pester'
+            Write-ModuleInfo -ModuleName 'GuestConfiguration'
             Write-EnvironmentVariableInfo
             if ($IsWindows) {
-                Write-Verbose "Available DSC Resources:`n$(Get-DSCResource | Select-Object Name, Module, Path)" -Verbose
+                Write-Verbose -Message "Available DSC Resources:`n$(Get-DSCResource | Select-Object 'Name', 'Module', 'Path')" -Verbose
             }
         }
     

@@ -648,7 +648,9 @@ describe 'Test Environment' {
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             
             $testPackageResult.complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ModuleName | Should -Be 'PesterResource'
+            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].SourceInfo | Should -Be 'PesterScripts'
+            $testPackageResult.resources[0].ResourceId | Should -Match 'PesterResource'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'Pester'
             $testPackageResult.resources[0].TestFileName | Should -Be 'EnvironmentVariables'

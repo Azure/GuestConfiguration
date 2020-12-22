@@ -434,12 +434,13 @@ describe 'Test Environment' {
             Write-Verbose -Message "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
+            if ($IsWindows) {
+                $dscTitleLine = "AVAILABLE DSC RESOURCES"
+                Write-Verbose -Message "`n$dscTitleLine`n$('-' * $dscTitleLine.length)`n$(Get-DSCResource | Select-Object 'Name', 'Module', 'Path')" -Verbose
+            }
             Write-ModuleInfo -ModuleName 'Pester'
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
             Write-EnvironmentVariableInfo
-            if ($IsWindows) {
-                Write-Verbose -Message "Available DSC Resources:`n$(Get-DSCResource | Select-Object 'Name', 'Module', 'Path')" -Verbose
-            }
         }
     
         Initialize-MachineForGCTesting

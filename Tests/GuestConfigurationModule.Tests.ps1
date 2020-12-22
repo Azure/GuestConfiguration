@@ -439,7 +439,6 @@ describe 'Test Environment' {
                 Write-Verbose -Message "`n$dscTitleLine`n$('-' * $dscTitleLine.length)`n$(Get-DSCResource | Select-Object 'Name', 'Module', 'Path')" -Verbose
             }
             Write-ModuleInfo -ModuleName 'Pester'
-            Write-ModuleInfo -ModuleName 'GuestConfiguration'
             Write-EnvironmentVariableInfo
         }
     

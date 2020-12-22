@@ -39,7 +39,7 @@ Describe "PesterResource Tests" {
                     status  = $true
                     reasons = @()
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
@@ -48,7 +48,7 @@ Describe "PesterResource Tests" {
                     status  = $true
                     reasons = @()
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.status | Should -BeTrue
         }
 
@@ -57,7 +57,7 @@ Describe "PesterResource Tests" {
                     status  = $true
                     reasons = @()
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.reasons | Should -Be $null
         }
     }
@@ -65,12 +65,12 @@ Describe "PesterResource Tests" {
     Context "when the system is in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
-            $test = Test-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $test = Test-TargetResource -TestFileName "TestScript"
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
         It 'Should pass Test' {
-            $test = Test-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $test = Test-TargetResource -TestFileName 'TestScript'
             $test | Should -BeTrue
         }
     }
@@ -82,7 +82,7 @@ Describe "PesterResource Tests" {
                     status  = $false
                     reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
@@ -91,7 +91,7 @@ Describe "PesterResource Tests" {
                     status  = $false
                     reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.status | Should -BeFalse
         }
 
@@ -100,7 +100,7 @@ Describe "PesterResource Tests" {
                     status  = $false
                     reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.Reasons | Should -BeOfType 'Hashtable'
         }
 
@@ -109,7 +109,7 @@ Describe "PesterResource Tests" {
                     status  = $false
                     reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.reasons[0] | ForEach-Object Code | Should -BeOfType 'String'
             $get.reasons[0] | ForEach-Object Code | Should -Match "$script:moduleName:$script:moduleName:"
         }
@@ -119,7 +119,7 @@ Describe "PesterResource Tests" {
                     status  = $false
                     reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                 } } -Verifiable
-            $get = Get-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $get = Get-TargetResource -TestFileName 'TestScript'
             $get.reasons | ForEach-Object Phrase | Should -BeOfType 'String'
         }
     }
@@ -127,12 +127,12 @@ Describe "PesterResource Tests" {
     Context "when the system is not in the desired state\Test-TargetResource" {
 
         It 'Should call the function that returns information' {
-            $test = Test-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $test = Test-TargetResource -TestFileName 'TestScript'
             Assert-MockCalled Get-ResultsfromPesterScript
         }
 
         It 'Should fail Test' {
-            $test = Test-TargetResource -TestFileName "$psscriptroot/TestScript.ps1"
+            $test = Test-TargetResource -TestFileName 'TestScript'
             $test | Should -BeFalse
         }
 

@@ -105,3 +105,42 @@ function Set-TargetResource {
 
     throw 'Set functionality is not supported in this version of the DSC resource.'
 }
+
+
+<#
+    DSC Resource
+#>
+class reasons
+{
+    [string]$code
+    [string]$phrase
+}
+
+[DscResource()]
+class PesterResource
+{
+    [DscProperty(Key)]
+    [string]$TestFileName;
+    
+    [DscProperty()]
+    [reasons[]]$reasons;
+
+    [void] Set()
+    {
+        Set-TargetResource -path $this.TestFileName
+    }
+
+    [bool] Test()
+    {
+        $test = Test-TargetResource -path $this.TestFileName
+        return $test
+    }
+
+    [PesterResource] Get()
+    {
+        $get = Get-TargetResource -path $this.TestFileName
+        $this.TestFileName  = $get.TestFileName
+        $this.reasons       = $get.reasons
+        return $this
+    }
+}

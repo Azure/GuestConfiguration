@@ -4,7 +4,7 @@
     RootModule = 'PesterResource.psm1'
     
     # Version number of this module.
-    moduleVersion = '1.0.0'
+    moduleVersion = '2.0.0'
     
     # ID used to uniquely identify this module
     GUID = 'ceaa896d-b51f-435b-a428-91515fcb3710'

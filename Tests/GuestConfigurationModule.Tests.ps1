@@ -522,6 +522,14 @@ Name="DSCConfig";
             $package.Name | Should -Be $policyName
         }
 
+        It 'does not overwrite a custom policy package when -Force is not specified' {
+            New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath | Should -Throw
+        }
+
+        It 'overwrites a custom policy package when -Force is specified' {
+            New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath | Should -Not -Throw
+        }
+
         It 'Verify the package can be extracted' {
             $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
 

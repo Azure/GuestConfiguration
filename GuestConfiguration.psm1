@@ -47,7 +47,7 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Configuration', ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 
@@ -64,10 +64,8 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
-        [parameter(ParameterSetName = 'Configuration','Pester')]
         [string] $Path = '.',
         
-        [parameter(ParameterSetName = 'Configuration','Pester')]
         [switch] $Force
     )
 

@@ -57,7 +57,9 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
-        [string] $Path = '.'
+        [string] $Path = '.',
+
+        [switch] $Force
     )
 
     Try {
@@ -78,7 +80,7 @@ function New-GuestConfigurationPackage {
         Save-GuestConfigurationMofDocument -Name $Name -SourcePath $Configuration -DestinationPath (Join-Path $unzippedPackagePath "$Name.mof") -Verbose:$verbose
 
         # Copy DSC resources
-        Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
+        Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose -Force:$Force
 
         if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
             # Copy Chef resource and profiles.
@@ -88,12 +90,12 @@ function New-GuestConfigurationPackage {
         # Copy FilesToInclude
         if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
             if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
+                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath  -Force:$Force
             }
             else {
                 $filesToIncludeFolderName = Get-Item $FilesToInclude
                 $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse
+                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse  -Force:$Force
             }
         }
         

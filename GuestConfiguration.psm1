@@ -112,12 +112,12 @@ function New-GuestConfigurationPackage {
         if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
             $modulePath = Join-Path $unzippedPackagePath 'Modules'
             if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $modulePath  -Force:$Force
+                Copy-Item -Path $FilesToInclude -Destination (Join-Path -Parent $unzippedPackagePath -ChildPath 'Modules')  -Force:$Force
             }
             else {
                 $filesToIncludeFolderName = Get-Item $FilesToInclude
-                $FilesToIncludePath = Join-Path $modulePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $modulePath -Recurse  -Force:$Force
+                $FilesToIncludePath = Join-Path -Parent (Join-Path -Parent $unzippedPackagePath -ChildPath 'Modules') -ChildPath $filesToIncludeFolderName.Name
+                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse  -Force:$Force
             }
         }
         

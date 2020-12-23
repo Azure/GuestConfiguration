@@ -2,7 +2,7 @@
 Describe "MSFT_PesterResource Tests" {
 
     BeforeAll {
-        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Parent) -ChildPath "MSFT_PesterResource.psm1"
+        $resourceModulePath = Join-Path -Path (Split-Path $PSScriptRoot -Path) -ChildPath "MSFT_PesterResource.psm1"
         Import-Module -Name $resourceModulePath -Force
     }
 

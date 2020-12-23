@@ -545,7 +545,7 @@ describe 'Test Environment' {
     Context 'New-GuestConfigurationPackage' {
 
         It 'creates custom policy package' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             Test-Path -Path $package.Path | Should -BeTrue
             $package.Name | Should -Be $policyName
         }

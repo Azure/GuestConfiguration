@@ -43,7 +43,7 @@ InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
 function New-GuestConfigurationPackage {
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true)]
+        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 

@@ -47,7 +47,7 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [parameter(Position = 1, Mandatory = $true)]
+        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 

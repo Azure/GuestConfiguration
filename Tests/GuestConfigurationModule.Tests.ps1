@@ -523,11 +523,11 @@ Name="DSCConfig";
         }
 
         It 'does not overwrite a custom policy package when -Force is not specified' {
-            New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop | Should -Throw
+            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
         }
 
         It 'overwrites a custom policy package when -Force is specified' {
-            New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop | Should -Not -Throw
+            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
         }
 
         It 'Verify the package can be extracted' {

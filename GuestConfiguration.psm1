@@ -64,8 +64,10 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
+        [parameter(ParameterSetName = 'Configuration','Pester')]
         [string] $Path = '.',
-
+        
+        [parameter(ParameterSetName = 'Configuration','Pester')]
         [switch] $Force
     )
 

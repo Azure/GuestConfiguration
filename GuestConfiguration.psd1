@@ -61,6 +61,9 @@ PrivateData = @{
         # ReleaseNotes of this module
         ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
 
+        # Experimental features
+        ExperimentalFeatures = @(@{Name="GuestConfiguration.Remediation";Description="Remediate settings inside machines (Apply configuration)"})
+
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable

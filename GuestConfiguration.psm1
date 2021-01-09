@@ -587,7 +587,12 @@ function New-GuestConfigurationPolicy {
         $Platform = 'Windows',
 
         [parameter()]
-        [Hashtable[]] $Tag
+        [Hashtable[]] $Tag,
+
+        [parameter()]
+        [Experimental("GuestConfiguration.Remediation", "Show")]
+        [ValidateSet('AuditIfNotExists', 'DeployIfNotExists')]
+        [String] $Effect = 'AuditIfNotExists'
     )
 
     # This value must be static for AINE policies due to service configuration
@@ -631,8 +636,8 @@ function New-GuestConfigurationPolicy {
         $packageIsSigned = (((Get-ChildItem -Path $unzippedPkgPath -Filter *.cat) -ne $null) -or `
             (((Get-ChildItem -Path $unzippedPkgPath -Filter *.asc) -ne $null) -and ((Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums) -ne $null)))
 
-        $AuditIfNotExistsInfo = @{
-            FileName                 = 'AuditIfNotExists.json'
+        $CustomPolicyParameters = @{
+            FileName                 = "$Effect.json"
             DisplayName              = $DisplayName
             Description              = $Description
             Platform                 = $Platform
@@ -640,13 +645,13 @@ function New-GuestConfigurationPolicy {
             ConfigurationVersion     = $Version
             ContentUri               = $ContentUri
             ContentHash              = $contentHash
-            ReferenceId              = "Deploy_$policyName"
             ParameterInfo            = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
             Category                 = $Category
             Tag                      = $Tag
         }
-        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose | Out-Null
+
+        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -CustomPolicyParameters $CustomPolicyParameters -Verbose:$verbose | Out-Null
             
         $result = [pscustomobject]@{
             Name = $policyName

@@ -487,7 +487,7 @@ function New-GuestConfigurationPolicyIfSection {
     )
     if ($Platform -ieq 'Windows')
     {
-        $policyRuleHashtable['anyOf'][0]['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -641,7 +641,7 @@ function New-GuestConfigurationPolicyIfSection {
             }
         )
 
-        $policyRuleHashtable['anyOf'][1]['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "windows*"
@@ -650,7 +650,7 @@ function New-GuestConfigurationPolicyIfSection {
     }
     elseif ($Platform -ieq 'Linux')
     {
-        $policyRuleHashtable['anyOf'][0]['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
                     [Ordered]@{
@@ -871,10 +871,24 @@ function New-GuestConfigurationPolicyIfSection {
             }
         )
 
-        $policyRuleHashtable['anyOf'][1]['allOf'] += @(
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
             [Ordered]@{
                 field = "Microsoft.HybridCompute/imageOffer"
                 like = "linux*"
+            }
+        )
+
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
+            [Ordered]@{
+                field = 'Microsoft.HybridCompute/imageOffer'
+                like  = 'linux*'
+            }
+        )
+
+        $policyRuleHashtable['if']['anyOf'][1]['allOf'] += @(
+            [Ordered]@{
+                field = "Microsoft.HybridCompute/imageOffer"
+                like  = "linux*"
             }
         )
     }
@@ -1092,7 +1106,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     )
 
-    $policyRuleHashtable['if'] += New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
+    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform
 
 
     # if there is atleast one tag
@@ -1366,6 +1380,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
     }
+     
 
     $policyRuleHashtable = [Ordered]@{
         if   = [Ordered]@{
@@ -1401,7 +1416,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
     }
 
-    $policyRuleHashtable['if'] += New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
+    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
 
     # if there is atleast one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {

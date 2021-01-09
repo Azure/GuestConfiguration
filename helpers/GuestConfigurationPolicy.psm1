@@ -479,7 +479,11 @@ function New-GuestConfigurationPolicyIfSection {
         [Parameter(Mandatory = $true)]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform
+        $Platform,
+
+        [Parameter(Mandatory = $true)]
+        [Hashtable]
+        $policyRuleHashtable
     )
     if ($Platform -ieq 'Windows')
     {
@@ -1412,7 +1416,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
     }
 
-    $policyRuleHashtable += New-GuestConfigurationPolicyIfSection -Platform $Platform
+    $policyRuleHashtable += New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
 
     # if there is atleast one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {

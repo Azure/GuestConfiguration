@@ -479,12 +479,36 @@ function New-GuestConfigurationPolicyIfSection {
         [Parameter(Mandatory = $true)]
         [ValidateSet('Windows', 'Linux')]
         [String]
-        $Platform,
-
-        [Parameter(Mandatory = $true)]
-        [Hashtable]
-        $policyRuleHashtable
+        $Platform
     )
+
+    $policyRuleHashtable = [Ordered]@{
+        if   = [Ordered]@{
+            anyOf = @(
+                [Ordered]@{
+                    allOf = @(
+                        [Ordered]@{
+                            field  = 'type'
+                                    equals = "Microsoft.Compute/virtualMachines"
+                        }
+                    )
+                },
+                [Ordered]@{
+                    allOf = @(
+                        [Ordered]@{
+                            value = "[parameters('IncludeArcMachines')]"
+                            equals = "true"
+                        },
+                        [Ordered]@{
+                            field = "type"
+                            equals = "Microsoft.HybridCompute/machines"
+                        }
+                    )
+                }
+            )
+        }
+    }
+
     if ($Platform -ieq 'Windows')
     {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
@@ -1106,8 +1130,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     )
 
-    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform
-
+    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
 
     # if there is atleast one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
@@ -1380,33 +1403,10 @@ function New-GuestConfigurationAuditPolicyDefinition {
         id         = "/providers/Microsoft.Authorization/policyDefinitions/$auditPolicyGuid"
         name       = $auditPolicyGuid
     }
-     
 
-    $policyRuleHashtable = [Ordered]@{
-        if   = [Ordered]@{
-            anyOf = @(
-                [Ordered]@{
-                    allOf = @(
-                        [Ordered]@{
-                            field  = 'type'
-                                    equals = "Microsoft.Compute/virtualMachines"
-                        }
-                    )
-                },
-                [Ordered]@{
-                    allOf = @(
-                        [Ordered]@{
-                            value = "[parameters('IncludeArcMachines')]"
-                            equals = "true"
-                        },
-                        [Ordered]@{
-                            field = "type"
-                            equals = "Microsoft.HybridCompute/machines"
-                        }
-                    )
-                }
-            )
-        }
+    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform
+
+    $policyRuleThen = [Ordered]@{
         then = [Ordered]@{
             effect  = 'auditIfNotExists'
             details = [Ordered]@{
@@ -1415,8 +1415,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         }
     }
-
-    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
+    $policyRuleHashtable += $policyRuleThen
 
     # if there is atleast one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {

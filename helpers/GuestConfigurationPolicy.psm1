@@ -1500,10 +1500,10 @@ function New-GuestConfigurationPolicyDefinition {
 
         switch ($CustomPolicyParameters.FileName) {
             'AuditIfNotExists.json' {
-                New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+                New-GuestConfigurationAuditPolicyDefinition @currentPolicyInfo
             }
             'DeployIfNotExists.json' {
-                New-GuestConfigurationDeployPolicyDefinition @currentAuditPolicyInfo
+                New-GuestConfigurationDeployPolicyDefinition @currentPolicyInfo
             }
             Default {
                 throw "The requested effect `'$Effect`' is not supported."

@@ -1015,37 +1015,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     }
 
-    $policyRuleHashtable = [Ordered]@{
-        if   = [Ordered]@{
-            anyOf = @(
-                [Ordered]@{
-                    allOf = @(
-                        [Ordered]@{
-                            field  = 'type'
-                            equals = "Microsoft.Compute/virtualMachines"
-                        }
-                    )
-                },
-                [Ordered]@{
-                    allOf = @(,
-                        [Ordered]@{
-                            field  = "type"
-                            equals = "Microsoft.HybridCompute/machines"
-                        }
-                    )
-                }
-            )
-        }
-        then = [Ordered]@{
-            effect  = 'deployIfNotExists'
-            details = [Ordered]@{
-                type              = 'Microsoft.GuestConfiguration/guestConfigurationAssignments'
-                name              = $ConfigurationName
-                roleDefinitionIds = @('/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')
-            }
-        }
-    }
-
     $deploymentHashtable = [Ordered]@{
         properties = [Ordered]@{
             mode       = 'incremental'
@@ -1130,7 +1099,19 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     )
 
-    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform -policyRuleHashtable $policyRuleHashtable
+    $policyRuleHashtable = New-GuestConfigurationPolicyIfSection -Platform $Platform
+
+    $policyRuleHashtableThen = [Ordered]@{
+        then = [Ordered]@{
+            effect  = 'deployIfNotExists'
+            details = [Ordered]@{
+                type              = 'Microsoft.GuestConfiguration/guestConfigurationAssignments'
+                name              = $ConfigurationName
+                roleDefinitionIds = @('/providers/microsoft.authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c')
+            }
+        }
+    }
+    $policyRuleHashtable += $policyRuleHashtableThen
 
     # if there is atleast one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {

@@ -680,14 +680,6 @@ Name="DSCConfig";
             $newGCAuditPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyParametersLinux
             $newGCAuditPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
             Test-Path -Path $newGCAuditPolicyResultLinux.Path | Should -BeTrue
-
-            $newGCDeployPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows -Effect 'DeployIfNotExists'
-            $newGCDeployPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCDeployPolicyResultWindows.Path | Should -BeTrue
-            
-            $newGCDeployPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyParametersLinux -Effect 'DeployIfNotExists'
-            $newGCDeployPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCDeployPolicyResultLinux.Path | Should -BeTrue
         }
 
         It 'Generated Audit policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
@@ -696,14 +688,6 @@ Name="DSCConfig";
             
             $auditPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'AuditIfNotExists.json'
             Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
-        }
-
-        It 'Generated Deploy policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
-            $deployPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileWindows | Should -BeTrue
-            
-            $deployPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileLinux | Should -BeTrue
         }
 
         It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
@@ -725,6 +709,32 @@ Name="DSCConfig";
             $auditPolicyContentLinux.properties.policyType | Should -Be $expectedPolicyType
             $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be $testPolicyNameLinux
             $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
+        }
+
+        It 'New-GuestConfigurationPolicy with -Effect parameter should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+            if ($notReleaseBuild) {
+                function Get-AzContext {}
+                Get-AzMocks
+            }
+            else {
+                Login-ToTestAzAccount
+            }
+
+            $newGCDeployPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows -Effect 'DeployIfNotExists'
+            $newGCDeployPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
+            Test-Path -Path $newGCDeployPolicyResultWindows.Path | Should -BeTrue
+            
+            $newGCDeployPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyParametersLinux -Effect 'DeployIfNotExists'
+            $newGCDeployPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
+            Test-Path -Path $newGCDeployPolicyResultLinux.Path | Should -BeTrue
+        }
+
+        It 'Generated Deploy policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+            $deployPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'DeployIfNotExists.json'
+            Test-Path -Path $deployPolicyFileWindows | Should -BeTrue
+            
+            $deployPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'DeployIfNotExists.json'
+            Test-Path -Path $deployPolicyFileLinux | Should -BeTrue
         }
 
         It 'Deploy policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {

@@ -999,20 +999,33 @@ function New-GuestConfigurationDeployPolicyDefinition {
     }
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
+    $ParameterMapping = @{ }
+    $ParameterDefinitions = @{ }
+
+    $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
+        Type            = "String"
+        Metadata        = [Ordered]@{
+            DisplayName     = 'Include Arc connected servers'
+            Description     = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        }
+        AllowedValues   = @('True','False')
+        DefaultValue    = 'False'
+    }
 
     $deployPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
             policyType  = 'Custom'
-            mode        = 'Indexed'
+            mode        = 'All'
             description = $Description
             metadata    = [Ordered]@{
-                category          = $Category
-                requiredProviders = @(
-                    'Microsoft.GuestConfiguration'
-                )
+                category           = $Category
             }
+            parameters  = $ParameterDefinitions
+            
         }
+        id         = "/providers/Microsoft.Authorization/policyDefinitions/$deployPolicyGuid"
+        name       = $deployPolicyGuid
     }
 
     $deploymentHashtable = [Ordered]@{

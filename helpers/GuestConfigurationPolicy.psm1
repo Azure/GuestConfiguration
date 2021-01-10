@@ -1263,11 +1263,6 @@ function New-GuestConfigurationDeployPolicyDefinition {
     
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
-    $deployPolicyContentHashtable += [Ordered]@{
-        id   = "/providers/Microsoft.Authorization/policyDefinitions/$deployPolicyGuid"
-        name = $deployPolicyGuid
-    }
-
     $deployPolicyContent = ConvertTo-Json -InputObject $deployPolicyContentHashtable -Depth 100 | ForEach-Object { [System.Text.RegularExpressions.Regex]::Unescape($_) }
     $formattedDeployPolicyContent = Format-Json -Json $deployPolicyContent
 

@@ -747,6 +747,9 @@ Name="DSCConfig";
             $deployPolicyContentWindows.properties.policyType | Should -Be $expectedPolicyType
             $deployPolicyContentWindows.properties.policyRule.then.details.name | Should -Be $testPolicyNameWindows
             $deployPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
+            $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should -Be $testPolicyName
+            $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should -Be $expectedContentHash
+            $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
 
             $deployPolicyFileLinux = Join-Path -Path $testOutputPathLinux -ChildPath 'DeployIfNotExists.json'
             $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -756,6 +759,9 @@ Name="DSCConfig";
             $deployPolicyContentLinux.properties.policyType | Should -Be $expectedPolicyType
             $deployPolicyContentLinux.properties.policyRule.then.details.name | Should -Be $testPolicyNameLinux
             $deployPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
+            $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.parameters.configurationName.value | Should -Be $testPolicyName
+            $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.parameters.contentHash.value | Should -Be $expectedContentHash
+            $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.parameters.contentUri.value | Should -Be $newGCPolicyParameters.ContentUri
         }
     }
     Context 'Publish-GuestConfigurationPolicy' {

@@ -56,6 +56,20 @@ jobs:
             Install-Module -Name 'Pester' -RequiredVersion 5.0.4 -AllowClobber -SkipPublisherCheck -Repository 'PSGallery' -Force
       - task: PowerShell@2
         enabled: 'true'
+        displayName: Enable Experimental Feature
+        inputs:
+          pwsh: 'true'
+          targetType: inline
+          continueOnError: 'true'
+          script: |
+            if ($IsWindows) {$delimiter = ";"} else {$delimiter = ":"}
+            $firstPSModulePathFolder = ($Env:PSModulePath -split $delimiter)[0]
+            Copy-Item $env:BUILD_SOURCESDIRECTORY (Join-Path $firstPSModulePathFolder 'GuestConfiguration') -Recurse
+            $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
+            Import-Module $gcModulePath -Force
+            Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+      - task: PowerShell@2
+        enabled: 'true'
         displayName: Pester v5 unit tests
         inputs:
           pwsh: 'true'

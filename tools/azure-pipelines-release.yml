@@ -67,7 +67,7 @@ jobs:
             Copy-Item $env:BUILD_SOURCESDIRECTORY (Join-Path $firstPSModulePathFolder 'GuestConfiguration') -Recurse
             $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force
-            Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+            Enable-ExperimentalFeature -Name GuestConfiguration.Remediation
       - task: PowerShell@2
         enabled: 'true'
         displayName: Pester v5 unit tests

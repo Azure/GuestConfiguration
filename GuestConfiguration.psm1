@@ -695,8 +695,7 @@ function Publish-GuestConfigurationPolicy {
 
     # Publish policies
     $subscriptionId = $rmContext.Subscription.Id
-    foreach ($policy in $policyFiles){
-        $policyFile = join-path $Path $policy
+    foreach ($policyFile in $policyFiles){
         $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object {$_}
         $definitionContent = $jsonDefinition.Properties
 

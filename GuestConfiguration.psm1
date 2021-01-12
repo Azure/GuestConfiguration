@@ -691,9 +691,11 @@ function Publish-GuestConfigurationPolicy {
     $rmContext = Get-AzContext
     Write-Verbose "Publishing Guest Configuration policy using '$($rmContext.Name)' AzContext."
 
+    $policyFiles = Get-ChildItem -Path $Path | Where-Object {$_.Name -imatch '^((?:audit|deploy)ifnotexists\.json)$'} | ForEach-Object {$_.FullName}
+
     # Publish policies
     $subscriptionId = $rmContext.Subscription.Id
-    foreach ($policy in @("AuditIfNotExists.json", "DeployIfNotExists.json")){
+    foreach ($policy in $policyFiles){
         $policyFile = join-path $Path $policy
         $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object {$_}
         $definitionContent = $jsonDefinition.Properties

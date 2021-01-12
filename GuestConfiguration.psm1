@@ -598,6 +598,12 @@ function New-GuestConfigurationPolicy {
     # This value must be static for AINE policies due to service configuration
     $Category = 'Guest Configuration'
 
+    if ($PSBoundParameters.ContainsKey('Effect') -and [ExperimentalFeature]::IsEnabled("GuestConfiguration.Remediation")) {
+        if ($Effect -eq 'DeployIfNotExists') {
+            Write-Warning 'Guest Configuration: Remediation is an expiremental feature and not officially supported'
+        }
+    }
+
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $policyDefinitionsPath = $Path

@@ -1087,10 +1087,11 @@ function New-GuestConfigurationDeployPolicyDefinition {
             location   = "[parameters('location')]"
             properties = [Ordered]@{
                 guestConfiguration = [Ordered]@{
-                    name        = "[parameters('configurationName')]"
-                    contentUri  = "[parameters('contentUri')]"
-                    contentHash = "[parameters('contentHash')]"
-                    version     = $ConfigurationVersion.ToString()
+                    name           = "[parameters('configurationName')]"
+                    contentUri     = "[parameters('contentUri')]"
+                    contentHash    = "[parameters('contentHash')]"
+                    version        = $ConfigurationVersion.ToString()
+                    assignmentType = "DeployAndAutoCorrect"
                 }
             }
             condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"

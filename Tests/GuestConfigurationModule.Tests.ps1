@@ -514,12 +514,10 @@ Name="DSCConfig";
             }
         }
 
-        It 'has Linux-friendly line endings' {
-            $moduleFiles = Get-ChildItem -path (Get-Item -Path $PSScriptRoot).Parent -Exclude '.github' -File -Recurse | ForEach-Object {$_.FullName}
-            foreach ($filePath in $moduleFiles) {
-                $fileContent = Get-Content -Path $filePath -Raw
-                $fileContent.Contains("`r`n") | Should -BeFalse
-            }
+        It 'has Linux-friendly line endings in InSpec install script' {
+            $inspecInstallScriptPath = Get-Item -path "$PSScriptRoot../DscResources/MSFT_ChefInSpecResource/install_inspec.sh" | ForEach-Object {$_.FullName}
+            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
+            $fileContent.Contains("`r`n") | Should -BeFalse
         }
     }
     Context 'New-GuestConfigurationPackage' {

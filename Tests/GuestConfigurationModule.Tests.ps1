@@ -515,7 +515,7 @@ Name="DSCConfig";
         }
 
         It 'has Linux-friendly line endings' {
-            $moduleFiles = Get-ChildItem -path (Get-Item -Path $PSScriptRoot).Parent -Exclude '.github' -Recurse | ForEach-Object {$_.FullName}
+            $moduleFiles = Get-ChildItem -path (Get-Item -Path $PSScriptRoot).Parent -Exclude '.github' -File -Recurse | ForEach-Object {$_.FullName}
             foreach ($filePath in $moduleFiles) {
                 $fileContent = Get-Content -Path $filePath -Raw
                 $fileContent.Contains("`r`n") | Should -BeFalse

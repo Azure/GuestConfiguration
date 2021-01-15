@@ -513,6 +513,14 @@ Name="DSCConfig";
                 Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
             }
         }
+
+        It 'has Linux-friendly line endings' {
+            $moduleFiles = Get-ChildItem -path (Get-Item -Path $PSScriptRoot).Parent | ForEach-Object {$_.FullName}
+            foreach ($filePath in $moduleFiles) {
+                $fileContent = Get-Content -Path $filePath -Raw
+                $fileContent.Contains("`r`n") | Should -BeFalse
+            }
+        }
     }
     Context 'New-GuestConfigurationPackage' {
 

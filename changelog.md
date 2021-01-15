@@ -11,6 +11,7 @@
 ## v3.1.1
 
 - Adds pipline input for New-GuestConfigurationPackage
+
 ## v3.1.0
 
 - Add pipeline input support for Publish-GCPackage and New-GCPolicy

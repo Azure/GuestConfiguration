@@ -515,7 +515,7 @@ Name="DSCConfig";
         }
 
         It 'has Linux-friendly line endings in InSpec install script' {
-            $inspecInstallScriptPath = Get-Item -path "$PSScriptRoot../DscResources/MSFT_ChefInSpecResource/install_inspec.sh" | ForEach-Object {$_.FullName}
+            $inspecInstallScriptPath = Get-Item -path "$PSScriptRoot/../DscResources/MSFT_ChefInSpecResource/install_inspec.sh" | ForEach-Object {$_.FullName}
             $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
             $fileContent.Contains("`r`n") | Should -BeFalse
         }

@@ -4,7 +4,7 @@
 RootModule = 'GuestConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '3.1.3'
+moduleVersion = '3.3.0'
 
 # ID used to uniquely identify this module
 GUID = '164465d5-6575-4e7f-b80b-680e4198354e'

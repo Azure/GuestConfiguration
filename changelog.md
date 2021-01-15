@@ -8,6 +8,10 @@
 
 - Repair carriage return line ending in inspec install script
 
+## v3.3.0
+
+- Experimental feature for DeployIfNotExists
+
 ## v3.1.1
 
 - Adds pipline input for New-GuestConfigurationPackage

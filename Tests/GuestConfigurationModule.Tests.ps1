@@ -170,7 +170,7 @@ instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
 Name = "linux-path";
 ResourceID = "[ChefInSpecResource]Audit Linux path exists";
-ModuleVersion = "3.1.1";
+ModuleVersion = "3.1.2";
 SourceInfo = "::7::1::ChefInSpecResource";
 ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";

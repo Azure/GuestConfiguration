@@ -225,4 +225,3 @@ install_inspec() {
 
 install_inspec
 check_result $? "Inspec installation failed"
-

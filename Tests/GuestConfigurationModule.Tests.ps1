@@ -565,11 +565,21 @@ Name="DSCConfig";
         }
 
         It 'Implements -FilesToInclude parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
+            if(Test-CurrentMachineIsWindows) {
+                $outputPath = Join-Path $env:SystemDrive 'output'
+            }
+            else {
+                $outputPath = Join-Path $env:HOME 'output'
+            }
+            if(Test-Path $outputPath) {
+                Remove-Item $outputPath -Force -Recurse
+            }
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $filesToIncludeExtractionPath) } | Should -Not -Throw
-            Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
-            $extractedFile = Join-Path $extractedFilesToIncludePath 'file.txt'
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $outputPath) } | Should -Not -Throw
+            $includedFilesFolder = Join-Path $outputPath (Join-Path 'Modules' 'FilesToInclude')
+            Test-Path -Path $includedFilesFolder | Should -BeTrue
+            $extractedFile = Join-Path $includedFilesFolder 'file.txt'
             Test-Path -Path $extractedFile | Should -BeTrue
             Get-Content $extractedFile | Should -Be 'test'
         }

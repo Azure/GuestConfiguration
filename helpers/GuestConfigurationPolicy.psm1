@@ -113,7 +113,7 @@ function Copy-DscResources {
         $latestModule = @()
         $latestModule += Get-Module GuestConfiguration
         $latestModule += Get-Module GuestConfiguration -ListAvailable
-        $latestModule = ($latestModule | Sort-Object Version)[0]
+        $latestModule = ($latestModule | Sort-Object Version -Descending)[0]
     }
     catch {
         write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
@@ -170,7 +170,7 @@ function Copy-DscResources {
 
     # Copy binary resources.
     $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $resources = Get-DscResource -Module GuestConfiguration
+    $resources = Get-DscResource -Module @{ModuleName='GuestConfiguration'; ModuleVersion=$latestModule.Version.ToString()}
     $resources | ForEach-Object {
         if ($_.ImplementedAs -eq 'Binary') {
             $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType

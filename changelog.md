@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
 
+## v3.1.2
+
+- Repair carriage return line ending in inspec install script
+
 ## v3.1.1
 
 - Adds pipline input for New-GuestConfigurationPackage

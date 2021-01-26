@@ -158,7 +158,7 @@ function Test-GuestConfigurationPackage {
         [Hashtable[]] $Parameter = @()
     )
 
-    if ($IsMacOS) {
+    if ($env:OS -notmatch "Windows" -and $IsMacOS) {
         Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
     
@@ -177,8 +177,7 @@ function Test-GuestConfigurationPackage {
         New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
 
         # Unzip policy package.
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($Path, $policyPath)
+        Expand-Archive -LiteralPath $Path $policyPath
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof

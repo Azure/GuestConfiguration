@@ -170,7 +170,7 @@ instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
 Name = "linux-path";
 ResourceID = "[ChefInSpecResource]Audit Linux path exists";
-ModuleVersion = "3.1.1";
+ModuleVersion = "3.1.2";
 SourceInfo = "::7::1::ChefInSpecResource";
 ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";
@@ -436,6 +436,7 @@ Name="DSCConfig";
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
         $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'install_inspec.sh')
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
@@ -540,6 +541,11 @@ Name="DSCConfig";
 
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
+        }
+
+        It 'has Linux-friendly line endings in InSpec install script' {
+            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
+            $fileContent -match "`r`n" | Should -BeFalse
         }
 
         It 'Verify all required modules are included in the package' {

@@ -436,6 +436,7 @@ Name="DSCConfig";
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
         $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'install_inspec.sh')
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
@@ -513,12 +514,6 @@ Name="DSCConfig";
                 Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
             }
         }
-
-        It 'has Linux-friendly line endings in InSpec install script' {
-            $inspecInstallScriptPath = Get-Item -path "$PSScriptRoot/../DscResources/MSFT_ChefInSpecResource/install_inspec.sh" | ForEach-Object {$_.FullName}
-            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
-            $fileContent -match "`r`n" | Should -BeFalse
-        }
     }
     Context 'New-GuestConfigurationPackage' {
 
@@ -546,6 +541,11 @@ Name="DSCConfig";
 
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
+        }
+
+        It 'has Linux-friendly line endings in InSpec install script' {
+            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
+            $fileContent -match "`r`n" | Should -BeFalse
         }
 
         It 'Verify all required modules are included in the package' {

@@ -1,5 +1,9 @@
 # Change Log for GuestConfiguration module
+## v3.1.3
 
+- 'FilesToInclude' parameter should copy contents to 'Modules' folder
+- New-GuestConfigurationPackage cmdlet should copy ChefInspec resource from latest GuestConfiguration module
+  
 ## v3.1.2
 
 - Repair carriage return line ending in inspec install script

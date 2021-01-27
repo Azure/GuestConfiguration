@@ -89,13 +89,14 @@ function New-GuestConfigurationPackage {
 
         # Copy FilesToInclude
         if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            $modulePath = Join-Path $unzippedPackagePath 'Modules'
             if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath  -Force:$Force
+                Copy-Item -Path $FilesToInclude -Destination $modulePath  -Force:$Force
             }
             else {
                 $filesToIncludeFolderName = Get-Item $FilesToInclude
-                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse  -Force:$Force
+                $FilesToIncludePath = Join-Path $modulePath $filesToIncludeFolderName.Name
+                Copy-Item -Path $FilesToInclude -Destination $modulePath -Recurse  -Force:$Force
             }
         }
         

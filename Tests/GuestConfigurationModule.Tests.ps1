@@ -601,7 +601,7 @@ describe 'Test Environment' {
             if(Test-Path $outputPath) {
                 Remove-Item $outputPath -Force -Recurse
             }
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath -Force
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $outputPath) } | Should -Not -Throw
             $includedFilesFolder = Join-Path $outputPath (Join-Path 'Modules' 'FilesToInclude')

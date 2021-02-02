@@ -76,7 +76,6 @@ function Test-GuestConfigurationMofResourceDependencies {
     )
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Path, 4)
 
-    $externalResources = @()
     for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
         if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName' -and $resourcesInMofDocument[$i].ModuleName -ne 'GuestConfiguration') {
             if ($resourcesInMofDocument[$i].ModuleName -ieq 'PsDesiredStateConfiguration') {

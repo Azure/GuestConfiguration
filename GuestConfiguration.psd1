@@ -22,7 +22,7 @@ Copyright = '(c) 2019 Microsoft Corporation. All rights reserved.'
 Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '5.1'
+PowerShellVersion = '6.2'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage')

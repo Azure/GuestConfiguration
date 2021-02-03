@@ -43,11 +43,11 @@ InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
 function New-GuestConfigurationPackage {
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true)]
+        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [parameter(Position = 1, Mandatory = $true)]
+        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 
@@ -57,7 +57,9 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
-        [string] $Path = '.'
+        [string] $Path = '.',
+
+        [switch] $Force
     )
 
     Try {
@@ -78,7 +80,7 @@ function New-GuestConfigurationPackage {
         Save-GuestConfigurationMofDocument -Name $Name -SourcePath $Configuration -DestinationPath (Join-Path $unzippedPackagePath "$Name.mof") -Verbose:$verbose
 
         # Copy DSC resources
-        Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose
+        Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackagePath -Verbose:$verbose -Force:$Force
 
         if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath)) {
             # Copy Chef resource and profiles.
@@ -87,13 +89,14 @@ function New-GuestConfigurationPackage {
 
         # Copy FilesToInclude
         if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
+            $modulePath = Join-Path $unzippedPackagePath 'Modules'
             if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $unzippedPackagePath
+                Copy-Item -Path $FilesToInclude -Destination $modulePath  -Force:$Force
             }
             else {
                 $filesToIncludeFolderName = Get-Item $FilesToInclude
-                $FilesToIncludePath = Join-Path $unzippedPackagePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse
+                $FilesToIncludePath = Join-Path $modulePath $filesToIncludeFolderName.Name
+                Copy-Item -Path $FilesToInclude -Destination $modulePath -Recurse  -Force:$Force
             }
         }
         
@@ -156,7 +159,7 @@ function Test-GuestConfigurationPackage {
         [Hashtable[]] $Parameter = @()
     )
 
-    if ($IsMacOS) {
+    if ($env:OS -notmatch "Windows" -and $IsMacOS) {
         Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
     
@@ -175,8 +178,7 @@ function Test-GuestConfigurationPackage {
         New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
 
         # Unzip policy package.
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($Path, $policyPath)
+        Expand-Archive -LiteralPath $Path $policyPath
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
@@ -432,7 +434,7 @@ function Protect-GuestConfigurationPackage {
 function Publish-GuestConfigurationPackage {
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true)]
+        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
@@ -483,8 +485,13 @@ function Publish-GuestConfigurationPackage {
         -Permission 'rl' `
         -FullUri
 
+    # Create object to use property names
+    $ContentUri = New-Object -TypeName PSObject -Property @{
+        ContentUri = $SAS
+    }
+
     # Output
-    return $SAS
+    return $ContentUri
 }
 
 <#
@@ -551,7 +558,7 @@ function Publish-GuestConfigurationPackage {
 function New-GuestConfigurationPolicy {
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true)]
+        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ContentUri,
 

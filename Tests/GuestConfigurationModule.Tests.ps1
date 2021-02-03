@@ -170,7 +170,7 @@ instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
 Name = "linux-path";
 ResourceID = "[ChefInSpecResource]Audit Linux path exists";
-ModuleVersion = "3.0.0";
+ModuleVersion = "3.1.3";
 SourceInfo = "::7::1::ChefInSpecResource";
 ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";
@@ -436,6 +436,7 @@ Name="DSCConfig";
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
         $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
+        $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'install_inspec.sh')
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'localhost.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
@@ -522,6 +523,14 @@ Name="DSCConfig";
             $package.Name | Should -Be $policyName
         }
 
+        It 'does not overwrite a custom policy package when -Force is not specified' {
+            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
+        }
+
+        It 'overwrites a custom policy package when -Force is specified' {
+            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
+        }
+
         It 'Verify the package can be extracted' {
             $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
 
@@ -532,6 +541,11 @@ Name="DSCConfig";
 
         It 'Verify extracted mof document exists' {
             Test-Path -Path $mofFilePath | Should -BeTrue
+        }
+
+        It 'has Linux-friendly line endings in InSpec install script' {
+            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
+            $fileContent -match "`r`n" | Should -BeFalse
         }
 
         It 'Verify all required modules are included in the package' {
@@ -551,11 +565,21 @@ Name="DSCConfig";
         }
 
         It 'Implements -FilesToInclude parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $filesToIncludePackagePath -FilesToInclude $FilesToIncludeFolderPath
+            if(Test-CurrentMachineIsWindows) {
+                $outputPath = Join-Path $env:SystemDrive 'output'
+            }
+            else {
+                $outputPath = Join-Path $env:HOME 'output'
+            }
+            if(Test-Path $outputPath) {
+                Remove-Item $outputPath -Force -Recurse
+            }
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $filesToIncludeExtractionPath) } | Should -Not -Throw
-            Test-Path -Path $extractedFilesToIncludePath | Should -BeTrue
-            $extractedFile = Join-Path $extractedFilesToIncludePath 'file.txt'
+            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $outputPath) } | Should -Not -Throw
+            $includedFilesFolder = Join-Path $outputPath (Join-Path 'Modules' 'FilesToInclude')
+            Test-Path -Path $includedFilesFolder | Should -BeTrue
+            $extractedFile = Join-Path $includedFilesFolder 'file.txt'
             Test-Path -Path $extractedFile | Should -BeTrue
             Get-Content $extractedFile | Should -Be 'test'
         }
@@ -633,10 +657,10 @@ Name="DSCConfig";
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName
-            $Uri | Should -Not -BeNullOrEmpty
-            $Uri | Should -BeOfType 'String'
-            $Uri | Should -Not -Contain '@'
-            { Invoke-WebRequest -Uri $Uri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
+            $Uri.ContentUri | Should -Not -BeNullOrEmpty
+            $Uri.ContentUri | Should -BeOfType 'String'
+            $Uri.ContentUri | Should -Not -Contain '@'
+            { Invoke-WebRequest -Uri $Uri.ContentUri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
         }
     }
     Context 'New-GuestConfigurationPolicy' {

@@ -111,7 +111,7 @@ jobs:
           failOnStderr: true
           errorActionPreference: stop
           script: |
-            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory
+            New-Item $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration -type Directory -Exclude "**/Tests*"
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/DscResources -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/DscResources -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/helpers -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/helpers -Recurse
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1

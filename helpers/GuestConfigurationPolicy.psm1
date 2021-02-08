@@ -155,7 +155,7 @@ function Copy-DscResources {
     }
 
     if ($true -eq $IncludePesterModule) {
-        $latestInstalledVersionofPester = (Get-Module 'Pester' -ListAvailable | Sort-Object Version)[0]
+        $latestInstalledVersionofPester = (Get-Module 'Pester' -ListAvailable | Sort-Object Version -Descending)[0]
         $powershellModulesToCopy['Pester'] = @{ModuleName = $latestInstalledVersionofPester.Name; ModuleVersion = $latestInstalledVersionofPester.Version }
         Write-Verbose "Pester is a required PowerShell module"
     }

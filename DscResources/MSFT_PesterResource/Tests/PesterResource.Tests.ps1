@@ -34,7 +34,7 @@ Describe "MSFT_PesterResource Tests" {
     Context "MSFT_PesterResource\Set-TargetResource" {
 
         It 'Should always throw' {
-            { Set-TargetResource -TestFileName 'Value' } | Should -Throw
+            { Set-TargetResource -PesterFileName 'Value' } | Should -Throw
         }
     }
 
@@ -46,7 +46,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
@@ -57,7 +57,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.status | Should -BeTrue
             }
         }
@@ -68,7 +68,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons | Should -Be $null
             }
         }
@@ -82,7 +82,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $test = Test-TargetResource -TestFileName "TestScript"
+                $test = Test-TargetResource -PesterFileName "TestScript"
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
@@ -93,7 +93,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $test = Test-TargetResource -TestFileName 'TestScript'
+                $test = Test-TargetResource -PesterFileName 'TestScript'
                 $test | Should -BeTrue
             }
         }
@@ -107,7 +107,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
@@ -118,7 +118,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.status | Should -BeFalse
             }
         }
@@ -129,7 +129,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.Reasons | Should -BeOfType 'Hashtable'
             }
         }
@@ -140,7 +140,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons[0] | ForEach-Object Code | Should -BeOfType 'String'
                 $get.reasons[0] | ForEach-Object Code | Should -Match "$script:moduleName:$script:moduleName:"
             }
@@ -152,7 +152,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
                     } } -Verifiable
-                $get = Get-TargetResource -TestFileName 'TestScript'
+                $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons | ForEach-Object Phrase | Should -BeOfType 'String'
             }
         }
@@ -166,7 +166,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $true
                         reasons = @()
                     } } -Verifiable
-                $test = Test-TargetResource -TestFileName 'TestScript'
+                $test = Test-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
@@ -177,7 +177,7 @@ Describe "MSFT_PesterResource Tests" {
                         status  = $false
                         reasons = @()
                     } } -Verifiable
-                $test = Test-TargetResource -TestFileName 'TestScript'
+                $test = Test-TargetResource -PesterFileName 'TestScript'
                 $test | Should -BeFalse
             }
         }

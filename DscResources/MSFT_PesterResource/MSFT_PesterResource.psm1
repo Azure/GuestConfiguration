@@ -55,7 +55,7 @@ function Get-ResultsfromPesterScript {
     }
 
     $Return = @{
-        TestFileName = $TestFileName
+        PesterFileName = $PesterFileName
         Status  = $Status
         Reasons = $Reasons
     }
@@ -71,10 +71,10 @@ function Get-TargetResource {
     (
         [Parameter(Mandatory = $true)]
         [string]
-        $TestFileName
+        $PesterFileName
     )
 
-    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Modules/PesterScripts/$TestFileName.ps1"
+    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Modules/PesterScripts/$PesterFileName.ps1"
 
     return $Return
 }
@@ -86,10 +86,10 @@ function Test-TargetResource {
     (
         [Parameter(Mandatory = $true)]
         [string]
-        $TestFileName
+        $PesterFileName
     )
 
-    $Return = (Get-TargetResource -TestFileName $TestFileName).Status
+    $Return = (Get-TargetResource -PesterFileName $PesterFileName).Status
 
     return $Return
 }
@@ -100,7 +100,7 @@ function Set-TargetResource {
     (
         [Parameter(Mandatory = $true)]
         [string]
-        $TestFileName
+        $PesterFileName
     )
 
     throw 'Set functionality is not supported in this version of the DSC resource.'
@@ -122,26 +122,26 @@ class reasons
 class PesterResource
 {
     [DscProperty(Key)]
-    [string]$TestFileName
+    [string]$PesterFileName
     
     [DscProperty(NotConfigurable)]
     [reasons[]]$reasons
 
     [void] Set()
     {
-        Set-TargetResource -path $this.TestFileName
+        Set-TargetResource -path $this.PesterFileName
     }
 
     [bool] Test()
     {
-        $test = Test-TargetResource -path $this.TestFileName
+        $test = Test-TargetResource -path $this.PesterFileName
         return $test
     }
 
     [PesterResource] Get()
     {
-        $get = Get-TargetResource -path $this.TestFileName
-        $this.TestFileName  = $get['TestFileName']
+        $get = Get-TargetResource -path $this.PesterFileName
+        $this.PesterFileName  = $get['PesterFileName']
         $this.reasons       = $get['reasons']
         return $this
     }

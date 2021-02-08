@@ -2132,7 +2132,7 @@ function New-PesterResourceSection {
     param (
         [Parameter(Mandatory = $true)]
         [String]
-        $TestFileName,
+        $PesterFileName,
 
         [String]
         $index = 1
@@ -2144,15 +2144,15 @@ function New-PesterResourceSection {
     $ref = '$MSFT_PesterResource'+$Index+'ref'
 
     # MOF should not contain the file extension since that is added by the resource
-    $TestFileName = $TestFileName.replace('.ps1','')
+    $PesterFileName = $PesterFileName.replace('.ps1','')
 
     $MOFResourceSection = @"
 instance of MSFT_PesterResource as $ref
 {
     ModuleName = "GuestConfiguration";
     SourceInfo = "Pester scripts";
-    TestFileName = "$TestFileName";
-    ResourceID = "[PesterResource]$TestFileName";
+    PesterFileName = "$PesterFileName";
+    ResourceID = "[PesterResource]$PesterFileName";
     ModuleVersion = "$Version";
     ConfigurationName = "Pester";
 };
@@ -2183,7 +2183,7 @@ function New-MofFileforPester {
     $index = 1
     foreach ($script in $Scripts) {
         $ResourceSection = $null
-        $ResourceSection = New-PesterResourceSection -TestFileName $script.Name -Index $index
+        $ResourceSection = New-PesterResourceSection -PesterFileName $script.Name -Index $index
         $index++
         $MOFContent += $ResourceSection
         $MOFContent += "`n"

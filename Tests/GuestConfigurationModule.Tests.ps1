@@ -670,7 +670,7 @@ describe 'Test Environment' {
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'Pester'
-            $testPackageResult.resources[0].TestFileName | Should -Be 'EnvironmentVariables'
+            $testPackageResult.resources[0].PesterFileName | Should -Be 'EnvironmentVariables'
         }
     } 
     Context 'Protect-GuestConfigurationPackage' {

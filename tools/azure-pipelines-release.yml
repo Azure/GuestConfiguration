@@ -97,7 +97,7 @@ jobs:
       - task: PowerShell@2
         displayName: Stage module artifact
         inputs:
-          pwsh: 'false'
+          pwsh: 'true'
           targetType: inline
           failOnStderr: true
           errorActionPreference: stop

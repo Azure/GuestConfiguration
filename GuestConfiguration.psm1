@@ -1,6 +1,22 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
+if ($PSVersionTable.PSVersion.Major -gt 6 -and ($isLinux -or $IsMacOS)) {
+    $OsName = (Get-Content -Path '/etc/*-release' -ErrorAction SilentlyContinue).Foreach{
+        if ($_ -match '^NAME=\"(?<distro>.*)\"') { 
+            $Matches.distro 
+        }
+    }
+
+    if ($IsMacOS) {
+        $OsName = 'MacOS'
+    }
+
+    if ($OsName -notmatch 'Ubuntu|Debian') {
+        throw "The Azure Policy Guest Configuration packages creation is not supported on '$OsName'.`n Please try on Windows, Unbuntu or Debian."
+    }
+}
+
 Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
 Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
 Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest

@@ -1,5 +1,8 @@
 # Change Log for GuestConfiguration module
 
+## [Unreleased]
+
+- Stop module loading if imported on non-supported OS (Supports Windows, Ubuntu, Debian).
 ## v3.0.0
 
 - Deprecate the 'Category' parameter due to service changes for Guest Assignment automatic creation

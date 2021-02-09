@@ -1,7 +1,7 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
-if ($PSVersionTable.PSVersion.Major -gt 6 -and ($isLinux -or $IsMacOS)) {
+if ($PSVersionTable.PSVersion.Major -gt 6 -and ($IsLinux -or $IsMacOS)) {
     $OsName = (Get-Content -Path '/etc/*-release' -ErrorAction SilentlyContinue).Foreach{
         if ($_ -match '^NAME=\"(?<distro>.*)\"') { 
             $Matches.distro 

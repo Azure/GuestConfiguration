@@ -1,8 +1,9 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
-Import-Module $PSScriptRoot/helpers/DscOperations.psm1 -Force
-Import-Module $PSScriptRoot/helpers/GuestConfigurationPolicy.psm1 -Force
+Import-Module $PSScriptRoot/Modules/GuestConfigPath -Force
+Import-Module $PSScriptRoot/Modules/DscOperations -Force
+Import-Module $PSScriptRoot/Modules/GuestConfigurationPolicy -Force
 Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture

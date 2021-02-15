@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Creates a new policy for guest configuration.

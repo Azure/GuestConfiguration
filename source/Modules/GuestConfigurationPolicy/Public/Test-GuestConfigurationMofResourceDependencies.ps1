@@ -1,4 +1,3 @@
-
 function Test-GuestConfigurationMofResourceDependencies {
     [CmdletBinding()]
     param

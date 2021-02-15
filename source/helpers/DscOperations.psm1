@@ -1,7 +1,7 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
-Import-Module $PSScriptRoot/GuestConfigPath.psm1 -Force
+Import-Module $PSScriptRoot/../Modules/GuestConfigPath -Force
 
 $script:ExecuteDscOperationsScript = @"
 using System;

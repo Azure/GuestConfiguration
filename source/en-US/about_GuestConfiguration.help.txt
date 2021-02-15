@@ -2,13 +2,22 @@ TOPIC
     about_GuestConfiguration
 
 SHORT DESCRIPTION
-    
+    The Guest Configuration PowerShell module provides commands that automate publishing custom
+    content for Azure Policy to audit settings inside Azure virtual machines and Arc connected machines.
 
 LONG DESCRIPTION
-    {{ Add Long description here }}
+    There are a few tasks that this module automates:
+
+    - Create the content package (.zip) from an existing DSC configuration (.mof)
+    - Functional validation of the content package
+        - Contains required files
+        - Runs the Audit against the local machine using the agent binaries used in Azure
+    - Publish the package to Azure blob storage
+    - Create the JSON files for the Azure Policy definitions (auditifnotexists, deployifnotexists, initiative)
+    - Publish the Azure Policy definitions to the currently selected subscription
 
 EXAMPLES
-    PS C:\> {{ add examples here }}
+    PS C:\> New-GuestConfigurationPackage -Path . -Configuration MyPolicy.mof -Name MyPolicy -Force
 
 NOTE:
     Thank you to all those who contributed to this module, by writing code, sharing opinions, and provided feedback.
@@ -17,8 +26,7 @@ TROUBLESHOOTING NOTE:
     Look out on the Github repository for issues and new releases.
 
 SEE ALSO
-  - {{ Please add Project URI such as github }}}
+  - https://aka.ms/gcpol
 
 KEYWORDS
-      {{ Add coma separated keywords here }}
-
+    Azure, Policy, Guest Configuration, DSC, Linux

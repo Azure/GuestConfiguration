@@ -2211,12 +2211,8 @@ instance of OMI_ConfigurationDocument
 };
 "@
 
-    # Make sure path exists
-    $PackageFolder = New-Item -ItemType Directory -Force:$Force -Path $Path
-    # Set file name
-    $MOFPath = $Path
     # Write file
-    Set-Content -Value $MOFContent -Path $MOFPath -Force:$Force
+    Set-Content -Value $MOFContent -Path $Path -Force:$Force
     
     $return = New-Object -TypeName PSObject -Property @{
         Path = $MOFPath

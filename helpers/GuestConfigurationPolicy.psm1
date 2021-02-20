@@ -2215,7 +2215,7 @@ instance of OMI_ConfigurationDocument
     Set-Content -Value $MOFContent -Path $Path -Force:$Force
     
     $return = New-Object -TypeName PSObject -Property @{
-        Path = $MOFPath
+        Path = $Path
     }
 
     # Output the path to the new file

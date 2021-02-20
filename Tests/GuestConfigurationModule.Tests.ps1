@@ -544,6 +544,7 @@ describe 'Test Environment' {
     Context 'New-GuestConfigurationFile' {
 
         It 'Generates MOF for Pester script files' {
+            New-Item -Path $pesterExtractionPath -ItemType Directory -Force
             $pesterMof = New-GuestConfigurationFile -Name 'PesterConfig' -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
             Test-Path -Path $pesterMof.Configuration | Should -BeTrue
             $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4) 

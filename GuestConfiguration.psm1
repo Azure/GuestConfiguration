@@ -1,19 +1,11 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
-if ($PSVersionTable.PSVersion.Major -gt 6 -and ($IsLinux -or $IsMacOS)) {
+if ($PSVersionTable.PSVersion.Major -gt 6 -and $IsLinux) {
     $OsName = (Get-Content -Path '/etc/*-release' -ErrorAction SilentlyContinue).Foreach{
         if ($_ -match '^NAME=\"(?<distro>.*)\"') { 
             $Matches.distro 
         }
-    }
-
-    if ($IsMacOS) {
-        $OsName = 'MacOS'
-    }
-
-    if ($OsName -notmatch 'Ubuntu|Debian') {
-        throw "The Azure Policy Guest Configuration packages creation is not supported on '$OsName'.`n Please try on Windows, Unbuntu or Debian."
     }
 }
 
@@ -79,6 +71,10 @@ function New-GuestConfigurationPackage {
     )
 
     Try {
+    
+        if ($IsLinux -and $OsName -notmatch 'Ubuntu|Debian') {
+            throw "Azure Policy Guest Configuration package creation is not supported on '$OsName'.`n Please run the command on Windows, Unbuntu or Debian."
+        }
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
         $Configuration = Resolve-Path $Configuration
@@ -174,6 +170,10 @@ function Test-GuestConfigurationPackage {
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
     )
+
+    if ($IsLinux -and $OsName -notmatch 'Ubuntu|Debian') {
+        throw "Testing Azure Policy Guest Configuration packages is not supported on '$OsName'.`n Please run the command on Windows, Unbuntu or Debian."
+    }
 
     if ($env:OS -notmatch "Windows" -and $IsMacOS) {
         Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'

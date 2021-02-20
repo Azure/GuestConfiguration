@@ -3,8 +3,11 @@ pr:
   branches:
     include:
       - feature/*
+      - f/*
       - bug/*
+      - b/*
       - chore/*
+      - c/*
   paths:
     exclude:
         - /bin/*

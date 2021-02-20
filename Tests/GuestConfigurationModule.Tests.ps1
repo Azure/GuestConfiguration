@@ -549,7 +549,7 @@ describe 'Test Environment' {
             $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4) 
             $resourcesInMofDocument | Should -Not -BeNullOrEmpty
             $resourcesInMofDocument[0].ConfigurationName | Should -Be 'PesterConfig'
-            $resourcesInMofDocument[0].ModuleName | Should -Be 'PesterResource'
+            $resourcesInMofDocument[0].ModuleName | Should -Be 'GuestConfiguration'
             $resourcesInMofDocument[0].PesterFileName | Should -Be 'EnvironmentVariables'
         } 
     }

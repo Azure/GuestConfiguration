@@ -2171,7 +2171,10 @@ function New-MofFileforPester {
 
         [Parameter(Mandatory = $true)]
         [String]
-        $Path
+        $Path,
+
+        [Switch]
+        $Force
     )
 
     Write-Verbose "Getting Pester script files from '$PesterScriptsPath'"
@@ -2201,11 +2204,11 @@ instance of OMI_ConfigurationDocument
 '@
 
     # Make sure path exists
-    $PackageFolder = New-Item -ItemType Directory -Force -Path $Path
+    $PackageFolder = New-Item -ItemType Directory -Force:$Force -Path $Path
     # Set file name
     $MOFPath = Join-Path $Path 'Pester.mof'
     # Write file
-    Set-Content -Value $MOFContent -Path $MOFPath
+    Set-Content -Value $MOFContent -Path $MOFPath -Force:$Force
     
     $return = New-Object -TypeName PSObject -Property @{
         Path = $MOFPath

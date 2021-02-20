@@ -466,6 +466,7 @@ describe 'Test Environment' {
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
+        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $pesterMofFilePath = Join-Path -Path $pesterExtractionPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
@@ -658,7 +659,8 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterMOFPath -Force
+            $mof = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMOFPath
+            $package = New-GuestConfigurationPackage -Name $mof.Name -Configuration $mof.Configuration -Path $pesterPackagePath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             
             $testPackageResult.complianceStatus | Should -Be $true

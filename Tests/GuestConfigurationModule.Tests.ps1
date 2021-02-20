@@ -547,6 +547,7 @@ describe 'Test Environment' {
             $pesterMofFilePath = New-GuestConfigurationFile -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
             Test-Path -Path $pesterMofFilePath.Configuration | Should -BeTrue
             $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMofFilePath.Configuration, 4) 
+            $resourcesInMofDocument
             $resourcesInMofDocument[0].Name | Should -Be 'PesterResource'
         } 
     }

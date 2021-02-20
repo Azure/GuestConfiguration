@@ -466,7 +466,6 @@ describe 'Test Environment' {
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
-        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $pesterMofFilePath = Join-Path -Path $pesterExtractionPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
@@ -541,6 +540,21 @@ describe 'Test Environment' {
                 Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
             }
         }
+    }
+    Context 'New-GuestConfigurationFile' {
+
+        It 'Generates MOF for Pester script files' {
+            $pesterMofFilePath = New-GuestConfigurationFile -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
+            Test-Path -Path $pesterMofFilePath.Configuration | Should -BeTrue
+            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMofFilePath.Configuration, 4) 
+            for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
+                if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
+                    $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
+                    $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
+                    Test-Path -Path $resourceModulePath | Should -BeTrue
+                }
+            }
+        } 
     }
     Context 'New-GuestConfigurationPackage' {
 
@@ -623,23 +637,6 @@ describe 'Test Environment' {
             $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
             $inspecRbExtractedFile | Should -Exist
         }
-        
-        It 'Implements -PesterScriptsPath parameter' {
-            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath -Force
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $pesterExtractionPath) } | Should -Not -Throw
-            $pesterExtractionPath | Should -Exist
-            Test-Path -Path $pesterMofFilePath | Should -BeTrue
-            $extractedModulesPath = Join-Path -Path $pesterExtractionPath -ChildPath 'Modules'
-            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMofFilePath, 4) 
-            for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
-                if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
-                    $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
-                    $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
-                    Test-Path -Path $resourceModulePath | Should -BeTrue
-                }
-            }
-        } 
     }
     Context 'Test-GuestConfigurationPackage' {
 
@@ -663,7 +660,7 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterPackagePath -Force
+            $package = New-GuestConfigurationPackage -PesterScriptsPath $pesterScriptsFolderPath -Name $policyName -Path $pesterMOFPath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             
             $testPackageResult.complianceStatus | Should -Be $true

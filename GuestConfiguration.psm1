@@ -784,4 +784,4 @@ function Publish-GuestConfigurationPolicy {
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
 }
 
-Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+Export-ModuleMember -Function @('New-GuestConfigurationFile', 'New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

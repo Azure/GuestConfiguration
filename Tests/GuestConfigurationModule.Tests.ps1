@@ -548,7 +548,7 @@ describe 'Test Environment' {
             Test-Path -Path $pesterMof.Configuration | Should -BeTrue
             $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4) 
             $resourcesInMofDocument | Should -Not -BeNullOrEmpty
-            write-warning "resources: $($resourcesInMofDocument.Count)"
+            write-warning "resources: $($resourcesInMofDocument[0])"
             $resourcesInMofDocument[0].Name | Should -Be 'PesterResource'
         } 
     }

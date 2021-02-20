@@ -1,4 +1,9 @@
 # Change Log for GuestConfiguration module
+
+## v3.1.4
+
+- Prevent package commands from executing if on non-supported OS (Supports Windows, Ubuntu, Debian).
+
 ## v3.1.3
 
 - 'FilesToInclude' parameter should copy contents to 'Modules' folder

@@ -465,7 +465,7 @@ describe 'Test Environment' {
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
-        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
+        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterScripts'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
         $pesterFolderPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
         $pesterMofFilePath = Join-Path -Path $pesterFolderPath -ChildPath "$policyName.mof"

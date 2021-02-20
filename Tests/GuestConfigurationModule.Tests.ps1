@@ -467,8 +467,8 @@ describe 'Test Environment' {
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
         $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'scripts'
         $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
-        $pesterExtractionPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
-        $pesterMofFilePath = Join-Path -Path $pesterExtractionPath -ChildPath "$policyName.mof"
+        $pesterFolderPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
+        $pesterMofFilePath = Join-Path -Path $pesterFolderPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -545,7 +545,7 @@ describe 'Test Environment' {
     Context 'New-GuestConfigurationFile' {
 
         It 'Generates MOF for Pester script files' {
-            New-Item -Path $pesterExtractionPath -ItemType Directory -Force
+            New-Item -Path $pesterFolderPath -ItemType Directory -Force
             $pesterMof = New-GuestConfigurationFile -Name 'PesterConfig' -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
             Test-Path -Path $pesterMof.Configuration | Should -BeTrue
             $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4) 
@@ -659,10 +659,10 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-            New-Item -Path $pesterExtractionPath -ItemType Directory -Force
+            New-Item -Path $pesterFolderPath -ItemType Directory -Force
             $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force |
                 New-GuestConfigurationPackage -Path $pesterPackagePath -Force |
-                Test-GuestConfigurationPackage -Path $package.Path
+                Test-GuestConfigurationPackage
             
             $testPackageResult.complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'

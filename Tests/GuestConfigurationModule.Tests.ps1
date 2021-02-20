@@ -659,7 +659,7 @@ describe 'Test Environment' {
         }
         
         It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-            $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMOFPath |
+            $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMofFilePath |
                 New-GuestConfigurationPackage -Path $pesterPackagePath -Force |
                 Test-GuestConfigurationPackage -Path $package.Path
             

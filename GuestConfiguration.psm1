@@ -534,26 +534,32 @@ function New-GuestConfigurationFile {
     param (
         [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Source,
+        [string] $Name,
         
         [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [string] $Source,
+        
+        [parameter(Position = 2, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
         [string] $Path,
         
-        [parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
+        [parameter(Position = 3, ValueFromPipelineByPropertyName = $true)]
         [string] $Format = 'Pester',
         
         [switch] $Force
     )
 
     $return = New-Object -TypeName 'PSObject' -Property @{
+        Name = ''
         Configuration = ''
     }
 
     if ('Pester' -eq $Format) {
         Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
         if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
-            $ConfigMOF = New-MofFileforPester -PesterScriptsPath $Source -Path $Path -Force:$Force
+            $ConfigMOF = New-MofFileforPester -Name $Name -PesterScriptsPath $Source -Path $Path -Force:$Force
+            $return.Name = $Name
             $return.Configuration = $ConfigMOF.Path
         }
         else {

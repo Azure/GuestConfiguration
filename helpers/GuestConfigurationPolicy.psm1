@@ -2132,6 +2132,10 @@ function New-PesterResourceSection {
     param (
         [Parameter(Mandatory = $true)]
         [String]
+        $Name,
+        
+        [Parameter(Mandatory = $true)]
+        [String]
         $PesterFileName,
 
         [String]
@@ -2154,7 +2158,7 @@ instance of MSFT_PesterResource as $ref
     PesterFileName = "$PesterFileName";
     ResourceID = "[PesterResource]$PesterFileName";
     ModuleVersion = "$Version";
-    ConfigurationName = "Pester";
+    ConfigurationName = "$Name";
 };
 "@
 
@@ -2167,11 +2171,15 @@ function New-MofFileforPester {
     (
         [Parameter(Mandatory = $true)]
         [String]
+        $Name,
+        
+        [Parameter(Mandatory = $true)]
+        [String]
         $PesterScriptsPath,
 
         [Parameter(Mandatory = $true)]
         [String]
-        $Path,
+        $Path = './Pester.mof',
 
         [Switch]
         $Force
@@ -2186,27 +2194,27 @@ function New-MofFileforPester {
     $index = 1
     foreach ($script in $Scripts) {
         $ResourceSection = $null
-        $ResourceSection = New-PesterResourceSection -PesterFileName $script.Name -Index $index
+        $ResourceSection = New-PesterResourceSection -Name $Name -PesterFileName $script.Name -Index $index
         $index++
         $MOFContent += $ResourceSection
         $MOFContent += "`n"
     }
 
     # Append configuration info
-    $MOFContent += @'
+    $MOFContent += @"
 instance of OMI_ConfigurationDocument
 {
     Version="2.0.0";
     MinimumCompatibleVersion = "1.0.0";
     CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-    Name="Pester";
+    Name="$Name";
 };
-'@
+"@
 
     # Make sure path exists
     $PackageFolder = New-Item -ItemType Directory -Force:$Force -Path $Path
     # Set file name
-    $MOFPath = Join-Path $Path 'Pester.mof'
+    $MOFPath = $Path
     # Write file
     Set-Content -Value $MOFContent -Path $MOFPath -Force:$Force
     

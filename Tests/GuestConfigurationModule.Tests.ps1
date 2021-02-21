@@ -261,7 +261,7 @@ describe 'Test Environment' {
 }
 '@
 
-                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'scripts' -ItemType Directory
+                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterScripts' -ItemType Directory
                 $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
                 $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
             }

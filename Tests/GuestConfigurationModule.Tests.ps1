@@ -667,7 +667,7 @@ describe 'Test Environment' {
             $testPackageResult.complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ConfigurationName | Should -Be 'Pester'
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'testPolicy'
             $testPackageResult.resources[0].PesterFileName | Should -Be 'EnvironmentVariables'
         }
     } 

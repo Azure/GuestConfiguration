@@ -174,10 +174,6 @@ function Test-GuestConfigurationPackage {
     if ($IsLinux -and $OsName -notmatch 'Ubuntu|Debian') {
         throw "Testing Azure Policy Guest Configuration packages is not supported on '$OsName'.`n Please run the command on Windows, Unbuntu or Debian."
     }
-
-    if ($env:OS -notmatch "Windows" -and $IsMacOS) {
-        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
-    }
     
     if (-not (Test-Path $Path -PathType Leaf)) {
         Throw 'Invalid Guest Configuration package path : $($Path)'

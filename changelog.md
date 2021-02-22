@@ -11,29 +11,10 @@
 ## v3.1.1
 
 - Adds pipline input for New-GuestConfigurationPackage
-
 ## v3.1.0
 
 - Add pipeline input support for Publish-GCPackage and New-GCPolicy
 - Publish-GCPackage returns object containing ContentURI property, in support of New-GCPolicy input from pipeline
-
-## v3.0.0
-
-- Deprecate the 'Category' parameter due to service changes for Guest Assignment automatic creation
-- Catch the Test-GuestConfigurationPackage cmdlet when attempting to run on MacOS
-
-## v2.2.0
-
-- Update to path for GC lib was not updated
-
-## v2.1.0
-
-- New cmdlet publish-guestconfigurationpackage
-
-## v2.0.0
-
-- Support for "AINE without DINE"
-- Arc for Servers parameter
 
 ## v3.0.0
 

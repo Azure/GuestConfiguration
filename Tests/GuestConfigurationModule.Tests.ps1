@@ -119,14 +119,10 @@ Import-Certificate -FilePath "$TestDrive/exported.cer" -CertStoreLocation Cert:\
                 $DestinationFolderPath,
         
                 [Parameter()]
-                [ValidateSet('DSC', 'InSpec', 'WinDSC')]
+                [ValidateSet('DSC', 'InSpec', 'WinDSC', 'Pester')]
                 [String]
                 $Type = 'DSC'
             )
-        
-            if ($false -eq (Test-CurrentMachineIsWindows)) {
-                Import-Module 'PSDesiredStateConfiguration'
-            }
         
             #region Windows DSC config
             if ('DSC' -eq $Type) {
@@ -170,7 +166,7 @@ instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
 {
 Name = "linux-path";
 ResourceID = "[ChefInSpecResource]Audit Linux path exists";
-ModuleVersion = "3.1.3";
+ModuleVersion = "3.2.0";
 SourceInfo = "::7::1::ChefInSpecResource";
 ModuleName = "GuestConfiguration";
 ConfigurationName = "DSCConfig";
@@ -249,8 +245,29 @@ Name="DSCConfig";
 '@
             }
             #endregion
+
+            #region Pester
+            if ('Pester' -eq $Type) {
+                $PesterScript = @'
+describe 'Test Environment' {
+    context 'Simple' {
+        It 'PSModulePath is not null or empty' {
+            $Env:PSModulePath | Should -Not -BeNullOrEmpty
         }
-        #TODO
+        It 'Path is not null or empty' {
+            $Env:Path | Should -Not -BeNullOrEmpty
+        }
+    }
+}
+'@
+
+                $scriptsDestinationFolderPath = New-Item -Path $DestinationFolderPath -Name 'PesterScripts' -ItemType Directory
+                $pesterScriptDestinationPath = Join-Path -Path $scriptsDestinationFolderPath -ChildPath 'EnvironmentVariables.ps1'
+                $null = Set-Content -Path $pesterScriptDestinationPath -Value $PesterScript
+            }
+            #endregion
+        }
+
         function New-TestGCPolicyParameters {
             [CmdletBinding()]
             param
@@ -357,6 +374,7 @@ Name="DSCConfig";
         
             if (Test-CurrentMachineIsWindows) {
                 Set-ExecutionPolicy -ExecutionPolicy 'Bypass' -Scope 'Process'
+                Import-Module 'PSDesiredStateConfiguration'
             }
         
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
@@ -411,11 +429,15 @@ Name="DSCConfig";
             [CmdletBinding()]
             param ()
         
-            Write-Verbose "Running in Azure DevOps: $env:ADO" -Verbose
+            Write-Verbose -Message "Running in Azure DevOps: $env:ADO" -Verbose
             $NotWindows = $($IsLinux -or $IsMacOS)
-            Write-Verbose "Running on Linux or MacOS: $NotWindows" -Verbose
+            Write-Verbose -Message "Running on Linux or MacOS: $NotWindows" -Verbose
             $psTitleLine = "POWERSHELL INFO"
             Write-Verbose -Message "`n$psTitleLine`n$('-' * $psTitleLine.length) $($PSVersionTable | Format-List | Out-String)"  -Verbose
+            if ($IsWindows) {
+                $dscTitleLine = "AVAILABLE DSC RESOURCES"
+                Write-Verbose -Message "`n$dscTitleLine`n$('-' * $dscTitleLine.length)`n$(Get-DSCResource | Select-Object 'Name', 'Module', 'Path')" -Verbose
+            }
             Write-ModuleInfo -ModuleName 'Pester'
             Write-EnvironmentVariableInfo
         }
@@ -434,7 +456,7 @@ Name="DSCConfig";
         $filesToIncludeFolderPath = Join-Path -Path $TestDrive -ChildPath 'FilesToInclude'
         $filesToIncludePackagePath = Join-Path -Path $testOutputPath -ChildPath 'FilesToIncludePackage'
         $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
-        $extractedFilesToIncludePath = Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'FilesToInclude'
+        $extractedFilesToIncludePath = Join-Path -Path (Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'Modules') -ChildPath 'FilesToInclude'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'install_inspec.sh')
         $inSpecFolderPath = Join-Path -Path $TestDrive -ChildPath 'InspecConfig'
@@ -443,6 +465,10 @@ Name="DSCConfig";
         $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
         $inspecProfileName = 'linux-path'
         $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
+        $pesterScriptsFolderPath = Join-Path -Path $TestDrive -ChildPath 'PesterScripts'
+        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
+        $pesterFolderPath = Join-Path $testOutputPath -ChildPath 'PesterUnsignedPackage'
+        $pesterMofFilePath = Join-Path -Path $pesterFolderPath -ChildPath "$policyName.mof"
         $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
         $expectedPolicyType = 'Custom'
@@ -460,6 +486,7 @@ Name="DSCConfig";
         
         New-TestDscConfiguration -DestinationFolderPath $TestDrive
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
+        New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Pester'
 
         if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
             # TODO
@@ -515,10 +542,23 @@ Name="DSCConfig";
             }
         }
     }
+    Context 'New-GuestConfigurationFile' {
+
+        It 'Generates MOF for Pester script files' {
+            New-Item -Path $pesterFolderPath -ItemType Directory -Force
+            $pesterMof = New-GuestConfigurationFile -Name 'PesterConfig' -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
+            Test-Path -Path $pesterMof.Configuration | Should -BeTrue
+            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4) 
+            $resourcesInMofDocument | Should -Not -BeNullOrEmpty
+            $resourcesInMofDocument[0].ConfigurationName | Should -Be 'PesterConfig'
+            $resourcesInMofDocument[0].ModuleName | Should -Be 'GuestConfiguration'
+            $resourcesInMofDocument[0].PesterFileName | Should -Be 'EnvironmentVariables'
+        } 
+    }
     Context 'New-GuestConfigurationPackage' {
 
         It 'creates custom policy package' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             Test-Path -Path $package.Path | Should -BeTrue
             $package.Name | Should -Be $policyName
         }
@@ -574,7 +614,7 @@ Name="DSCConfig";
             if(Test-Path $outputPath) {
                 Remove-Item $outputPath -Force -Recurse
             }
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath -Force
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $outputPath) } | Should -Not -Throw
             $includedFilesFolder = Join-Path $outputPath (Join-Path 'Modules' 'FilesToInclude')
@@ -585,7 +625,7 @@ Name="DSCConfig";
         }
 
         It 'Implements -ChefInspecProfilePath parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
             $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
             { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
             $extractedInspecPath | Should -Exist
@@ -600,7 +640,7 @@ Name="DSCConfig";
     Context 'Test-GuestConfigurationPackage' {
 
         It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
             $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
@@ -610,18 +650,31 @@ Name="DSCConfig";
         }
 
         It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
-            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath
+            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
             $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
         }
+        
+        It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
+            New-Item -Path $pesterFolderPath -ItemType Directory -Force
+            $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force |
+                New-GuestConfigurationPackage -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath -Force |
+                Test-GuestConfigurationPackage
+            
+            $testPackageResult.complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $true
+            $testPackageResult.resources[0].ConfigurationName | Should -Be 'testPolicy'
+            $testPackageResult.resources[0].PesterFileName | Should -Be 'EnvironmentVariables'
+        }
     } 
     Context 'Protect-GuestConfigurationPackage' {
         
         It 'Signed package should exist at output path' -Skip:($IsLinux -or $IsMacOS) {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             New-TestCertificate
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
@@ -654,7 +707,7 @@ Name="DSCConfig";
 
         It 'Should be able to publish packages and return a valid Uri' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
             Login-ToTestAzAccount
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath
+            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             $publishGCPackageParameters = New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
             $Uri = Publish-GuestConfigurationPackage -Path $publishGCPackageParameters.Path -ResourceGroupName $publishGCPackageParameters.ResourceGroupName -StorageAccountName $publishGCPackageParameters.StorageAccountName
             $Uri.ContentUri | Should -Not -BeNullOrEmpty

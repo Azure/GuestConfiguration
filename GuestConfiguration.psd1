@@ -4,7 +4,7 @@
 RootModule = 'GuestConfiguration.psm1'
 
 # Version number of this module.
-moduleVersion = '3.1.3'
+moduleVersion = '3.2.0'
 
 # ID used to uniquely identify this module
 GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -16,7 +16,7 @@ Author = 'Azure Guest Configuration'
 CompanyName = 'MicrosoftCorporation'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 Microsoft Corporation. All rights reserved.'
+Copyright = '(c) 2020 Microsoft Corporation. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
@@ -28,7 +28,7 @@ PowerShellVersion = '5.1'
 RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+FunctionsToExport = @('New-GuestConfigurationFile', 'New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -37,7 +37,7 @@ CmdletsToExport = @()
 AliasesToExport = @()
 
 # DSC resources to export from this module
-DscResourcesToExport = @( 'ChefInSpecResource' )
+DscResourcesToExport = @( 'ChefInSpecResource','PesterResource' )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -60,6 +60,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
+
+        # Experimental features
+        ExperimentalFeatures = @(@{Name="GuestConfiguration.Pester";Description="Audit content in Pester format"})
 
     } # End of PSData hashtable
 

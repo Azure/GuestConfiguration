@@ -1,9 +1,14 @@
 # Change Log for GuestConfiguration module
-## v3.1.3
+
+## v3.2.0
+
+- Expiremental support for Pester as an audit language
+
+- ## v3.1.3
 
 - 'FilesToInclude' parameter should copy contents to 'Modules' folder
 - New-GuestConfigurationPackage cmdlet should copy ChefInspec resource from latest GuestConfiguration module
-  
+
 ## v3.1.2
 
 - Repair carriage return line ending in inspec install script
@@ -11,6 +16,7 @@
 ## v3.1.1
 
 - Adds pipline input for New-GuestConfigurationPackage
+
 ## v3.1.0
 
 - Add pipeline input support for Publish-GCPackage and New-GCPolicy

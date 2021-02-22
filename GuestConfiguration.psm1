@@ -47,24 +47,27 @@ function New-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Configuration', ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Configuration,
 
+        [parameter(ParameterSetName = 'Configuration')]
         [ValidateNotNullOrEmpty()]
         [string] $ChefInspecProfilePath,
 
+        [parameter(ParameterSetName = 'Configuration')]
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
 
         [string] $Path = '.',
-
+        
         [switch] $Force
     )
 
     Try {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $unzippedPackagePath = New-Item -ItemType Directory -Force -Path (Join-Path (Join-Path $Path $Name) 'unzippedPackage')
+
         $Configuration = Resolve-Path $Configuration
 
         if (-not (Test-Path -Path $Configuration -PathType Leaf)) {
@@ -91,12 +94,12 @@ function New-GuestConfigurationPackage {
         if (-not [string]::IsNullOrEmpty($FilesToInclude)) {
             $modulePath = Join-Path $unzippedPackagePath 'Modules'
             if (Test-Path $FilesToInclude -PathType Leaf) {
-                Copy-Item -Path $FilesToInclude -Destination $modulePath  -Force:$Force
+                Copy-Item -Path $FilesToInclude -Destination (Join-Path -Path $unzippedPackagePath -ChildPath 'Modules')  -Force:$Force
             }
             else {
                 $filesToIncludeFolderName = Get-Item $FilesToInclude
-                $FilesToIncludePath = Join-Path $modulePath $filesToIncludeFolderName.Name
-                Copy-Item -Path $FilesToInclude -Destination $modulePath -Recurse  -Force:$Force
+                $FilesToIncludePath = Join-Path -Path (Join-Path -Path $unzippedPackagePath -ChildPath 'Modules') -ChildPath $filesToIncludeFolderName.Name
+                Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse  -Force:$Force
             }
         }
         
@@ -496,6 +499,79 @@ function Publish-GuestConfigurationPackage {
 
 <#
     .SYNOPSIS
+        Automatically generate a MOF file based on
+        files discovered in a folder path
+
+        This command is optional and is intended to
+        reduce the number of steps needed when
+        using other language abstractions such as Pester
+
+        When creating packages from compiled DSC
+        configurations, you do not need to run this command
+
+    .Parameter Source
+        Location of the folder containing content
+
+    .Parameter Path
+        Location of the folder containing content
+
+    .Parameter Format
+        Format of the files (currently only Pester is supported)
+
+    .Parameter Force
+        When specified, will overwrite the destination file if it already exists
+
+    .Example
+        New-GuestConfigurationFile -Path ./Scripts
+
+    .OUTPUTS
+        Return the path of the generated configuration MOF file
+#>
+
+function New-GuestConfigurationFile {
+    [CmdletBinding()]
+    [Experimental("GuestConfiguration.Pester", "Show")]
+    param (
+        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Name,
+        
+        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Source,
+        
+        [parameter(Position = 2, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Path,
+        
+        [parameter(Position = 3, ValueFromPipelineByPropertyName = $true)]
+        [string] $Format = 'Pester',
+        
+        [switch] $Force
+    )
+
+    $return = New-Object -TypeName 'PSObject' -Property @{
+        Name = ''
+        Configuration = ''
+    }
+
+    if ('Pester' -eq $Format) {
+        Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
+        if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
+            $ConfigMOF = New-MofFileforPester -Name $Name -PesterScriptsPath $Source -Path $Path -Force:$Force
+            $return.Name = $Name
+            $return.Configuration = $ConfigMOF.Path
+        }
+        else {
+            throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
+        }
+    }
+
+    return $return
+}
+
+<#
+    .SYNOPSIS
         Creates Audit, DeployIfNotExists and Initiative policy definitions on specified Destination Path.
 
     .Parameter ContentUri
@@ -714,4 +790,4 @@ function Publish-GuestConfigurationPolicy {
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
 }
 
-Export-ModuleMember -Function @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+Export-ModuleMember -Function @('New-GuestConfigurationFile', 'New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')

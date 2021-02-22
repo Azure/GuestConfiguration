@@ -32,7 +32,7 @@ InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
         Guest Configuration package name.
 
     .Parameter Configuration
-        Compiled DSC configuration document full path.
+        Compiled DSC configuration document's full path.
 
     .Parameter Path
         Output folder path.

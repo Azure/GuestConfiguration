@@ -1,7 +1,7 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
-Import-Module $PSScriptRoot/GuestConfigPath.psm1 -Force
+Import-Module $PSScriptRoot/../GuestConfigPath -Force
 
 $script:ExecuteDscOperationsScript = @"
 using System;
@@ -85,34 +85,34 @@ namespace GuestConfig
                 ClearMessages();
 
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
-                if(context == IntPtr.Zero) 
+                if(context == IntPtr.Zero)
                 {{
                     ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
                 }}
 
                 Int32 result = test_dsc_configuration(context, job_id, configuration_name, "");
-                for (int i = 0; i < m_messages.Count; i++) 
+                for (int i = 0; i < m_messages.Count; i++)
                 {{
                     var message = m_messages[i];
-                    if(message.Item1 == MessageChannel.Error) 
+                    if(message.Item1 == MessageChannel.Error)
                     {{
                         ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", message.Item2, false));
                     }}
-                    else if(message.Item1 == MessageChannel.Warning) 
+                    else if(message.Item1 == MessageChannel.Warning)
                     {{
                         ps_cmdlet.WriteWarning(message.Item2);
                     }}
-                    else if(message.Item1 == MessageChannel.Debug) 
+                    else if(message.Item1 == MessageChannel.Debug)
                     {{
                         ps_cmdlet.WriteDebug(message.Item2);
                     }}
-                    else 
+                    else
                     {{
                         ps_cmdlet.WriteVerbose(message.Item2);
                     }}
                 }}
             }}
-            finally 
+            finally
             {{
                 delete_dsc_library_context(context);
             }}
@@ -128,16 +128,16 @@ namespace GuestConfig
                 ClearMessages();
 
                 context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
-                if(context == IntPtr.Zero) 
+                if(context == IntPtr.Zero)
                 {{
                     ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
                 }}
 
                 Int32 result = get_dsc_configuration(context, job_id, configuration_name, "");
-                for (int i = 0; i < m_messages.Count; i++) 
+                for (int i = 0; i < m_messages.Count; i++)
                 {{
                     var message = m_messages[i];
-                    if(message.Item1 == MessageChannel.Error) 
+                    if(message.Item1 == MessageChannel.Error)
                     {{
                         ps_cmdlet.WriteError(new ErrorRecord(
                                     new InvalidOperationException(message.Item2),
@@ -145,17 +145,17 @@ namespace GuestConfig
                                     ErrorCategory.InvalidResult,
                                     null));
                     }}
-                    else if(message.Item1 == MessageChannel.Warning) 
+                    else if(message.Item1 == MessageChannel.Warning)
                     {{
                         ps_cmdlet.WriteWarning(message.Item2);
                     }}
-                    else 
+                    else
                     {{
                         ps_cmdlet.WriteVerbose(message.Item2);
                     }}
                 }}
             }}
-            finally 
+            finally
             {{
                 delete_dsc_library_context(context);
             }}
@@ -182,7 +182,7 @@ namespace GuestConfig
                     ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to publish Guest Configuration policy package.", true));
                 }}
             }}
-            finally 
+            finally
             {{
                 delete_dsc_library_context(context);
             }}
@@ -202,12 +202,12 @@ namespace GuestConfig
                 }}
 
                 Int32 result = set_dsc_meta_configuration(context, job_id, configuration_name, policy_path);
-                if(result != 0) 
+                if(result != 0)
                 {{
                     ps_cmdlet.WriteError(CreateErrorRecord("TestGuestConfiguration", "Failed to set Meta config settings.", true));
                 }}
             }}
-            finally 
+            finally
             {{
                 delete_dsc_library_context(context);
             }}
@@ -254,13 +254,13 @@ namespace GuestConfig
             m_messages.Clear();
         }}
 
-        private ErrorRecord CreateErrorRecord(string error_id, string error_message, bool include_error_from_message_list) 
+        private ErrorRecord CreateErrorRecord(string error_id, string error_message, bool include_error_from_message_list)
         {{
             string error = error_message + "\r\n";
-            for (int i = 0; include_error_from_message_list && i < m_messages.Count; i++) 
+            for (int i = 0; include_error_from_message_list && i < m_messages.Count; i++)
             {{
                 var message = m_messages[i];
-                if(message.Item1 == MessageChannel.Error) 
+                if(message.Item1 == MessageChannel.Error)
                 {{
                     error = message.Item2 + "\r\n";
                 }}
@@ -380,7 +380,7 @@ function Publish-DscConfiguration
 
     $testDSClibPath = Test-Path $dsclibPath
     if ($false -eq $testDSClibPath) {throw "Guest Config binaries not found at path $dsclibPath"}
-    
+
     $testPath = Test-Path $Path
     if ($false -eq $testPath) {throw "Guest Config binaries not found at path $testPath"}
 

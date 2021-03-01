@@ -1,9 +1,8 @@
-
-
 function Get-GuestConfigPolicyPath
 {
     [CmdletBinding()]
-    param()
+    [OutputType([System.String])]
+    param ()
 
-    return Join-path $(Get-GuestConfigPath) 'policy'
+    Join-path -Path $(Get-GuestConfigPath) -ChildPath 'policy'
 }

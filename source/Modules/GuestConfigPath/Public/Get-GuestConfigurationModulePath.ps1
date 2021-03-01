@@ -1,7 +1,8 @@
 function Get-GuestConfigurationModulePath
 {
     [CmdletBinding()]
-    Param()
+    [OutputType([System.String])]
+    param ()
 
-    return (Get-Item $PSScriptRoot).Parent.FullName
+    (Get-Item -Path $PSScriptRoot).Parent.FullName
 }

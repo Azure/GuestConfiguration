@@ -1,5 +1,3 @@
-
-
 function Get-OSPlatform
 {
     [CmdletBinding()]
@@ -28,5 +26,5 @@ function Get-OSPlatform
         }
     }
 
-    return $platform
+    $platform
 }

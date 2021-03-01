@@ -1,9 +1,12 @@
+
 function InitReleaseVersionInfo
 {
     [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory=$true, Position=0)]
-        [string] $Version
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalVars', '')]
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Version
     )
 
     $global:ReleaseVersion = $Version

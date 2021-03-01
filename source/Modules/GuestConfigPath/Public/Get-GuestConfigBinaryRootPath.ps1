@@ -1,9 +1,9 @@
 
-
 function Get-GuestConfigBinaryRootPath
 {
     [CmdletBinding()]
-    param()
+    [OutputType([System.String])]
+    param ()
 
-    return Join-path $(Get-GuestConfigPath) 'bin'
+    Join-Path -Path (Get-GuestConfigPath) -ChildPath 'bin'
 }

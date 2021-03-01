@@ -1,9 +1,8 @@
-
-
 function Get-InspecProfilePath
 {
     [CmdletBinding()]
-    param()
+    [OutputType([System.String])]
+    param ()
 
-    return Join-path $(Get-GuestConfigBinaryPath) 'inspec'
+    Join-Path -Path $(Get-GuestConfigBinaryPath) -ChildPath 'inspec'
 }

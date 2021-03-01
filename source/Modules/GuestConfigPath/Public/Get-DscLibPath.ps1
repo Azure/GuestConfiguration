@@ -1,13 +1,16 @@
 function Get-DscLibPath
 {
     [CmdletBinding()]
+    [OutputType([System.String])]
     param ()
 
     $gcBinPath = Get-GuestConfigBinaryPath
     if ($(Get-OSPlatform) -eq 'Windows')
     {
-        return Join-Path -Path $gcBinPath -Path 'gclib.dll'
+        Join-Path -Path $gcBinPath -ChildPath 'gclib.dll'
     }
-
-    return Join-Path -Path $gcBinPath -Path 'libgclib.so'
+    else
+    {
+        Join-Path -Path $gcBinPath -ChildPath 'libgclib.so'
+    }
 }

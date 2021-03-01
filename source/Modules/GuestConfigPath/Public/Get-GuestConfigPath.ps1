@@ -1,15 +1,17 @@
-
 function Get-GuestConfigPath
 {
     [CmdletBinding()]
-    param()
+    [OutputType([System.String])]
+    param ()
 
     $platform = Get-OSPlatform
 
-    if($platform -eq 'Windows') {
-        return Join-path $env:ProgramData 'GuestConfig'
+    if ($platform -eq 'Windows')
+    {
+        Join-path -Path $env:ProgramData -ChildPath 'GuestConfig'
     }
-    else {
-        return '/var/lib/GuestConfig'
+    else
+    {
+        '/var/lib/GuestConfig'
     }
 }

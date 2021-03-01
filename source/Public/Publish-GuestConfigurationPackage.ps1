@@ -1,4 +1,3 @@
-
 <#
     .SYNOPSIS
         Publish a Guest Configuration policy package to Azure blob storage.
@@ -33,65 +32,74 @@
         Return a publicly accessible URI containing a SAS token with a 3-year expiration.
 #>
 
-function Publish-GuestConfigurationPackage {
+function Publish-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [System.String]
+        $Path,
 
-        [parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Position = 1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ResourceGroupName,
+        [System.String]
+        $ResourceGroupName,
 
-        [parameter(Position = 2, Mandatory = $true)]
+        [Parameter(Position = 2, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $StorageAccountName,
+        [System.String]
+        $StorageAccountName,
 
-        [string] $StorageContainerName = 'guestconfiguration',
+        [Parameter()]
+        [System.String]
+        $StorageContainerName = 'guestconfiguration',
 
-        [switch] $Force
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Force
     )
 
     # Get Storage Context
-    $Context = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName `
-        -Name $StorageAccountName | `
+    $Context = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName |
         ForEach-Object { $_.Context }
 
     # Blob name from file name
     $BlobName = Get-Item $Path | ForEach-Object { $_.Name }
 
+    $setAzStorageBlobContentParams = @{
+        Context   = $Context
+        Container = $StorageContainerName
+        Blob      = $BlobName
+        File      = $Path
+    }
+
+    if ($true -eq $Force)
+    {
+        $setAzStorageBlobContentParams.Add('Force', $true)
+    }
+
     # Upload file
-    if ($true -eq $Force) {
-        $Blob = Set-AzStorageBlobContent -Context $Context `
-            -Container $StorageContainerName `
-            -Blob $BlobName `
-            -File $Path `
-            -Force
-    }
-    else {
-        $Blob = Set-AzStorageBlobContent -Context $Context `
-            -Container $StorageContainerName `
-            -Blob $BlobName `
-            -File $Path
-    }
+    $null = Set-AzStorageBlobContent @setAzStorageBlobContentParams
 
     # Get url with SAS token
     # THREE YEAR EXPIRATION
     $StartTime = Get-Date
-    $SAS = New-AzStorageBlobSASToken -Context $Context `
-        -Container $StorageContainerName `
-        -Blob $BlobName `
-        -StartTime $StartTime `
-        -ExpiryTime $StartTime.AddYears('3') `
-        -Permission 'rl' `
-        -FullUri
 
-    # Create object to use property names
-    $ContentUri = New-Object -TypeName PSObject -Property @{
-        ContentUri = $SAS
+    $newAzStorageBlobSASTokenParams = @{
+        Context    = $Context
+        Container  = $StorageContainerName
+        Blob       = $BlobName
+        StartTime  = $StartTime
+        ExpiryTime = $StartTime.AddYears('3')
+        Permission = 'rl'
+        FullUri    = $true
     }
 
+    $SAS = New-AzStorageBlobSASToken @newAzStorageBlobSASTokenParams
+
     # Output
-    return $ContentUri
+    return [PSCustomObject]@{
+        ContentUri = $SAS
+    }
 }

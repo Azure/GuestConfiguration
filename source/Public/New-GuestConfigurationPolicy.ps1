@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Creates Audit, DeployIfNotExists and Initiative policy definitions on specified Destination Path.
@@ -61,59 +59,69 @@
         Return name and path of the Guest Configuration policy definitions.
 #>
 
-function New-GuestConfigurationPolicy {
+function New-GuestConfigurationPolicy
+{
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     param (
-        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ContentUri,
+        [System.Uri]
+        $ContentUri,
 
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $DisplayName,
+        [System.String]
+        $DisplayName,
 
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Description,
+        [System.String]
+        $Description,
 
-        [parameter()]
-        [Hashtable[]] $Parameter,
+        [Parameter()]
+        [System.Collections.Hashtable[]]
+        $Parameter,
 
-        [parameter()]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [version] $Version = '1.0.0',
+        [System.Version]
+        $Version = '1.0.0',
 
-        [parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [System.String]
+        $Path,
 
         [Parameter()]
         [ValidateSet('Windows', 'Linux')]
-        [string]
+        [System.String]
         $Platform = 'Windows',
 
-        [parameter()]
-        [Hashtable[]] $Tag
+        [Parameter()]
+        [System.Collections.Hashtable[]]
+        $Tag
     )
 
     # This value must be static for AINE policies due to service configuration
     $Category = 'Guest Configuration'
 
-    Try {
+    try
+    {
         $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
         $policyDefinitionsPath = $Path
-        $unzippedPkgPath = Join-Path $policyDefinitionsPath 'temp'
-        $tempContentPackageFilePath = Join-Path $policyDefinitionsPath 'temp.zip'
+        $unzippedPkgPath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp'
+        $tempContentPackageFilePath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp.zip'
 
         # update parameter info
         $ParameterInfo = Update-PolicyParameter -Parameter $Parameter
 
-        New-Item -ItemType Directory -Force -Path $policyDefinitionsPath | Out-Null
+        $null = New-Item -ItemType Directory -Force -Path $policyDefinitionsPath
 
         # Check if ContentUri is a valid web Uri
-        $uri = $ContentUri -as [System.URI]
-        if (-not ($uri.AbsoluteURI -ne $null -and $uri.Scheme -match '[http|https]')) {
-            Throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
+        if (-not ($null -ne $ContentUri.AbsoluteURI -and $ContentUri.Scheme -match '[http|https]'))
+        {
+            throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
         }
 
         # Generate checksum hash for policy content.
@@ -128,14 +136,17 @@ function New-GuestConfigurationPolicy {
         $unzippedPkgPath = Resolve-Path $unzippedPkgPath
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempContentPackageFilePath, $unzippedPkgPath)
+
         $dscDocument = Get-ChildItem -Path $unzippedPkgPath -Filter *.mof -Exclude '*.schema.mof' -Depth 1
-        if (-not $dscDocument) {
-            Throw "Invalid policy package, failed to find dsc document in policy package."
+        if (-not $dscDocument)
+        {
+            throw "Invalid policy package, failed to find dsc document in policy package."
         }
+
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
-        $packageIsSigned = (((Get-ChildItem -Path $unzippedPkgPath -Filter *.cat) -ne $null) -or `
-            (((Get-ChildItem -Path $unzippedPkgPath -Filter *.asc) -ne $null) -and ((Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums) -ne $null)))
+        $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
+            (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
         $AuditIfNotExistsInfo = @{
             FileName                 = 'AuditIfNotExists.json'
@@ -152,17 +163,19 @@ function New-GuestConfigurationPolicy {
             Category                 = $Category
             Tag                      = $Tag
         }
-        New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose | Out-Null
 
-        $result = [pscustomobject]@{
+        $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose
+
+        [pscustomobject]@{
+            PSTypeName = 'GuestConfiguration.Policy'
             Name = $policyName
             Path = $Path
         }
-        return $result
     }
-    Finally {
-        # Remove temporary content package.
-        Remove-Item $tempContentPackageFilePath -Force -ErrorAction SilentlyContinue
-        Remove-Item $unzippedPkgPath -Recurse -Force -ErrorAction SilentlyContinue
+    finally
+    {
+        # Remove staging content package.
+        Remove-Item -Path $tempContentPackageFilePath -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $unzippedPkgPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 }

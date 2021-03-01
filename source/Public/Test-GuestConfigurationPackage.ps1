@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Tests a Guest Configuration policy package.
@@ -27,68 +25,81 @@
         Returns compliance details.
 #>
 
-function Test-GuestConfigurationPackage {
+function Test-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [string]
+        $Path,
 
-        [parameter(Mandatory = $false)]
-        [Hashtable[]] $Parameter = @()
+        [Parameter()]
+        [Hashtable[]]
+        $Parameter = @()
     )
 
-    if ($env:OS -notmatch "Windows" -and $IsMacOS) {
-        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
+    if ($env:OS -notmatch "Windows" -and $IsMacOS)
+    {
+        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    if (-not (Test-Path $Path -PathType Leaf)) {
-        Throw 'Invalid Guest Configuration package path : $($Path)'
+    if (-not (Test-Path $Path -PathType Leaf))
+    {
+        throw 'Invalid Guest Configuration package path : $($Path)'
     }
 
     $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
 
-    Try {
+    try
+    {
         # Create policy folder
-        $Path = Resolve-Path $Path
+        $Path = Resolve-Path -Path $Path
         $policyPath = Join-Path $(Get-GuestConfigPolicyPath) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
         Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
+        $null = New-Item -ItemType Directory -Force -Path $policyPath
 
         # Unzip policy package.
         Expand-Archive -LiteralPath $Path $policyPath
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
-        if (-not $dscDocument) {
-            Throw "Invalid policy package, failed to find dsc document in policy package."
+        if (-not $dscDocument)
+        {
+            throw "Invalid policy package, failed to find dsc document in policy package."
         }
+
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
         # update configuration parameters
-        if ($Parameter.Count -gt 0) {
+        if ($Parameter.Count -gt 0)
+        {
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
         # Unzip Guest Configuration binaries
         $gcBinPath = Get-GuestConfigBinaryPath
         $gcBinRootPath = Get-GuestConfigBinaryRootPath
-        if (-not (Test-Path $gcBinPath)) {
+        if (-not (Test-Path -Path $gcBinPath))
+        {
             # Clean the bin folder
-            Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
 
-            $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
-            if ($(Get-OSPlatform) -eq 'Windows') {
-                $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
+            $zippedBinaryPath = Join-Path -Path $(Get-GuestConfigurationModulePath) -ChildPath 'bin'
+            if ($(Get-OSPlatform) -eq 'Windows')
+            {
+                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Windows.zip'
             }
-            else {
+            else
+            {
                 # Linux zip package contains an additional DSC folder
                 # Remove DSC folder from binary path to avoid two nested DSC folders.
-                New-Item -ItemType Directory -Force -Path $gcBinPath | Out-Null
-                $gcBinPath = (Get-Item $gcBinPath).Parent.FullName
+                $null = New-Item -ItemType Directory -Force -Path $gcBinPath
+                $gcBinPath = (Get-Item -Path $gcBinPath).Parent.FullName
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
             }
+
             [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
         }
 
@@ -96,12 +107,12 @@ function Test-GuestConfigurationPackage {
         Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         # Set LCM settings to force load powershell module.
-        $metaConfigPath = Join-Path $policyPath "$policyName.metaconfig.json"
+        $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
         "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
         Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         # Clear Inspec profiles
-        Remove-Item $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
 
         $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
         $getResult = @()
@@ -109,39 +120,59 @@ function Test-GuestConfigurationPackage {
 
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+            if ($getResult.count -gt 1)
+            {
+                for ($i = 0; $i -lt $getResult.Count; $i++)
+                {
+                    if ($getResult[$i].ResourceId -ieq $resourceId)
+                    {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{
+                            n = 'complianceStatus'
+                            e = { $false }
+                        }
                     }
                 }
             }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+            elseif ($getResult.ResourceId -ieq $resourceId)
+            {
+                $getResult = $getResult | Select-Object *, @{
+                    n = 'complianceStatus'
+                    e = { $false }
+                }
             }
         }
 
         $testResult.resources_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+            $resourceId = $_
+            if ($getResult.count -gt 1)
+            {
+                for ($i = 0; $i -lt $getResult.Count; $i++)
+                {
+                    if ($getResult[$i].ResourceId -ieq $resourceId)
+                    {
+                        $getResult[$i] = $getResult[$i] | Select-Object *, @{
+                            n = 'complianceStatus'
+                            e = { $true }
+                        }
                     }
                 }
             }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+            elseif ($getResult.ResourceId -ieq $resourceId)
+            {
+                $getResult = $getResult | Select-Object *, @{
+                    n = 'complianceStatus'
+                    e = { $true }
+                }
             }
         }
 
-        $result = New-Object -TypeName PSObject
-        $properties = [ordered]@{ complianceStatus = $testResult.compliance_state; resources = $getResult }
-        $result | Add-Member -NotePropertyMembers $properties
-
-        return $result;
+        [PSCustomObject]@{
+            complianceStatus = $testResult.compliance_state
+            resources        = $getResult
+        }
     }
-    Finally {
+    finally
+    {
         $env:PSModulePath = $systemPSModulePath
     }
 }

@@ -30,41 +30,53 @@
         Return the path of the generated configuration MOF file
 #>
 
-function New-GuestConfigurationFile {
+function New-GuestConfigurationFile
+{
     [CmdletBinding()]
     [Experimental("GuestConfiguration.Pester", "Show")]
-    param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
+    param
+    (
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Name,
+        [System.String]
+        $Name,
 
-        [parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Source,
+        [System.String]
+        $Source,
 
-        [parameter(Position = 2, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 2, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [System.String]
+        $Path,
 
-        [parameter(Position = 3, ValueFromPipelineByPropertyName = $true)]
-        [string] $Format = 'Pester',
+        [Parameter(Position = 3, ValueFromPipelineByPropertyName = $true)]
+        [System.String]
+        $Format = 'Pester',
 
-        [switch] $Force
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Force
     )
 
-    $return = New-Object -TypeName 'PSObject' -Property @{
+    $return = [PSCustomObject]@{
         Name = ''
         Configuration = ''
     }
 
-    if ('Pester' -eq $Format) {
-        Write-Warning 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
-        if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester")) {
+    if ('Pester' -eq $Format)
+    {
+        Write-Warning -Message 'Guest Configuration: Pester content is an expiremental feature and not officially supported'
+        if ([ExperimentalFeature]::IsEnabled("GuestConfiguration.Pester"))
+        {
             $ConfigMOF = New-MofFileforPester -Name $Name -PesterScriptsPath $Source -Path $Path -Force:$Force
             $return.Name = $Name
             $return.Configuration = $ConfigMOF.Path
         }
-        else {
+        else
+        {
             throw 'Before you can use Pester content, you must enable the experimental feature in PowerShell.'
         }
     }

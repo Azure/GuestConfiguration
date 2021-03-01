@@ -11,7 +11,7 @@
 
     DscResourcesToExport = @()
 
-    FunctionsToExport    = @()
+    FunctionsToExport    = @('*')
 
     AliasesToExport      = @()
 

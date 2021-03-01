@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Publishes the Guest Configuration policy in Azure Policy Center.
@@ -11,24 +9,26 @@
         Publish-GuestConfigurationPolicy -Path ./git/custom_policy
 #>
 
-function Publish-GuestConfigurationPolicy {
+function Publish-GuestConfigurationPolicy
+{
     [CmdletBinding()]
     param (
-        [parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [System.String]
+        $Path,
 
-        [parameter(Mandatory = $false)]
-        [string] $ManagementGroupName
+        [Parameter()]
+        [System.String]
+        $ManagementGroupName
     )
 
     $rmContext = Get-AzContext
-    Write-Verbose "Publishing Guest Configuration policy using '$($rmContext.Name)' AzContext."
+    Write-Verbose -Message "Publishing Guest Configuration policy using '$($rmContext.Name)' AzContext."
 
     # Publish policies
-    $subscriptionId = $rmContext.Subscription.Id
-    $policyFile = join-path $Path "AuditIfNotExists.json"
-    $jsonDefinition = Get-Content $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
+    $policyFile = Join-Path -Path $Path -ChildPath 'AuditIfNotExists.json'
+    $jsonDefinition = Get-Content -Path $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
     $definitionContent = $jsonDefinition.Properties
 
     $newAzureRmPolicyDefinitionParameters = @{
@@ -41,14 +41,16 @@ function Publish-GuestConfigurationPolicy {
         Verbose     = $true
     }
 
-    if ($definitionContent.PSObject.Properties.Name -contains 'parameters') {
+    if ($definitionContent.PSObject.Properties.Name -contains 'parameters')
+    {
         $newAzureRmPolicyDefinitionParameters['Parameter'] = ConvertTo-Json -InputObject $definitionContent.parameters -Depth 15
     }
 
-    if ($ManagementGroupName) {
+    if ($ManagementGroupName)
+    {
         $newAzureRmPolicyDefinitionParameters['ManagementGroupName'] = $ManagementGroupName
     }
 
-    Write-Verbose "Publishing '$($jsonDefinition.properties.displayName)' ..."
+    Write-Verbose -Message "Publishing '$($jsonDefinition.properties.displayName)' ..."
     New-AzPolicyDefinition @newAzureRmPolicyDefinitionParameters
 }

@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Signs a Guest Configuration policy package using certificate on Windows and Gpg keys on Linux.
@@ -24,38 +22,45 @@
         Return name and path of the signed Guest Configuration Policy package.
 #>
 
-function Protect-GuestConfigurationPackage {
+function Protect-GuestConfigurationPackage
+{
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Certificate")]
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GpgKeys")]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Certificate")]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GpgKeys")]
         [ValidateNotNullOrEmpty()]
-        [string] $Path,
+        [string]
+        $Path,
 
-        [parameter(Mandatory = $true, ParameterSetName = "Certificate")]
+        [Parameter(Mandatory = $true, ParameterSetName = "Certificate")]
         [ValidateNotNullOrEmpty()]
-        [System.Security.Cryptography.X509Certificates.X509Certificate2] $Certificate,
+        [System.Security.Cryptography.X509Certificates.X509Certificate2]
+        $Certificate,
 
-        [parameter(Mandatory = $true, ParameterSetName = "GpgKeys")]
+        [Parameter(Mandatory = $true, ParameterSetName = "GpgKeys")]
         [ValidateNotNullOrEmpty()]
-        [string] $PrivateGpgKeyPath,
+        [string]
+        $PrivateGpgKeyPath,
 
-        [parameter(Mandatory = $true, ParameterSetName = "GpgKeys")]
+        [Parameter(Mandatory = $true, ParameterSetName = "GpgKeys")]
         [ValidateNotNullOrEmpty()]
-        [string] $PublicGpgKeyPath
+        [string]
+        $PublicGpgKeyPath
     )
 
     $Path = Resolve-Path $Path
-    if (-not (Test-Path $Path -PathType Leaf)) {
-        Throw 'Invalid Guest Configuration package path.'
+    if (-not (Test-Path $Path -PathType Leaf))
+    {
+        throw 'Invalid Guest Configuration package path.'
     }
 
-    Try {
-        $packageFileName = ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+    try
+    {
+        $packageFileName = [System.IO.Path]::GetFileNameWithoutExtension($Path)
         $signedPackageFilePath = Join-Path (Get-ChildItem $Path).Directory "$($packageFileName)_signed.zip"
-        $tempDir = Join-Path (Get-ChildItem $Path).Directory 'temp'
+        $tempDir = Join-Path -Path (Get-ChildItem $Path).Directory -AdditionalChildPath 'temp'
         Remove-Item $signedPackageFilePath -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+        $null = New-Item -ItemType Directory -Force -Path $tempDir
 
         # Unzip policy package.
         Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -63,19 +68,23 @@ function Protect-GuestConfigurationPackage {
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $tempDir -Filter *.mof
-        if (-not $dscDocument) {
-            Throw "Invalid policy package, failed to find dsc document in policy package."
+        if (-not $dscDocument)
+        {
+            throw "Invalid policy package, failed to find dsc document in policy package."
         }
+
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
         $osPlatform = Get-OSPlatform
-        if ($PSCmdlet.ParameterSetName -eq "Certificate") {
-            if ($osPlatform -eq "Linux") {
+        if ($PSCmdlet.ParameterSetName -eq "Certificate")
+        {
+            if ($osPlatform -eq "Linux")
+            {
                 throw 'Certificate signing not supported on Linux.'
             }
 
             # Create catalog file
-            $catalogFilePath = Join-Path $tempDir "$policyName.cat"
+            $catalogFilePath = Join-Path -Path $tempDir -ChildPath "$policyName.cat"
             Remove-Item $catalogFilePath -Force -ErrorAction SilentlyContinue
             Write-Verbose "Creating catalog file : $catalogFilePath."
             New-FileCatalog -Path $tempDir -CatalogVersion 2.0 -CatalogFilePath $catalogFilePath | Out-Null
@@ -85,15 +94,22 @@ function Protect-GuestConfigurationPackage {
             $CodeSignOutput = Set-AuthenticodeSignature -Certificate $Certificate -FilePath $catalogFilePath
 
             $Signature = Get-AuthenticodeSignature $catalogFilePath
-            if ($null -ne $Signature.SignerCertificate) {
-                if ($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint) {
+            if ($null -ne $Signature.SignerCertificate)
+            {
+                if ($Signature.SignerCertificate.Thumbprint -ne $Certificate.Thumbprint)
+                {
                     throw $CodeSignOutput.StatusMessage
                 }
             }
-            else { throw $CodeSignOutput.StatusMessage }
+            else
+            {
+                throw $CodeSignOutput.StatusMessage
+            }
         }
-        else {
-            if ($osPlatform -eq "Windows") {
+        else
+        {
+            if ($osPlatform -eq "Windows")
+            {
                 throw 'Gpg signing not supported on Windows.'
             }
 
@@ -106,9 +122,9 @@ function Protect-GuestConfigurationPackage {
             Remove-Item $hashFilePath -Force -ErrorAction SilentlyContinue
 
             Write-Verbose "Creating file hash : $hashFilePath."
-            pushd $tempDir
+            Push-Location -Path $tempDir
             bash -c "find ./ -type f -print0 | xargs -0 sha256sum | grep -v sha256sums > $hashFilePath"
-            popd
+            Pop-Location
 
             Write-Verbose "Signing file hash : $hashFilePath."
             gpg --import $PrivateGpgKeyPath
@@ -116,16 +132,18 @@ function Protect-GuestConfigurationPackage {
         }
 
         # Zip the signed Guest Configuration package
-        Write-Verbose "Creating signed Guest Configuration package : $signedPackageFilePath."
+        Write-Verbose "Creating signed Guest Configuration package : '$signedPackageFilePath'."
         [System.IO.Compression.ZipFile]::CreateFromDirectory($tempDir, $signedPackageFilePath)
 
         $result = [pscustomobject]@{
             Name = $policyName
             Path = $signedPackageFilePath
         }
+
         return $result
     }
-    Finally {
+    finally
+    {
         Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
     }
 }

@@ -22,7 +22,7 @@ NestedModule:
     Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
-    prefix: prefix.ps1
+    # prefix: prefix.ps1
     # Exclude: PSGetModuleInfo.xml
   DscOperations:
     # CopyOnly: true
@@ -30,7 +30,7 @@ NestedModule:
     Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
-    Prefix: prefix.ps1
+    # Prefix: prefix.ps1
     # Exclude: PSGetModuleInfo.xml
   GuestConfigurationPolicy:
     # CopyOnly: true
@@ -38,7 +38,7 @@ NestedModule:
     Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
-    Prefix: prefix.ps1
+    # Prefix: prefix.ps1
     # Exclude: PSGetModuleInfo.xml
 
 ####################################################
@@ -104,7 +104,7 @@ DscTest:
   ExcludeSourceFile:
     - output
   ExcludeModuleFile:
-    - Modules/DscResource.Common
+    - Modules/
 
 # Import ModuleBuilder tasks from a specific PowerShell module using the build
 # task's alias. Wildcard * can be used to specify all tasks that has a similar

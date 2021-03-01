@@ -38,7 +38,7 @@ NestedModule:
     Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
-    # Prefix: prefix.ps1
+    Prefix: prefix.ps1
     # Exclude: PSGetModuleInfo.xml
 
 ####################################################

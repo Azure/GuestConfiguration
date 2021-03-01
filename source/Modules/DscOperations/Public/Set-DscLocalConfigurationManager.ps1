@@ -12,21 +12,25 @@
 function Set-DscLocalConfigurationManager
 {
     [CmdletBinding()]
-    param (
-        [parameter(Position=0, Mandatory = $true)]
+    param
+    (
+        [Parameter(Position=0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ConfigurationName,
+        [string]
+        $ConfigurationName,
 
-        [parameter(Position=1, Mandatory = $true)]
+        [Parameter(Position=1, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path
+        [string]
+        $Path
     )
 
     $job_id = [guid]::NewGuid().Guid
     $gcBinPath = Get-GuestConfigBinaryPath
     $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
 
-    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+    if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
+    {
         $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
         Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
     }

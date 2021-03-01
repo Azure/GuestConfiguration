@@ -12,14 +12,17 @@
 function Publish-DscConfiguration
 {
     [CmdletBinding()]
-    param (
-        [parameter(Position=0, Mandatory = $true)]
+    param
+    (
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ConfigurationName,
+        [string]
+        $ConfigurationName,
 
-        [parameter(Position=1, Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $Path
+        [string]
+        $Path
     )
 
     $job_id = [guid]::NewGuid().Guid
@@ -35,7 +38,8 @@ function Publish-DscConfiguration
     $testPath = Test-Path $Path
     if ($false -eq $testPath) {throw "Guest Config binaries not found at path $testPath"}
 
-    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+    if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
+    {
         $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
         Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
     }

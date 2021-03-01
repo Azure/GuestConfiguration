@@ -1,5 +1,3 @@
-
-
 <#
     .SYNOPSIS
         Retrieves the name of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment.
@@ -8,9 +6,10 @@
     .EXAMPLE
         Get-GuestConfigurationAssignmentParameterName -ParameterInfo $currentParameterInfo
 #>
-function Get-GuestConfigurationAssignmentParameterName {
+function Get-GuestConfigurationAssignmentParameterName
+{
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([System.String])]
     param
     (
         [Parameter()]

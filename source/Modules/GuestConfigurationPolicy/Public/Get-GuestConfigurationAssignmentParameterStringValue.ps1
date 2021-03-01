@@ -1,4 +1,3 @@
-
 <#
     .SYNOPSIS
         Retrieves the string value of a Guest Configuration Assignment parameter correctly formatted to be passed to the Guest Configuration Assignment as part of the parameter hash.
@@ -7,25 +6,32 @@
     .EXAMPLE
         Get-GuestConfigurationAssignmentParameterStringValue -ParameterInfo $currentParameterInfo
 #>
-function Get-GuestConfigurationAssignmentParameterStringValue {
+function Get-GuestConfigurationAssignmentParameterStringValue
+{
     [CmdletBinding()]
-    [OutputType([String])]
+    [OutputType([System.String])]
     param
     (
         [Parameter()]
         [Hashtable]
         $ParameterInfo
     )
-    if ($ParameterInfo.ContainsKey('ConfigurationValue')) {
-        if ($ParameterInfo.ConfigurationValue.StartsWith('[') -and $ParameterInfo.ConfigurationValue.EndsWith(']')) {
+
+    if ($ParameterInfo.ContainsKey('ConfigurationValue'))
+    {
+        if ($ParameterInfo.ConfigurationValue.StartsWith('[') -and $ParameterInfo.ConfigurationValue.EndsWith(']'))
+        {
             $assignmentParameterStringValue = $ParameterInfo.ConfigurationValue.Substring(1, $ParameterInfo.ConfigurationValue.Length - 2)
         }
-        else {
+        else
+        {
             $assignmentParameterStringValue = "'$($ParameterInfo.ConfigurationValue)'"
         }
     }
-    else {
+    else
+    {
         $assignmentParameterStringValue = "parameters('$($ParameterInfo.ReferenceName)')"
     }
+
     return $assignmentParameterStringValue
 }

@@ -1,9 +1,9 @@
-
 <#
     .SYNOPSIS
         Creates a new audit policy definition for a guest configuration policy.
 #>
-function New-GuestConfigurationAuditPolicyDefinition {
+function New-GuestConfigurationAuditPolicyDefinition
+{
     [CmdletBinding()]
     param
     (
@@ -51,7 +51,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
         [bool]
         $UseCertificateValidation = $false,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter()]
         [String]
         $Category = 'Guest Configuration',
 
@@ -69,10 +69,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
         $Tag
     )
 
-    if (-not [String]::IsNullOrEmpty($Guid)) {
+    if (-not [String]::IsNullOrEmpty($Guid))
+    {
         $auditPolicyGuid = $Guid
     }
-    else {
+    else
+    {
         $auditPolicyGuid = [Guid]::NewGuid()
     }
 
@@ -81,7 +83,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $ParameterDefinitions = @{ }
     $auditPolicyContentHashtable = [Ordered]@{ }
 
-    if ($null -ne $ParameterInfo) {
+    if ($null -ne $ParameterInfo)
+    {
         $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
     }
@@ -92,6 +95,7 @@ function New-GuestConfigurationAuditPolicyDefinition {
             DisplayName = 'Include Arc connected servers'
             Description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
         }
+
         AllowedValues = @('True', 'False')
         DefaultValue  = 'False'
     }
@@ -155,7 +159,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
         }
     }
 
-    if ($Platform -ieq 'Windows') {
+    if ($Platform -ieq 'Windows')
+    {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
@@ -317,7 +322,8 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
     }
-    elseif ($Platform -ieq 'Linux') {
+    elseif ($Platform -ieq 'Linux')
+    {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
@@ -560,12 +566,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
             }
         )
     }
-    else {
+    else
+    {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
     # if there is atleast one tag
-    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag)
+    {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order
@@ -581,9 +589,11 @@ function New-GuestConfigurationAuditPolicyDefinition {
         # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
         $policyRuleHashtable['if']['allOf'] += $anyOf
         # add each tag individually to tags 'allOf'
-        for ($i = 0; $i -lt $Tag.count; $i++) {
+        for ($i = 0; $i -lt $Tag.count; $i++)
+        {
             # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys))
+            {
                 $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
                     field  = "tags.$($Tag[$i].Keys)"
                     equals = "$($Tag[$i].Values)"
@@ -595,12 +605,14 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }
-    $existenceConditionList['allOf'].Add([Ordered]@{
-            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
-            equals = 'Compliant'
-        })
 
-    if ($null -ne $ParameterInfo) {
+    $existenceConditionList['allOf'].Add([Ordered]@{
+        field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+        equals = 'Compliant'
+    })
+
+    if ($null -ne $ParameterInfo)
+    {
         $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
         $existenceConditionList['allOf'].Add($parametersExistenceCondition)
     }
@@ -612,10 +624,12 @@ function New-GuestConfigurationAuditPolicyDefinition {
     $auditPolicyContent = ConvertTo-Json -InputObject $auditPolicyContentHashtable -Depth 100 | ForEach-Object { [System.Text.RegularExpressions.Regex]::Unescape($_) }
     $formattedAuditPolicyContent = Format-Json -Json $auditPolicyContent
 
-    if (Test-Path -Path $filePath) {
+    if (Test-Path -Path $filePath)
+    {
         Write-Error -Message "A file at the policy destination path '$filePath' already exists. Please remove this file or specify a different destination path."
     }
-    else {
+    else
+    {
         $null = New-Item -Path $filePath -ItemType 'File' -Value $formattedAuditPolicyContent
     }
 

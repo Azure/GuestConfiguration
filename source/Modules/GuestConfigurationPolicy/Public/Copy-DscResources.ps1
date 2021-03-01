@@ -1,5 +1,6 @@
 
-function Copy-DscResources {
+function Copy-DscResources
+{
     [CmdletBinding()]
     param
     (
@@ -11,22 +12,29 @@ function Copy-DscResources {
         [String]
         $Destination,
 
-        [switch] $Force
+        [Parameter()]
+        [switch]
+        $Force
     )
+
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($MofDocumentPath, 4)
 
     Write-Verbose 'Copy DSC resources ...'
     $modulePath = New-Item -ItemType Directory -Force -Path (Join-Path $Destination 'Modules')
     $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
-    try {
+
+    try
+    {
         $latestModule = @()
         $latestModule += Get-Module GuestConfiguration
         $latestModule += Get-Module GuestConfiguration -ListAvailable
         $latestModule = ($latestModule | Sort-Object Version -Descending)[0]
     }
-    catch {
+    catch
+    {
         write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
     }
+
     Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse -Force
     Copy-Item "$($latestModule.ModuleBase)/helpers/" "$guestConfigModulePath/helpers/" -Recurse -Force
     Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1" -Force
@@ -36,9 +44,15 @@ function Copy-DscResources {
     $modulesToCopy = @{ }
     $IncludePesterModule = $false
     $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion') {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{ModuleName = $_.ModuleName; ModuleVersion = $_.ModuleVersion }
-            if ($_.ResourceID -match 'PesterResource') {
+        if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion')
+        {
+            $modulesToCopy[$_.CimClass.CimClassName] = @{
+                ModuleName = $_.ModuleName
+                ModuleVersion = $_.ModuleVersion
+            }
+
+            if ($_.ResourceID -match 'PesterResource')
+            {
                 $IncludePesterModule = $true
             }
         }
@@ -47,15 +61,27 @@ function Copy-DscResources {
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
     $modulesToCopy.Values | ForEach-Object {
-        if ($_.ModuleName -ne 'GuestConfiguration') {
-            $requiredModule = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
-            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules') {
+        if ($_.ModuleName -ne 'GuestConfiguration')
+        {
+            $requiredModule = Get-Module -FullyQualifiedName @{
+                ModuleName = $_.ModuleName
+                RequiredVersion = $_.ModuleVersion
+            } -ListAvailable
+
+            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules')
+            {
                 $requiredModule.RequiredModules | ForEach-Object {
-                    if ($null -ne $_.Version) {
-                        $powershellModulesToCopy[$_.Name] = @{ModuleName = $_.Name; ModuleVersion = $_.Version }
+                    if ($null -ne $_.Version)
+                    {
+                        $powershellModulesToCopy[$_.Name] = @{
+                            ModuleName = $_.Name
+                            ModuleVersion = $_.Version
+                        }
+
                         Write-Verbose "$($_.Name) is a required PowerShell module"
                     }
-                    else {
+                    else
+                    {
                         Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
                     }
                 }
@@ -63,62 +89,90 @@ function Copy-DscResources {
         }
     }
 
-    if ($true -eq $IncludePesterModule) {
-        $latestInstalledVersionofPester = (Get-Module 'Pester' -ListAvailable | Sort-Object Version -Descending)[0]
-        $powershellModulesToCopy['Pester'] = @{ModuleName = $latestInstalledVersionofPester.Name; ModuleVersion = $latestInstalledVersionofPester.Version }
-        Write-Verbose "Pester is a required PowerShell module"
+    if ($true -eq $IncludePesterModule)
+    {
+        $latestInstalledVersionofPester = (Get-Module -Name 'Pester' -ListAvailable | Sort-Object Version -Descending)[0]
+        $powershellModulesToCopy['Pester'] = @{
+            ModuleName = $latestInstalledVersionofPester.Name
+            ModuleVersion = $latestInstalledVersionofPester.Version
+        }
+
+        Write-Verbose "Pester is a required PowerShell module (using Pester v$($latestInstalledVersionofPester.Version))."
     }
 
     $modulesToCopy += $powershellModulesToCopy
 
     $modulesToCopy.Values | ForEach-Object {
-        if (@('Pester', 'GuestConfiguration') -notcontains $_.ModuleName) {
-            $moduleToCopy = Get-Module -FullyQualifiedName @{ModuleName = $_.ModuleName; RequiredVersion = $_.ModuleVersion } -ListAvailable
-            if ($null -ne $moduleToCopy) {
-                if ($_.ModuleName -eq 'PSDesiredStateConfiguration') {
+        if (@('Pester', 'GuestConfiguration') -notcontains $_.ModuleName)
+        {
+            $moduleToCopy = Get-Module -FullyQualifiedName @{
+                ModuleName = $_.ModuleName
+                RequiredVersion = $_.ModuleVersion
+            } -ListAvailable
+
+            if ($null -ne $moduleToCopy)
+            {
+                if ($_.ModuleName -eq 'PSDesiredStateConfiguration')
+                {
                     Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration" that are not available in PowerShell Core. Switch to the "PSDSCResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available in "PSDSCResources".'
                 }
+
                 $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-                Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force
+                Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force
             }
-            else {
+            else
+            {
                 Write-Error "Module $($_.ModuleName) version $($_.ModuleVersion) could not be found in `$env:PSModulePath"
             }
+
             $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-            Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force:$Force
+            Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force:$Force
         }
-        elseif ($_.ModuleName -eq 'Pester') {
+        elseif ($_.ModuleName -eq 'Pester')
+        {
             $moduleToCopy = $latestInstalledVersionofPester
-            if ($null -ne $moduleToCopy) {
+            if ($null -ne $moduleToCopy)
+            {
                 $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-                Copy-Item "$($moduleToCopy.ModuleBase)/*" $moduleToCopyPath -Recurse -Force
+                Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force
             }
-            else {
+            else
+            {
                 Write-Error "The configuration includes PesterResource. This resource requires Pester version 5.0.0 or later, which could not be found in `$env:PSModulePath"
             }
         }
     }
 
-    # Add latest module to module path
-    $latestModulePSModulePath = [IO.Path]::PathSeparator + $latestModule.ModuleBase
-    $Env:PSModulePath += $latestModulePSModulePath
+    try
+    {
+        # Add latest module to module path
+        $latestModulePSModulePath = [IO.Path]::PathSeparator + $latestModule.ModuleBase
+        $Env:PSModulePath += $latestModulePSModulePath
 
-    # Copy binary resources.
-    $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-    $resources = Get-DscResource -Module @{ModuleName='GuestConfiguration'; ModuleVersion=$latestModule.Version.ToString()}
-    $resources | ForEach-Object {
-        if ($_.ImplementedAs -eq 'Binary') {
-            $binaryResourcePath = Join-Path (Join-Path $latestModule.ModuleBase 'DscResources') $_.ResourceType
-            Get-ChildItem $binaryResourcePath/* -Include *.sh -Recurse | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
-            Copy-Item $binaryResourcePath/* -Include *.sh $modulePath -Recurse -Force
-            Copy-Item $binaryResourcePath $nativeResourcePath -Recurse -Force
+        # Copy binary resources.
+        $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
+        $resources = Get-DscResource -Module @{
+            ModuleName    = 'GuestConfiguration'
+            ModuleVersion = $latestModule.Version.ToString()
         }
+
+        $resources | ForEach-Object {
+            if ($_.ImplementedAs -eq 'Binary')
+            {
+                $binaryResourcePath = Join-Path -Path (Join-Path -Path $latestModule.ModuleBase -ChildPath 'DscResources') -ChildPath $_.ResourceType
+                Get-ChildItem -Path $binaryResourcePath/* -Include *.sh -Recurse | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
+                Copy-Item -Path $binaryResourcePath/* -Include *.sh -Destination $modulePath -Recurse -Force
+                Copy-Item -Path $binaryResourcePath -Destination $nativeResourcePath -Recurse -Force
+            }
+        }
+
+        # Remove DSC binaries from package (just a safeguard).
+        $binaryPath = Join-Path -Path $guestConfigModulePath -ChildPath 'bin'
+        $null = Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue'
     }
-
-    # Remove DSC binaries from package (just a safeguard).
-    $binaryPath = Join-Path $guestConfigModulePath 'bin'
-    Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue' | Out-Null
-
-    # Remove addition to module path
-    $Env:PSModulePath = $Env:PSModulePath.replace($latestModulePSModulePath, '')
+    finally
+    {
+        # Remove addition to module path
+        $Env:PSModulePath = $Env:PSModulePath.replace($latestModulePSModulePath, '')
+    }
 }

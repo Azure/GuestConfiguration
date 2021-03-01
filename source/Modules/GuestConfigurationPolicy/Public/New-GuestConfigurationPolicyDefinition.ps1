@@ -1,9 +1,9 @@
-
 <#
     .SYNOPSIS
         Creates a new policy for guest configuration.
 #>
-function New-GuestConfigurationPolicyDefinition {
+function New-GuestConfigurationPolicyDefinition
+{
     [CmdletBinding()]
     param
     (
@@ -16,13 +16,15 @@ function New-GuestConfigurationPolicyDefinition {
         $AuditIfNotExistsInfo
     )
 
-    if (Test-Path -Path $PolicyFolderPath) {
+    if (Test-Path -Path $PolicyFolderPath)
+    {
         $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'
     }
 
     $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
 
-    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo) {
+    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo)
+    {
         $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
         New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
     }

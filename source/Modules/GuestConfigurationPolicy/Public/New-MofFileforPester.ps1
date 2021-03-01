@@ -1,21 +1,23 @@
 
-function New-MofFileforPester {
+function New-MofFileforPester
+{
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
-        [String]
+        [System.String]
         $Name,
 
         [Parameter(Mandatory = $true)]
-        [String]
+        [System.String]
         $PesterScriptsPath,
 
         [Parameter(Mandatory = $true)]
-        [String]
-        $Path = './Pester.mof',
+        [System.String]
+        $Path,
 
-        [Switch]
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
         $Force
     )
 
@@ -26,7 +28,8 @@ function New-MofFileforPester {
 
     # Create resource section of MOF for each script
     $index = 1
-    foreach ($script in $Scripts) {
+    foreach ($script in $Scripts)
+    {
         $ResourceSection = $null
         $ResourceSection = New-PesterResourceSection -Name $Name -PesterFileName $script.Name -Index $index
         $index++
@@ -48,10 +51,8 @@ instance of OMI_ConfigurationDocument
     # Write file
     Set-Content -Value $MOFContent -Path $Path -Force:$Force
 
-    $return = New-Object -TypeName PSObject -Property @{
+    # Output the path to the new file
+    [PSCustomObject]@{
         Path = $Path
     }
-
-    # Output the path to the new file
-    return $return
 }

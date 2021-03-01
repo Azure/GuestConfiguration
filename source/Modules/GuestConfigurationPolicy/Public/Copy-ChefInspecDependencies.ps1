@@ -1,5 +1,5 @@
-
-function Copy-ChefInspecDependencies {
+function Copy-ChefInspecDependencies
+{
     [CmdletBinding()]
     param
     (
@@ -11,6 +11,7 @@ function Copy-ChefInspecDependencies {
         [String]
         $Configuration,
 
+        [Parameter()]
         [string]
         $ChefInspecProfilePath
     )
@@ -22,24 +23,29 @@ function Copy-ChefInspecDependencies {
     $chefInspecProfiles = @()
 
     $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
-            if ([string]::IsNullOrEmpty($ChefInspecProfilePath)) {
-                Throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
+        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource')
+        {
+            if ([string]::IsNullOrEmpty($ChefInspecProfilePath))
+            {
+                throw "'$($_.CimInstanceProperties['Name'].Value)'. Please use ChefInspecProfilePath parameter to specify profile path."
             }
 
             $inspecProfilePath = Join-Path $ChefInspecProfilePath $_.CimInstanceProperties['Name'].Value
-            if (-not (Test-Path $inspecProfilePath)) {
+            if (-not (Test-Path $inspecProfilePath))
+            {
                 $missingDependencies += $_.CimInstanceProperties['Name'].Value
             }
-            else {
+            else
+            {
                 $chefInspecProfiles += $inspecProfilePath
             }
 
         }
     }
 
-    if ($missingDependencies.Length) {
-        Throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
+    if ($missingDependencies.Length)
+    {
+        throw "Failed to find Chef Inspec profile for '$($missingDependencies -join ',')'. Please make sure profile is present on $ChefInspecProfilePath path."
     }
 
     $chefInspecProfiles | ForEach-Object { Copy-Item $_ $modulePath -Recurse -Force -ErrorAction SilentlyContinue }

@@ -1,5 +1,5 @@
-
-function Save-GuestConfigurationMofDocument {
+function Save-GuestConfigurationMofDocument
+{
     [CmdletBinding()]
     param
     (
@@ -19,32 +19,40 @@ function Save-GuestConfigurationMofDocument {
     $resourcesInMofDocument = Get-GuestConfigurationMofContent -Name $Name -Path $SourcePath
 
     # if mof contains Chef resource
-    if ($resourcesInMofDocument.CimSystemProperties.ClassName -contains 'MSFT_ChefInSpecResource') {
-        Write-Verbose "Serialize DSC document to $DestinationPath path ..."
+    if ($resourcesInMofDocument.CimSystemProperties.ClassName -contains 'MSFT_ChefInSpecResource')
+    {
+        Write-Verbose -Message "Serialize DSC document to $DestinationPath path ..."
         $content = ''
-        for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
+        for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++)
+        {
             $resourceClassName = $resourcesInMofDocument[$i].CimSystemProperties.ClassName
             $content += "instance of $resourceClassName"
 
-            if ($resourceClassName -ne 'OMI_ConfigurationDocument') {
+            if ($resourceClassName -ne 'OMI_ConfigurationDocument')
+            {
                 $content += ' as $' + "$resourceClassName$i"
             }
+
             $content += "`n{`n"
             $resourcesInMofDocument[$i].CimInstanceProperties | ForEach-Object {
                 $content += " $($_.Name)"
-                if ($_.CimType -eq 'StringArray') {
+                if ($_.CimType -eq 'StringArray')
+                {
                     $content += " = {""$($_.Value -replace '[""\\]','\$&')""}; `n"
                 }
-                else {
+                else
+                {
                     $content += " = ""$($_.Value -replace '[""\\]','\$&')""; `n"
                 }
             }
+
             $content += "};`n" ;
         }
 
         $content | Out-File $DestinationPath
     }
-    else {
+    else
+    {
         Write-Verbose "Copy DSC document to $DestinationPath path ..."
         Copy-Item $SourcePath $DestinationPath
     }

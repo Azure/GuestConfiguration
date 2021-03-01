@@ -1,5 +1,5 @@
-
-function New-GuestConfigurationDeployPolicyDefinition {
+function New-GuestConfigurationDeployPolicyDefinition
+{
     [CmdletBinding()]
     param
     (
@@ -65,10 +65,12 @@ function New-GuestConfigurationDeployPolicyDefinition {
         $Tag
     )
 
-    if (-not [String]::IsNullOrEmpty($Guid)) {
+    if (-not [String]::IsNullOrEmpty($Guid))
+    {
         $deployPolicyGuid = $Guid
     }
-    else {
+    else
+    {
         $deployPolicyGuid = [Guid]::NewGuid()
     }
 
@@ -204,7 +206,8 @@ function New-GuestConfigurationDeployPolicyDefinition {
         }
     )
 
-    if ($Platform -ieq 'Windows') {
+    if ($Platform -ieq 'Windows')
+    {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
@@ -385,7 +388,8 @@ function New-GuestConfigurationDeployPolicyDefinition {
             condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
         }
     }
-    elseif ($Platform -ieq 'Linux') {
+    elseif ($Platform -ieq 'Linux')
+    {
         $policyRuleHashtable['if']['anyOf'][0]['allOf'] += @(
             [Ordered]@{
                 anyOf = @(
@@ -638,12 +642,14 @@ function New-GuestConfigurationDeployPolicyDefinition {
             condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
         }
     }
-    else {
+    else
+    {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
     # if there is atleast one tag
-    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag) {
+    if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag)
+    {
         # capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
         # replace with new 'allOf' at top order
@@ -651,17 +657,21 @@ function New-GuestConfigurationDeployPolicyDefinition {
             allOf = @(
             )
         }
+
         # add tags section under new 'allOf'
         $policyRuleHashtable['if']['allOf'] += [Ordered]@{
             allOf = @(
             )
         }
+
         # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
         $policyRuleHashtable['if']['allOf'] += $anyOf
         # add each tag individually to tags 'allOf'
-        for ($i = 0; $i -lt $Tag.count; $i++) {
+        for ($i = 0; $i -lt $Tag.count; $i++)
+        {
             # if there is atleast one tag
-            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys)) {
+            if (-not [string]::IsNullOrEmpty($Tag[$i].Keys))
+            {
                 $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
                     field  = "tags.$($Tag[$i].Keys)"
                     equals = "$($Tag[$i].Values)"
@@ -672,18 +682,22 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
     $existenceConditionList = @()
     # Handle adding parameters if needed
-    if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0) {
+    if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0)
+    {
         $parameterValueConceatenatedStringList = @()
 
-        if (-not $deployPolicyContentHashtable['properties'].Contains('parameters')) {
+        if (-not $deployPolicyContentHashtable['properties'].Contains('parameters'))
+        {
             $deployPolicyContentHashtable['properties']['parameters'] = [Ordered]@{ }
         }
 
-        if (-not $guestConfigurationAssignmentHashtable['properties']['guestConfiguration'].Contains('configurationParameter')) {
+        if (-not $guestConfigurationAssignmentHashtable['properties']['guestConfiguration'].Contains('configurationParameter'))
+        {
             $guestConfigurationAssignmentHashtable['properties']['guestConfiguration']['configurationParameter'] = @()
         }
 
-        foreach ($currentParameterInfo in $ParameterInfo) {
+        foreach ($currentParameterInfo in $ParameterInfo)
+        {
             $deployPolicyContentHashtable['properties']['parameters'] += [Ordered]@{
                 $currentParameterInfo.ReferenceName = [Ordered]@{
                     type     = $currentParameterInfo.Type
@@ -693,30 +707,35 @@ function New-GuestConfigurationDeployPolicyDefinition {
                 }
             }
 
-            if ($currentParameterInfo.ContainsKey('Description')) {
+            if ($currentParameterInfo.ContainsKey('Description'))
+            {
                 $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName]['metadata']['description'] = $currentParameterInfo['Description']
             }
 
-            if ($currentParameterInfo.ContainsKey('DefaultValue')) {
+            if ($currentParameterInfo.ContainsKey('DefaultValue'))
+            {
                 $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
                     defaultValue = $currentParameterInfo.DefaultValue
                 }
             }
 
-            if ($currentParameterInfo.ContainsKey('AllowedValues')) {
+            if ($currentParameterInfo.ContainsKey('AllowedValues'))
+            {
                 $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
                     allowedValues = $currentParameterInfo.AllowedValues
                 }
             }
 
-            if ($currentParameterInfo.ContainsKey('DeploymentValue')) {
+            if ($currentParameterInfo.ContainsKey('DeploymentValue'))
+            {
                 $deploymentHashtable['properties']['parameters'] += [Ordered]@{
                     $currentParameterInfo.ReferenceName = [Ordered]@{
                         value = $currentParameterInfo.DeploymentValue
                     }
                 }
             }
-            else {
+            else
+            {
                 $deploymentHashtable['properties']['parameters'] += [Ordered]@{
                     $currentParameterInfo.ReferenceName = [Ordered]@{
                         value = "[parameters('$($currentParameterInfo.ReferenceName)')]"
@@ -732,17 +751,21 @@ function New-GuestConfigurationDeployPolicyDefinition {
 
             $configurationParameterName = "$($currentParameterInfo.MofResourceReference);$($currentParameterInfo.MofParameterName)"
 
-            if ($currentParameterInfo.ContainsKey('ConfigurationValue')) {
+            if ($currentParameterInfo.ContainsKey('ConfigurationValue'))
+            {
                 $configurationParameterValue = $currentParameterInfo.ConfigurationValue
 
-                if ($currentParameterInfo.ConfigurationValue.StartsWith('[') -and $currentParameterInfo.ConfigurationValue.EndsWith(']')) {
+                if ($currentParameterInfo.ConfigurationValue.StartsWith('[') -and $currentParameterInfo.ConfigurationValue.EndsWith(']'))
+                {
                     $configurationParameterStringValue = $currentParameterInfo.ConfigurationValue.Substring(1, $currentParameterInfo.ConfigurationValue.Length - 2)
                 }
-                else {
+                else
+                {
                     $configurationParameterStringValue = "'$($currentParameterInfo.ConfigurationValue)'"
                 }
             }
-            else {
+            else
+            {
                 $configurationParameterValue = "[parameters('$($currentParameterInfo.ReferenceName)')]"
                 $configurationParameterStringValue = "parameters('$($currentParameterInfo.ReferenceName)')"
             }
@@ -773,6 +796,7 @@ function New-GuestConfigurationDeployPolicyDefinition {
     $policyRuleHashtable['then']['details']['existenceCondition'] = [Ordered]@{
         allOf = $existenceConditionList
     }
+
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable
 
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
@@ -802,10 +826,12 @@ function New-GuestConfigurationDeployPolicyDefinition {
     $deployPolicyContent = ConvertTo-Json -InputObject $deployPolicyContentHashtable -Depth 100 | ForEach-Object { [System.Text.RegularExpressions.Regex]::Unescape($_) }
     $formattedDeployPolicyContent = Format-Json -Json $deployPolicyContent
 
-    if (Test-Path -Path $filePath) {
+    if (Test-Path -Path $filePath)
+    {
         Write-Error -Message "A file at the policy destination path '$filePath' already exists. Please remove this file or specify a different destination path."
     }
-    else {
+    else
+    {
         $null = New-Item -Path $filePath -ItemType 'File' -Value $formattedDeployPolicyContent
     }
 

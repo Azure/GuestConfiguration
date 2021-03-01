@@ -1,6 +1,6 @@
 
-
-function Get-GuestConfigurationMofContent {
+function Get-GuestConfigurationMofContent
+{
     [CmdletBinding()]
     param
     (
@@ -18,14 +18,17 @@ function Get-GuestConfigurationMofContent {
 
     # Set the profile path for Chef resource
     $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource') {
+        if ($_.CimClass.CimClassName -eq 'MSFT_ChefInSpecResource')
+        {
             $profilePath = "$Name/Modules/$($_.Name)"
             $item = $_.CimInstanceProperties.Item('GithubPath')
-            if ($item -eq $null) {
+            if ($null -eq $item)
+            {
                 $item = [Microsoft.Management.Infrastructure.CimProperty]::Create('GithubPath', $profilePath, [Microsoft.Management.Infrastructure.CimFlags]::Property)
                 $_.CimInstanceProperties.Add($item)
             }
-            else {
+            else
+            {
                 $item.Value = $profilePath
             }
         }

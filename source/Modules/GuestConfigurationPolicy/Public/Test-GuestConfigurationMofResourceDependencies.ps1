@@ -1,5 +1,5 @@
-
-function Test-GuestConfigurationMofResourceDependencies {
+function Test-GuestConfigurationMofResourceDependencies
+{
     [CmdletBinding()]
     param
     (
@@ -7,13 +7,16 @@ function Test-GuestConfigurationMofResourceDependencies {
         [String]
         $Path
     )
+
     $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Path, 4)
 
-    $externalResources = @()
-    for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++) {
-        if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName' -and $resourcesInMofDocument[$i].ModuleName -ne 'GuestConfiguration') {
-            if ($resourcesInMofDocument[$i].ModuleName -ieq 'PsDesiredStateConfiguration') {
-                Throw "'PsDesiredStateConfiguration' module is not supported by GuestConfiguration. Please use 'PSDSCResources' module instead of 'PsDesiredStateConfiguration' module in DSC configuration."
+    for ($i = 0; $i -lt $resourcesInMofDocument.Count; $i++)
+    {
+        if ($resourcesInMofDocument[$i].CimInstanceProperties.Name -contains 'ModuleName' -and $resourcesInMofDocument[$i].ModuleName -ne 'GuestConfiguration')
+        {
+            if ($resourcesInMofDocument[$i].ModuleName -ieq 'PsDesiredStateConfiguration')
+            {
+                throw "'PsDesiredStateConfiguration' module is not supported by GuestConfiguration. Please use 'PSDSCResources' module instead of 'PsDesiredStateConfiguration' module in DSC configuration."
             }
 
             $configurationName = $resourcesInMofDocument[$i].ConfigurationName

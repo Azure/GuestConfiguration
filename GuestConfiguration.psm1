@@ -56,6 +56,14 @@ function New-GuestConfigurationPackage {
 
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
+        
+        [parameter(Mandatory = $true)]
+        [ValidateSet("Audit", "Set", ignorecase=$true)]
+        [string] $Type,
+
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly", ignorecase=$true)]
+        [string] $Mode = "DeployAndMonitor",   
 
         [string] $Path = '.',
 
@@ -107,9 +115,14 @@ function New-GuestConfigurationPackage {
         $packageFilePath = join-path $packagePath "$Name.zip"
         Remove-Item $packageFilePath -Force -ErrorAction SilentlyContinue
 
-        Write-Verbose "Creating Guest Configuration package : $packageFilePath."
-        Add-Type -AssemblyName System.IO.Compression.FileSystem
-        [System.IO.Compression.ZipFile]::CreateFromDirectory($unzippedPackagePath, $packageFilePath)
+        if ($Type -eq "Audit") { 
+            Write-Verbose "Creating Guest Configuration package : $packageFilePath."
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::CreateFromDirectory($unzippedPackagePath, $packageFilePath)
+        }
+        else {
+            # Code for set
+        }
 
         $result = [pscustomobject]@{
             Name = $Name
@@ -154,6 +167,14 @@ function Test-GuestConfigurationPackage {
         [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
+
+        [parameter(Mandatory = $true)]
+        [ValidateSet("Audit", "Set", ignorecase=$true)]
+        [string] $Type,
+
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly", ignorecase=$true)]
+        [string] $Mode = "DeployAndMonitor",   
 
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
@@ -224,7 +245,12 @@ function Test-GuestConfigurationPackage {
         # Clear Inspec profiles
         Remove-Item $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
 
-        $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        if ($Type -eq "Audit") { 
+            $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        }
+        else {
+            # Code for Set testing
+        }
         $getResult = @()
         $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
 

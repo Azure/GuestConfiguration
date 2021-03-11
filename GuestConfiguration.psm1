@@ -159,7 +159,7 @@ function Test-GuestConfigurationPackage {
         [string] $Type,
 
         [Parameter(ParameterSetName="packgeType", Mandatory=$true)]
-        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly", ignorecase=$true)]
+        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "AuditOnly", ignorecase=$true)]
         [string] $Mode = "DeployAndMonitor",   
 
         [parameter(Mandatory = $false)]
@@ -170,13 +170,13 @@ function Test-GuestConfigurationPackage {
         # If Type is "Set", require Mode parameter.
         if ($Type -eq "Set") {
             $ModeAttribute = New-Object System.Management.Automation.ParameterAttribute
-            $ModeAttribute.HelpMessage = "Supply values for mode. Valid values: DeployAndAutoCorrect, DeployAndMonitor, MonitorOnly"
+            $ModeAttribute.HelpMessage = "Supply values for mode. Valid values: DeployAndAutoCorrect, DeployAndMonitor, AuditOnly"
             $ModeAttribute.Mandatory = $true 
-x            
+            
             $attributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $attributeCollection.Add($ModeAttribute)
 
-            $arrSet = @("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly")
+            $arrSet = @("DeployAndAutoCorrect", "DeployAndMonitor", "AuditOnly")
             $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
             $AttributeCollection.Add($ValidateSetAttribute)
 

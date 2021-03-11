@@ -158,10 +158,6 @@ function Test-GuestConfigurationPackage {
         [ValidateSet("Audit", "Set", ignorecase=$true)]
         [string] $Type,
 
-        [Parameter(ParameterSetName="packgeType", Mandatory=$true)]
-        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "AuditOnly", ignorecase=$true)]
-        [string] $Mode = "DeployAndMonitor",   
-
         [parameter(Mandatory = $false)]
         [Hashtable[]] $Parameter = @()
     )

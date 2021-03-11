@@ -120,6 +120,49 @@ namespace GuestConfig
             return m_result;
         }}
 
+        public string StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
+        {{
+            IntPtr context = IntPtr.Zero;
+            try
+            {{
+                ClearMessages();
+
+                context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
+                if(context == IntPtr.Zero) 
+                {{
+                    ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                }}
+
+                Int32 result = start_dsc_configuration(context, job_id, configuration_name, "");
+                for (int i = 0; i < m_messages.Count; i++) 
+                {{
+                    var message = m_messages[i];
+                    if(message.Item1 == MessageChannel.Error) 
+                    {{
+                        ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", message.Item2, false));
+                    }}
+                    else if(message.Item1 == MessageChannel.Warning) 
+                    {{
+                        ps_cmdlet.WriteWarning(message.Item2);
+                    }}
+                    else if(message.Item1 == MessageChannel.Debug) 
+                    {{
+                        ps_cmdlet.WriteDebug(message.Item2);
+                    }}
+                    else 
+                    {{
+                        ps_cmdlet.WriteVerbose(message.Item2);
+                    }}
+                }}
+            }}
+            finally 
+            {{
+                delete_dsc_library_context(context);
+            }}
+
+            return m_result;
+        }}
+
         public string GettDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
         {{
             IntPtr context = IntPtr.Zero;
@@ -343,6 +386,42 @@ function Get-DscConfiguration
 
     $dscOperation = [GuestConfig.DscOperations]::New()
     $result = $dscOperation.GettDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
+
+    return ConvertFrom-Json $result
+}
+
+
+<#
+    .SYNOPSIS
+        Start DSC configuration.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Start-DscConfiguration -ConfigurationName WindowsTLS
+#>
+
+function Start-DscConfiguration
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $result = $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
 
     return ConvertFrom-Json $result
 }

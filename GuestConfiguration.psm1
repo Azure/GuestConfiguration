@@ -56,14 +56,6 @@ function New-GuestConfigurationPackage {
 
         [ValidateNotNullOrEmpty()]
         [string] $FilesToInclude,
-        
-        [parameter(Mandatory = $true)]
-        [ValidateSet("Audit", "Set", ignorecase=$true)]
-        [string] $Type,
-
-        [ValidateNotNullOrEmpty()]
-        [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly", ignorecase=$true)]
-        [string] $Mode = "DeployAndMonitor",   
 
         [string] $Path = '.',
 
@@ -115,14 +107,9 @@ function New-GuestConfigurationPackage {
         $packageFilePath = join-path $packagePath "$Name.zip"
         Remove-Item $packageFilePath -Force -ErrorAction SilentlyContinue
 
-        if ($Type -eq "Audit") { 
-            Write-Verbose "Creating Guest Configuration package : $packageFilePath."
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
-            [System.IO.Compression.ZipFile]::CreateFromDirectory($unzippedPackagePath, $packageFilePath)
-        }
-        else {
-            # Code for set
-        }
+        Write-Verbose "Creating Guest Configuration package : $packageFilePath."
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::CreateFromDirectory($unzippedPackagePath, $packageFilePath)
 
         $result = [pscustomobject]@{
             Name = $Name
@@ -168,11 +155,10 @@ function Test-GuestConfigurationPackage {
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
-        [parameter(Mandatory = $true)]
         [ValidateSet("Audit", "Set", ignorecase=$true)]
         [string] $Type,
 
-        [ValidateNotNullOrEmpty()]
+        [Parameter(ParameterSetName="packgeType", Mandatory=$true)]
         [ValidateSet("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly", ignorecase=$true)]
         [string] $Mode = "DeployAndMonitor",   
 
@@ -180,116 +166,146 @@ function Test-GuestConfigurationPackage {
         [Hashtable[]] $Parameter = @()
     )
 
-    if ($env:OS -notmatch "Windows" -and $IsMacOS) {
-        Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
+    DynamicParam {
+        # If Type is "Set", require Mode parameter.
+        if ($Type -eq "Set") {
+            $ModeAttribute = New-Object System.Management.Automation.ParameterAttribute
+            $ModeAttribute.HelpMessage = "Supply values for mode. Valid values: DeployAndAutoCorrect, DeployAndMonitor, MonitorOnly"
+            $ModeAttribute.Mandatory = $true 
+x            
+            $attributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $attributeCollection.Add($ModeAttribute)
+
+            $arrSet = @("DeployAndAutoCorrect", "DeployAndMonitor", "MonitorOnly")
+            $ValidateSetAttribute = New-Object System.Management.Automation.ValidateSetAttribute($arrSet)
+            $AttributeCollection.Add($ValidateSetAttribute)
+
+            $modeParam = New-Object System.Management.Automation.RuntimeDefinedParameter('Mode', [string], $attributeCollection)
+            $paramDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+            $paramDictionary.Add('Mode', $modeParam)
+            return $paramDictionary
+        }
     }
-    
-    if (-not (Test-Path $Path -PathType Leaf)) {
-        Throw 'Invalid Guest Configuration package path : $($Path)'
-    }
+    Process {
 
-    $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-    $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
-
-    Try {
-        # Create policy folder
-        $Path = Resolve-Path $Path
-        $policyPath = Join-Path $(Get-GuestConfigPolicyPath) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
-        Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
-
-        # Unzip policy package.
-        Expand-Archive -LiteralPath $Path $policyPath
-
-        # Get policy name
-        $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
-        if (-not $dscDocument) {
-            Throw "Invalid policy package, failed to find dsc document in policy package."
+        if ($env:OS -notmatch "Windows" -and $IsMacOS) {
+            Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
         }
-        $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
-
-        # update configuration parameters
-        if ($Parameter.Count -gt 0) {
-            Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
+        
+        if (-not (Test-Path $Path -PathType Leaf)) {
+            Throw 'Invalid Guest Configuration package path : $($Path)'
         }
 
-        # Unzip Guest Configuration binaries
-        $gcBinPath = Get-GuestConfigBinaryPath
-        $gcBinRootPath = Get-GuestConfigBinaryRootPath
-        if (-not (Test-Path $gcBinPath)) {
-            # Clean the bin folder
-            Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
+        $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
+        $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
 
-            $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
-            if ($(Get-OSPlatform) -eq 'Windows') {
-                $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
+        Try {
+            # Create policy folder
+            $Path = Resolve-Path $Path
+            $policyPath = Join-Path $(Get-GuestConfigPolicyPath) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+            Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
+
+            # Unzip policy package.
+            Expand-Archive -LiteralPath $Path $policyPath
+
+            # Get policy name
+            $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
+            if (-not $dscDocument) {
+                Throw "Invalid policy package, failed to find dsc document in policy package."
             }
-            else {
-                # Linux zip package contains an additional DSC folder
-                # Remove DSC folder from binary path to avoid two nested DSC folders.
-                New-Item -ItemType Directory -Force -Path $gcBinPath | Out-Null
-                $gcBinPath = (Get-Item $gcBinPath).Parent.FullName
-                $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
+            $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
+
+            # update configuration parameters
+            if ($Parameter.Count -gt 0) {
+                Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
             }
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
-        }
 
-        # Publish policy package
-        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+            # Unzip Guest Configuration binaries
+            $gcBinPath = Get-GuestConfigBinaryPath
+            $gcBinRootPath = Get-GuestConfigBinaryRootPath
+            if (-not (Test-Path $gcBinPath)) {
+                # Clean the bin folder
+                Remove-Item $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
 
-        # Set LCM settings to force load powershell module.
-        $metaConfigPath = Join-Path $policyPath "$policyName.metaconfig.json"
-        "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
-        Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+                $zippedBinaryPath = Join-Path $(Get-GuestConfigurationModulePath) 'bin'
+                if ($(Get-OSPlatform) -eq 'Windows') {
+                    $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Windows.zip'
+                }
+                else {
+                    # Linux zip package contains an additional DSC folder
+                    # Remove DSC folder from binary path to avoid two nested DSC folders.
+                    New-Item -ItemType Directory -Force -Path $gcBinPath | Out-Null
+                    $gcBinPath = (Get-Item $gcBinPath).Parent.FullName
+                    $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
+                }
+                [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
+            }
 
-        # Clear Inspec profiles
-        Remove-Item $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
+            # Publish policy package
+            Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
-        if ($Type -eq "Audit") { 
+            # Set LCM settings to force load powershell module.
+            $metaConfigPath = Join-Path $policyPath "$policyName.metaconfig.json"
+            "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
+            Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+
+            # Clear Inspec profiles
+            Remove-Item $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
+
+            # Run tests depending on if they are Audit or Set based policies
+            
+            # For Set scenario, if Mode is DeployAndCorrect or DeployAndAudit, run Set command
+            if ($Type -eq "Set") {
+                $Mode = $paramDictionary["Mode"].Value
+                if ($Mode -eq "DeployAndAutoCorrect" -or $Mode -eq "DeployAndMonitor") {
+                    # DSC: implement Start-DscConfiguration to call DSC: start_dsc_configuration
+                    Start-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose 
+                }
+            }
+            # TODO : Test these! Ask Mxichael and Gael where they are . do these one by one  
+
             $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
-        }
-        else {
-            # Code for Set testing
-        }
-        $getResult = @()
-        $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
+            $getResult = @()
+            $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
 
-        $testResult.resources_not_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+            $testResult.resources_not_in_desired_state | ForEach-Object {
+                $resourceId = $_;`
+                if ($getResult.count -gt 1) {
+                    for ($i = 0; $i -lt $getResult.Count; $i++) {
+                        if ($getResult[$i].ResourceId -ieq $resourceId) {
+                            $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
+                        }
                     }
                 }
-            }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
-            }
-        }
-
-        $testResult.resources_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            if ($getResult.count -gt 1) {
-                for ($i = 0; $i -lt $getResult.Count; $i++) {
-                    if ($getResult[$i].ResourceId -ieq $resourceId) {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
-                    }
+                elseif ($getResult.ResourceId -ieq $resourceId) {
+                    $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $false } }
                 }
             }
-            elseif ($getResult.ResourceId -ieq $resourceId) {
-                $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+
+            $testResult.resources_in_desired_state | ForEach-Object {
+                $resourceId = $_;
+                if ($getResult.count -gt 1) {
+                    for ($i = 0; $i -lt $getResult.Count; $i++) {
+                        if ($getResult[$i].ResourceId -ieq $resourceId) {
+                            $getResult[$i] = $getResult[$i] | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+                        }
+                    }
+                }
+                elseif ($getResult.ResourceId -ieq $resourceId) {
+                    $getResult = $getResult | Select-Object *, @{n = 'complianceStatus'; e = { $true } }
+                }
             }
+
+            $result = New-Object -TypeName PSObject
+            $properties = [ordered]@{ complianceStatus = $testResult.compliance_state; resources = $getResult }
+            $result | Add-Member -NotePropertyMembers $properties
+
+            return $result;
         }
-
-        $result = New-Object -TypeName PSObject
-        $properties = [ordered]@{ complianceStatus = $testResult.compliance_state; resources = $getResult }
-        $result | Add-Member -NotePropertyMembers $properties
-
-        return $result;
-    }
-    Finally {
-        $env:PSModulePath = $systemPSModulePath
+        Finally {
+            $env:PSModulePath = $systemPSModulePath
+        }
     }
 }
 

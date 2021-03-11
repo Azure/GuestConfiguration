@@ -1,0 +1,18 @@
+instance of MSFT_ChefInSpecResource as $MSFT_ChefInSpecResource1ref
+{
+Name = "linux-path";
+ResourceID = "[ChefInSpecResource]Audit Linux path exists";
+ModuleVersion = "3.2.0";
+SourceInfo = "::7::1::ChefInSpecResource";
+ModuleName = "GuestConfiguration";
+ConfigurationName = "DSCConfig";
+GithubPath = "linux-path/Modules/linux-path/";
+};
+
+instance of OMI_ConfigurationDocument
+{
+Version="2.0.0";
+MinimumCompatibleVersion = "1.0.0";
+CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+Name="DSCConfig";
+};

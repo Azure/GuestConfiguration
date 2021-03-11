@@ -24,4 +24,6 @@
     'Az.Accounts'               = 'latest'
     'Az.Resources'              = 'latest'
     'Az.Storage'                = 'latest'
+
+    ComputerManagementDsc       = 'latest'
 }

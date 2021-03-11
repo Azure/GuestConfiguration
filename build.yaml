@@ -118,10 +118,10 @@ Pester:
   # only run tests in certain folders, or run specific test files, or can be use to
   # specify the order tests are run.
   Path:
-    - tests/Unit
+    - tests/Unit/
     - tests/Integration
   Tag:
-  CodeCoverageThreshold: 85 # Set to 0 to bypass
+  CodeCoverageThreshold: 0 # Set to 0 to bypass
   CodeCoverageOutputFile: JaCoCo_coverage.xml
   CodeCoverageOutputFileEncoding: ascii
   # CodeCoverageMergedOutputFile: JaCoCo_Merged.xml

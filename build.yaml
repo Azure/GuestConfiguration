@@ -49,10 +49,38 @@ BuildWorkflow:
     - build
     - test
 
+  download_gc_agents: |
+    {
+      $binPath = Join-Path -Path (Get-Item ./output/GuestConfiguration/*) -ChildPath 'bin'
+      mkdir -force $binPath
+
+      if ($env:ADO) { return }
+
+      $GitHubPATPath = 'GHPAT.local.txt'
+      if ($env:GitHubToken)
+      {
+          $GHPAT = $env:GitHubToken
+      }
+      elseif (Test-Path -Path $GitHubPATPath)
+      {
+        $GHPAT = (gc -raw $GitHubPATPath).Trim()
+      }
+      else
+      {
+        Write-Warning -Message "Can't download GC Agents."
+      }
+
+      $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.27.5.0).assets.Where{$_.Name -match 'GCService'}.id
+      $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.9.0).assets.Where{$_.Name -match 'GCService'}.id
+      Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $binPath/DSC_Windows.zip -Force
+      Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $binPath/DSC_Linux.zip -Force
+    }
+
   build:
     - Clean
     - Build_Module_ModuleBuilder
     - Build_NestedModules_ModuleBuilder
+    - download_gc_agents
     - Create_changelog_release_output
     - Generate_Conceptual_Help
     - Generate_Wiki_Content
@@ -91,6 +119,7 @@ Pester:
   # specify the order tests are run.
   Path:
     - tests/Unit
+    - tests/Integration
   Tag:
   CodeCoverageThreshold: 85 # Set to 0 to bypass
   CodeCoverageOutputFile: JaCoCo_coverage.xml
@@ -113,6 +142,8 @@ DscTest:
 ModuleBuildTasks:
   Sampler:
     - '*.build.Sampler.ib.tasks'
+  Sampler.GitHubTasks:
+    - '*.ib.tasks'
   DscResource.DocGenerator:
     - 'Task.*'
 
@@ -141,7 +172,7 @@ GitHubConfig:
 DscResource.DocGenerator:
   Generate_Conceptual_Help:
     MarkdownCodeRegularExpression:
-      - '\(.+?)\' # Match inline code-block
+      - '\`(.+?)\`' # Match inline code-block
       - '\\(\\)' # Match escaped backslash
       - '\[[^\[]+\]\((.+?)\)' # Match markdown URL
       - '_(.+?)_' # Match Italic (underscore)

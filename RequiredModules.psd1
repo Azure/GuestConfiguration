@@ -25,5 +25,5 @@
     'Az.Resources'              = 'latest'
     'Az.Storage'                = 'latest'
 
-    ComputerManagementDsc       = 'latest'
+    ComputerManagementDsc       = '8.2.0' # this is what the test MOF requires.
 }

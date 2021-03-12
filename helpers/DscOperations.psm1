@@ -21,6 +21,8 @@ namespace GuestConfig
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 test_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
+        # TODO Add Start dsc here 
+
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 get_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
@@ -120,7 +122,7 @@ namespace GuestConfig
             return m_result;
         }}
 
-        public string StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
+        public void StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
         {{
             IntPtr context = IntPtr.Zero;
             try
@@ -160,7 +162,6 @@ namespace GuestConfig
                 delete_dsc_library_context(context);
             }}
 
-            return m_result;
         }}
 
         public string GettDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
@@ -421,9 +422,6 @@ function Start-DscConfiguration
     }
 
     $dscOperation = [GuestConfig.DscOperations]::New()
-    $result = $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
-
-    return ConvertFrom-Json $result
 }
 
 <#

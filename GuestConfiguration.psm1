@@ -183,7 +183,6 @@ function Test-GuestConfigurationPackage {
         }
     }
     Process {
-
         if ($env:OS -notmatch "Windows" -and $IsMacOS) {
             Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
         }
@@ -259,14 +258,13 @@ function Test-GuestConfigurationPackage {
                     Start-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose 
                 }
             }
-            # TODO : Test these! Ask Mxichael and Gael where they are . do these one by one  
 
             $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
             $getResult = @()
             $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
 
             $testResult.resources_not_in_desired_state | ForEach-Object {
-                $resourceId = $_;`
+                $resourceId = $_;
                 if ($getResult.count -gt 1) {
                     for ($i = 0; $i -lt $getResult.Count; $i++) {
                         if ($getResult[$i].ResourceId -ieq $resourceId) {

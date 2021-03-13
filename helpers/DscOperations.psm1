@@ -21,7 +21,8 @@ namespace GuestConfig
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 test_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
-        # TODO Add Start dsc here 
+        [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+        void desired_state_configuration::start_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path, bool p_use_existing, bool p_force);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 get_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
@@ -122,7 +123,7 @@ namespace GuestConfig
             return m_result;
         }}
 
-        public void StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
+        public void StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path, bool p_use_existing, bool p_force)
         {{
             IntPtr context = IntPtr.Zero;
             try
@@ -135,7 +136,8 @@ namespace GuestConfig
                     ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
                 }}
 
-                Int32 result = start_dsc_configuration(context, job_id, configuration_name, "");
+
+                Int32 result = start_dsc_configuration(context, job_id, configuration_name, "", p_use_existing, p_force);
                 for (int i = 0; i < m_messages.Count; i++) 
                 {{
                     var message = m_messages[i];
@@ -422,6 +424,8 @@ function Start-DscConfiguration
     }
 
     $dscOperation = [GuestConfig.DscOperations]::New()
+    $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $False, $True)
+
 }
 
 <#

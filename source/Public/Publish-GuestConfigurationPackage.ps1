@@ -65,7 +65,7 @@ function Publish-GuestConfigurationPackage
         ForEach-Object { $_.Context }
 
     # Blob name from file name
-    $BlobName = Get-Item $Path | ForEach-Object { $_.Name }
+    $BlobName = (Get-Item -Path $Path -ErrorAction Stop).Name
 
     $setAzStorageBlobContentParams = @{
         Context   = $Context

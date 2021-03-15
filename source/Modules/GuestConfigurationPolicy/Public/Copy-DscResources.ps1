@@ -67,6 +67,11 @@ function Copy-DscResources
                 RequiredVersion = $_.ModuleVersion
             } -ListAvailable | Select-Object -First 1
 
+            if (-not $requiredModule)
+            {
+                throw "The module '$($_.ModuleName)' with version '$($_.ModuleVersion)' could not be found."
+            }
+
             if ($requiredModule.PSObject.Properties.Name -contains 'RequiredModules')
             {
                 $requiredModule.RequiredModules | ForEach-Object {

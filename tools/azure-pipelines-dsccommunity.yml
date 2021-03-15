@@ -68,7 +68,7 @@ stages:
             inputs:
               filePath: './build.ps1'
               arguments: '-Tasks hqrmtest'
-              pwsh: false
+              pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             condition: succeededOrFailed()
@@ -123,19 +123,12 @@ stages:
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
           - task: PowerShell@2
-            name: configureWinRM
-            displayName: 'Configure WinRM'
-            inputs:
-              targetType: 'inline'
-              script: 'winrm quickconfig -quiet'
-              pwsh: false
-          - task: PowerShell@2
             name: test
             displayName: 'Run Integration Test'
             inputs:
               filePath: './build.ps1'
               arguments: "-Tasks test -CodeCoverageThreshold 0 -PesterScript 'tests/Integration'"
-              pwsh: false
+              pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             condition: succeededOrFailed()
@@ -190,7 +183,7 @@ stages:
           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
           startsWith(variables['Build.SourceBranch'], 'refs/tags/')
         ),
-        contains(variables['System.TeamFoundationCollectionUri'], 'dsccommunity')
+        contains(variables['System.TeamFoundationCollectionUri'], 'NeverDeployThis')
       )
     jobs:
       - job: Deploy_Module

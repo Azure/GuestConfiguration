@@ -5,7 +5,7 @@
 
 CopyPaths:
   - en-US
-  - DSCResources
+  - DscResources
 prefix: prefix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true
@@ -52,9 +52,7 @@ BuildWorkflow:
   download_gc_agents: |
     {
       $binPath = Join-Path -Path (Get-Item ./output/GuestConfiguration/*) -ChildPath 'bin'
-      mkdir -force $binPath
-
-      if ($env:ADO) { return }
+      New-Item -ItemType Directory -force -Path $binPath
 
       $GitHubPATPath = 'GHPAT.local.txt'
       if ($env:GitHubToken)

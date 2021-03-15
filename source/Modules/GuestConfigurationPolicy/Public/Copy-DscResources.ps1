@@ -67,7 +67,7 @@ function Copy-DscResources
                 RequiredVersion = $_.ModuleVersion
             } -ListAvailable | Select-Object -First 1
 
-            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules')
+            if ($requiredModule.PSObject.Properties.Name -contains 'RequiredModules')
             {
                 $requiredModule.RequiredModules | ForEach-Object {
                     if ($null -ne $_.Version)

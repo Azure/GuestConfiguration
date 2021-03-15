@@ -86,7 +86,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             if ($null -eq $certificate) {
-                $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'New-SelfSignedCertificateEx.ps1'
+                $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'helpers/New-SelfSignedCertificateEx.ps1'
                 Import-Module -Name $selfSignedCertModulePath -Force
                 $null = New-SelfsignedCertificateEx `
                     -Subject "CN=testcert" `
@@ -380,7 +380,7 @@ describe 'Test Environment' {
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
 
             $firstPSModulePathFolder = ($Env:PSModulePath -split [io.path]::PathSeparator)[0]
-            Copy-Item $gcModuleFolderPath (Join-Path $firstPSModulePathFolder 'GuestConfiguration') -Recurse
+            # Let build.ps1 manage the PSModulePath, and no need to copy as this is where the module is Built
 
             $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force

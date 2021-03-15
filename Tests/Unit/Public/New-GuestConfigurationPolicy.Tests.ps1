@@ -14,18 +14,11 @@ Context 'New-GuestConfigurationPolicy' {
 
     BeforeAll {
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        # Test Config Package MOF
-        $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
-        $policyName = 'testPolicy'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testOutputPathWindows = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows'
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
-        # test extraction
-        $unsignedPackageExtractionPath = Join-Path -Path $testOutputPath -ChildPath 'UnsignedPackage'
-        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
         {
             $computerInfo = Get-ComputerInfo

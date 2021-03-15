@@ -22,7 +22,7 @@ namespace GuestConfig
         public static extern Int32 test_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
-        void desired_state_configuration::start_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path, bool p_use_existing, bool p_force);
+        public static extern void start_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path, bool p_use_existing, bool p_force);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 get_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
@@ -137,7 +137,7 @@ namespace GuestConfig
                 }}
 
 
-                Int32 result = start_dsc_configuration(context, job_id, configuration_name, "", p_use_existing, p_force);
+                start_dsc_configuration(context, job_id, configuration_name, "", p_use_existing, p_force);
                 for (int i = 0; i < m_messages.Count; i++) 
                 {{
                     var message = m_messages[i];
@@ -405,7 +405,7 @@ function Get-DscConfiguration
         Start-DscConfiguration -ConfigurationName WindowsTLS
 #>
 
-function Start-DscConfiguration
+function Start-DscConfiguration-micy
 {
     [CmdletBinding()]
     param (

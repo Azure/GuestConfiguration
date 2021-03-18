@@ -2,6 +2,7 @@ trigger:
   branches:
     include:
     - master
+    - f/newstructure
   paths:
     include:
     - source/*
@@ -39,6 +40,7 @@ stages:
               pwsh: true
             env:
               ModuleVersion: $(gitVersion.NuGetVersionV2)
+              GitHubToken: $(GitHubToken)
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'
             inputs:
@@ -105,6 +107,7 @@ stages:
               testRunTitle: 'Unit'
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Test Artifact'
+            condition: succeededOrFailed()
             inputs:
               targetPath: '$(buildFolderName)/$(testResultFolderName)/'
               artifactName: $(testArtifactName)

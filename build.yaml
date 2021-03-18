@@ -14,32 +14,21 @@ VersionedOutputDirectory: true
 #      ModuleBuilder Submodules Configuration      #
 ####################################################
 
-
 NestedModule:
   GuestConfigPath:
-    # CopyOnly: true
-    Path: ./source/Modules/GuestConfigPath
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
     prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
   DscOperations:
-    # CopyOnly: true
-    Path: ./source/Modules/DscOperations
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
-    AddToManifest: false
     VersionedOutputDirectory: false
     Prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
   GuestConfigurationPolicy:
-    # CopyOnly: true
-    Path: ./source/Modules/GuestConfigurationPolicy
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
     Prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
 
 ####################################################
 #       Sampler Pipeline Configuration             #
@@ -80,8 +69,8 @@ BuildWorkflow:
     - Build_NestedModules_ModuleBuilder
     - download_gc_agents
     - Create_changelog_release_output
-    - Generate_Conceptual_Help
-    - Generate_Wiki_Content
+    # - Generate_Conceptual_Help
+    # - Generate_Wiki_Content
 
   pack:
     - build

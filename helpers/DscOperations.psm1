@@ -424,7 +424,7 @@ function Start-DscConfiguration-micy
     }
 
     $dscOperation = [GuestConfig.DscOperations]::New()
-    $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $False, $True)
+    $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $True, $True)
 
 }
 

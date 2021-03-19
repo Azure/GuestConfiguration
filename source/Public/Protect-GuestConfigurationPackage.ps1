@@ -58,7 +58,7 @@ function Protect-GuestConfigurationPackage
     {
         $packageFileName = [System.IO.Path]::GetFileNameWithoutExtension($Path)
         $signedPackageFilePath = Join-Path (Get-ChildItem $Path).Directory "$($packageFileName)_signed.zip"
-        $tempDir = Join-Path -Path (Get-ChildItem $Path).Directory -AdditionalChildPath 'temp'
+        $tempDir = Join-Path -Path (Get-ChildItem $Path).Directory -ChildPath 'temp'
         Remove-Item $signedPackageFilePath -Force -ErrorAction SilentlyContinue
         $null = New-Item -ItemType Directory -Force -Path $tempDir
 

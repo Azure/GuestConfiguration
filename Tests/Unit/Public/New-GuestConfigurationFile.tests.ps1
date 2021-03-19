@@ -1,11 +1,10 @@
 BeforeDiscovery {
 
-    $script:projectPath = "$PSScriptRoot\..\..\.." | Convert-Path
+    $script:projectPath = "$PSScriptRoot/../../.." | Convert-Path
     $script:projectName = Get-SamplerProjectName -BuildRoot $script:projectPath
 
-    $script:moduleName = Get-Module $script:projectName -ListAvailable | Select-Object -First 1
-    Remove-Module -Name $script:moduleName -Force -ErrorAction 'SilentlyContinue'
-    $script:importedModule = Import-Module $script:moduleName -Force -PassThru -ErrorAction 'Stop'
+    Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
+    $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
 
     $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
     $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO

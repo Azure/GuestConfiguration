@@ -5,7 +5,7 @@
 
 CopyPaths:
   - en-US
-  - DSCResources
+  - DscResources
 prefix: prefix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true
@@ -14,32 +14,21 @@ VersionedOutputDirectory: true
 #      ModuleBuilder Submodules Configuration      #
 ####################################################
 
-
 NestedModule:
   GuestConfigPath:
-    # CopyOnly: true
-    Path: ./source/Modules/GuestConfigPath
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
     prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
   DscOperations:
-    # CopyOnly: true
-    Path: ./source/Modules/DscOperations
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
-    AddToManifest: false
     VersionedOutputDirectory: false
     Prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
   GuestConfigurationPolicy:
-    # CopyOnly: true
-    Path: ./source/Modules/GuestConfigurationPolicy
-    Destination: './output/$ProjectName/$ModuleVersionFolder/Modules/$NestedModuleName'
     AddToManifest: false
     VersionedOutputDirectory: false
     Prefix: prefix.ps1
-    # Exclude: PSGetModuleInfo.xml
+    # Verbose: true
 
 ####################################################
 #       Sampler Pipeline Configuration             #
@@ -52,9 +41,7 @@ BuildWorkflow:
   download_gc_agents: |
     {
       $binPath = Join-Path -Path (Get-Item ./output/GuestConfiguration/*) -ChildPath 'bin'
-      mkdir -force $binPath
-
-      if ($env:ADO) { return }
+      New-Item -ItemType Directory -force -Path $binPath
 
       $GitHubPATPath = 'GHPAT.local.txt'
       if ($env:GitHubToken)
@@ -82,8 +69,8 @@ BuildWorkflow:
     - Build_NestedModules_ModuleBuilder
     - download_gc_agents
     - Create_changelog_release_output
-    - Generate_Conceptual_Help
-    - Generate_Wiki_Content
+    # - Generate_Conceptual_Help
+    # - Generate_Wiki_Content
 
   pack:
     - build
@@ -119,9 +106,10 @@ Pester:
   # specify the order tests are run.
   Path:
     - tests/Unit
-    - tests/Integration
+    # - tests/Unit
+    # - tests/Integration
   Tag:
-  CodeCoverageThreshold: 85 # Set to 0 to bypass
+  CodeCoverageThreshold: 0 # Set to 0 to bypass
   CodeCoverageOutputFile: JaCoCo_coverage.xml
   CodeCoverageOutputFileEncoding: ascii
   # CodeCoverageMergedOutputFile: JaCoCo_Merged.xml

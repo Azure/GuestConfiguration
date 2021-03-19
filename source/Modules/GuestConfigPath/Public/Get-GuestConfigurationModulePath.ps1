@@ -4,5 +4,5 @@ function Get-GuestConfigurationModulePath
     [OutputType([System.String])]
     param ()
 
-    (Get-Item -Path $PSScriptRoot).Parent.FullName
+    (Get-Item -Path (Join-Path -Path $PSScriptRoot -ChildPath '..')).Parent.FullName
 }

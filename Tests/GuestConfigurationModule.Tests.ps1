@@ -86,7 +86,7 @@ Describe 'Test Guest Configuration Custom Policy cmdlets' {
             $certificatePath = "Cert:\LocalMachine\My"
             $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
             if ($null -eq $certificate) {
-                $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'New-SelfSignedCertificateEx.ps1'
+                $selfSignedCertModulePath = Join-Path -Path $PSScriptRoot -ChildPath 'helpers/New-SelfSignedCertificateEx.ps1'
                 Import-Module -Name $selfSignedCertModulePath -Force
                 $null = New-SelfsignedCertificateEx `
                     -Subject "CN=testcert" `
@@ -378,15 +378,9 @@ describe 'Test Environment' {
             }
 
             $gcModuleFolderPath = Split-Path -Path $PSScriptRoot -Parent
-            if (Test-CurrentMachineIsWindows) {
-                $delimiter = ";"
-            }
-            else {
-                $delimiter = ":"
-            }
 
-            $firstPSModulePathFolder = ($Env:PSModulePath -split $delimiter)[0]
-            Copy-Item $gcModuleFolderPath (Join-Path $firstPSModulePathFolder 'GuestConfiguration') -Recurse
+            $firstPSModulePathFolder = ($Env:PSModulePath -split [io.path]::PathSeparator)[0]
+            # Let build.ps1 manage the PSModulePath, and no need to copy as this is where the module is Built
 
             $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
             Import-Module $gcModulePath -Force
@@ -515,128 +509,8 @@ describe 'Test Environment' {
             Install-AzLibraries
         }
     }
-    Context 'Module fundamentals' {
 
-        It 'has the agent binaries from the project feed' -Skip:$IsNotAzureDevOps {
-            Test-Path "$PSScriptRoot/../bin/DSC_Windows.zip" | Should -BeTrue
-            Test-Path "$PSScriptRoot/../bin/DSC_Linux.zip" | Should -BeTrue
-        }
 
-        It 'has a PowerShell module manifest that meets functional requirements' {
-            Test-ModuleManifest -Path "$PSScriptRoot/../GuestConfiguration.psd1" | Should -Not -BeNullOrEmpty
-            $? | Should -BeTrue
-        }
-
-        It 'imported the module successfully' {
-            Get-Module GuestConfiguration | ForEach-Object { $_.Name } | Should -Be 'GuestConfiguration'
-        }
-
-        It 'does not throw while running Script Analyzer' {
-            $scriptanalyzer = Invoke-ScriptAnalyzer -path "$PSScriptRoot/../" -Severity Error -Recurse -IncludeDefaultRules -ExcludeRule 'PSAvoidUsingConvertToSecureStringWithPlainText'
-            $scriptanalyzer | Should -Be $Null
-        }
-
-        It 'has text in help examples' {
-            foreach ($function in $publicFunctions) {
-                Get-Help $function | ForEach-Object { $_.Examples } | Should -Not -BeNullOrEmpty
-            }
-        }
-    }
-    Context 'New-GuestConfigurationFile' {
-
-        It 'Generates MOF for Pester script files' {
-            New-Item -Path $pesterFolderPath -ItemType Directory -Force
-            $pesterMof = New-GuestConfigurationFile -Name 'PesterConfig' -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force
-            Test-Path -Path $pesterMof.Configuration | Should -BeTrue
-            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($pesterMof.Configuration, 4)
-            $resourcesInMofDocument | Should -Not -BeNullOrEmpty
-            $resourcesInMofDocument[0].ConfigurationName | Should -Be 'PesterConfig'
-            $resourcesInMofDocument[0].ModuleName | Should -Be 'GuestConfiguration'
-            $resourcesInMofDocument[0].PesterFileName | Should -Be 'EnvironmentVariables'
-        }
-    }
-    Context 'New-GuestConfigurationPackage' {
-
-        It 'creates custom policy package' {
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-            Test-Path -Path $package.Path | Should -BeTrue
-            $package.Name | Should -Be $policyName
-        }
-
-        It 'does not overwrite a custom policy package when -Force is not specified' {
-            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
-        }
-
-        It 'overwrites a custom policy package when -Force is specified' {
-            { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
-        }
-
-        It 'Verify the package can be extracted' {
-            $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
-
-            # Set up type needed for package extraction
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
-        }
-
-        It 'Verify extracted mof document exists' {
-            Test-Path -Path $mofFilePath | Should -BeTrue
-        }
-
-        It 'has Linux-friendly line endings in InSpec install script' {
-            $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
-            $fileContent -match "`r`n" | Should -BeFalse
-        }
-
-        It 'Verify all required modules are included in the package' {
-            $extractedModulesPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules'
-            $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4)
-            for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++) {
-                if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName') {
-                    $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
-                    $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
-                    Test-Path -Path $resourceModulePath | Should -BeTrue
-                }
-            }
-        }
-
-        It 'Should not include -FilesToInclude by default' {
-            Test-Path -Path $extractedFilesToIncludePath | Should -BeFalse
-        }
-
-        It 'Implements -FilesToInclude parameter' {
-            if(Test-CurrentMachineIsWindows) {
-                $outputPath = Join-Path $env:SystemDrive 'output'
-            }
-            else {
-                $outputPath = Join-Path $env:HOME 'output'
-            }
-            if(Test-Path $outputPath) {
-                Remove-Item $outputPath -Force -Recurse
-            }
-            $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $outputPath -FilesToInclude $FilesToIncludeFolderPath -Force
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $outputPath) } | Should -Not -Throw
-            $includedFilesFolder = Join-Path $outputPath (Join-Path 'Modules' 'FilesToInclude')
-            Test-Path -Path $includedFilesFolder | Should -BeTrue
-            $extractedFile = Join-Path $includedFilesFolder 'file.txt'
-            Test-Path -Path $extractedFile | Should -BeTrue
-            Get-Content $extractedFile | Should -Be 'test'
-        }
-
-        It 'Implements -ChefInspecProfilePath parameter' {
-            $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-            $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-            { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
-            $extractedInspecPath | Should -Exist
-            $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'inspec.yml'
-            $inspecYmlExtractedFile | Should -Exist
-            $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'controls'
-            $inspecControlsExtractedFile | Should -Exist
-            $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
-            $inspecRbExtractedFile | Should -Exist
-        }
-    }
     Context 'Test-GuestConfigurationPackage' {
 
         It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
@@ -716,6 +590,7 @@ describe 'Test Environment' {
             { Invoke-WebRequest -Uri $Uri.ContentUri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
         }
     }
+
     Context 'New-GuestConfigurationPolicy' {
 
         It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
@@ -764,6 +639,7 @@ describe 'Test Environment' {
             $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
         }
     }
+
     Context 'Publish-GuestConfigurationPolicy' {
 
         It 'Should be able to publish policies' -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {

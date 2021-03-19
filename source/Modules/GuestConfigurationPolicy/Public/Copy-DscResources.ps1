@@ -43,32 +43,36 @@ function Copy-DscResources
     # Copies DSC resource modules
     $modulesToCopy = @{ }
     $IncludePesterModule = $false
-    $resourcesInMofDocument | ForEach-Object {
-        if ($_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion')
-        {
-            $modulesToCopy[$_.CimClass.CimClassName] = @{
-                ModuleName = $_.ModuleName
-                ModuleVersion = $_.ModuleVersion
-            }
+    $resourcesInMofDocument.Where{
+        $_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion'
+    }.Foreach{
+        $modulesToCopy[$_.CimClass.CimClassName] = @{
+            ModuleName = $_.ModuleName
+            ModuleVersion = $_.ModuleVersion
+        }
 
-            if ($_.ResourceID -match 'PesterResource')
-            {
-                $IncludePesterModule = $true
-            }
+        if ($_.ResourceID -match 'PesterResource')
+        {
+            $IncludePesterModule = $true
         }
     }
 
     # PowerShell modules required by DSC resource module
     $powershellModulesToCopy = @{ }
-    $modulesToCopy.Values | ForEach-Object {
+    $modulesToCopy.Values.ForEach{
         if ($_.ModuleName -ne 'GuestConfiguration')
         {
             $requiredModule = Get-Module -FullyQualifiedName @{
                 ModuleName = $_.ModuleName
                 RequiredVersion = $_.ModuleVersion
-            } -ListAvailable
+            } -ListAvailable | Select-Object -First 1
 
-            if (($requiredModule | Get-Member -MemberType 'Property' | ForEach-Object { $_.Name }) -contains 'RequiredModules')
+            if (-not $requiredModule)
+            {
+                throw "The module '$($_.ModuleName)' with version '$($_.ModuleVersion)' could not be found."
+            }
+
+            if ($requiredModule.PSObject.Properties.Name -contains 'RequiredModules')
             {
                 $requiredModule.RequiredModules | ForEach-Object {
                     if ($null -ne $_.Version)
@@ -108,7 +112,7 @@ function Copy-DscResources
             $moduleToCopy = Get-Module -FullyQualifiedName @{
                 ModuleName = $_.ModuleName
                 RequiredVersion = $_.ModuleVersion
-            } -ListAvailable
+            } -ListAvailable | Select-Object -First 1
 
             if ($null -ne $moduleToCopy)
             {

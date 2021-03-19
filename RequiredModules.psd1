@@ -13,7 +13,12 @@
     Plaster                     = 'latest'
     ModuleBuilder               = 'latest'
     ChangelogManagement         = 'latest'
-    Sampler                     = 'latest'
+    Sampler                     = @{
+        version = 'latest'
+        Parameters = @{
+            AllowPrerelease = $true
+        }
+    }
     MarkdownLinkCheck           = 'latest'
     # 'DscResource.Common'        = 'latest'
     'Sampler.GitHubTasks'       = 'latest'
@@ -24,4 +29,6 @@
     'Az.Accounts'               = 'latest'
     'Az.Resources'              = 'latest'
     'Az.Storage'                = 'latest'
+
+    ComputerManagementDsc       = '8.2.0' # this is what the test MOF requires.
 }

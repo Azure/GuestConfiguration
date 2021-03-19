@@ -36,6 +36,9 @@ Context 'Publish-GuestConfigurationPolicy' {
             Platform    = 'Windows'
         }
 
+        Mock Get-AzPolicyDefinition -Verifiable
+        Mock New-AzPolicySetDefinition -Verifiable
+
         mock -CommandName Get-AzContext -Verifiable -ModuleName GuestConfiguration -MockWith {
             [PSCustomObject]@{
                 Name = 'MyAzContextName'

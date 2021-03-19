@@ -19,6 +19,9 @@ Context 'New-GuestConfigurationPolicy' {
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
+        Mock Get-AzPolicyDefinition -Verifiable
+        Mock New-AzPolicySetDefinition -Verifiable
+
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
         {
             $computerInfo = Get-ComputerInfo
@@ -48,7 +51,7 @@ Context 'New-GuestConfigurationPolicy' {
         }
     }
 
-    It 'New-GuestConfigurationPolicy should output path to generated policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+    It 'New-GuestConfigurationPolicy should output path to generated policies' {
 
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
@@ -59,7 +62,7 @@ Context 'New-GuestConfigurationPolicy' {
         Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
     }
 
-    It 'Generated Audit policy file should exist' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+    It 'Generated Audit policy file should exist' {
         $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
 
@@ -67,7 +70,7 @@ Context 'New-GuestConfigurationPolicy' {
         Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
     }
 
-    It 'Audit policy should contain expected content' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+    It 'Audit policy should contain expected content' {
 
         $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }

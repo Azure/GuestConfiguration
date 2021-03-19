@@ -22,6 +22,9 @@ namespace GuestConfig
         public static extern Int32 test_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+        public static extern void start_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path, bool p_use_existing, bool p_force);
+
+        [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 get_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
@@ -120,7 +123,7 @@ namespace GuestConfig
             return m_result;
         }}
 
-        public string StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
+        public void StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path, bool p_use_existing, bool p_force)
         {{
             IntPtr context = IntPtr.Zero;
             try
@@ -133,7 +136,7 @@ namespace GuestConfig
                     ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
                 }}
 
-                Int32 result = start_dsc_configuration(context, job_id, configuration_name, "");
+                start_dsc_configuration(context, job_id, configuration_name, "", p_use_existing, p_force);
                 for (int i = 0; i < m_messages.Count; i++)
                 {{
                     var message = m_messages[i];
@@ -160,7 +163,6 @@ namespace GuestConfig
                 delete_dsc_library_context(context);
             }}
 
-            return m_result;
         }}
 
         public string GettDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)
@@ -318,3 +320,192 @@ namespace GuestConfig
     }}
 }}
 "@
+
+
+<#
+    .SYNOPSIS
+        Test DSC configuration.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Test-DscConfiguration -ConfigurationName WindowsTLS
+#>
+
+function Test-DscConfiguration
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $result = $dscOperation.TestDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
+
+    return ConvertFrom-Json $result
+}
+
+<#
+    .SYNOPSIS
+        Get DSC configuration.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Get-DscConfiguration -ConfigurationName WindowsTLS
+#>
+
+function Get-DscConfiguration
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $result = $dscOperation.GettDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
+
+    return ConvertFrom-Json $result
+}
+
+
+<#
+    .SYNOPSIS
+        Start DSC configuration.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Start-DscConfiguration -ConfigurationName WindowsTLS
+#>
+
+function Start-DscConfiguration-micy
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $True, $True)
+
+}
+
+<#
+    .SYNOPSIS
+        Publish DSC configuration.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Publish-DscConfiguration -Path C:\metaconfig
+#>
+
+function Publish-DscConfiguration
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName,
+
+        [parameter(Position=1, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Path
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    $testGCbinPath = Test-Path $gcBinPath
+    if ($false -eq $testGCbinPath) {throw "Guest Config binaries not found at path $gcBinPath"}
+
+    $testDSClibPath = Test-Path $dsclibPath
+    if ($false -eq $testDSClibPath) {throw "Guest Config binaries not found at path $dsclibPath"}
+
+    $testPath = Test-Path $Path
+    if ($false -eq $testPath) {throw "Guest Config binaries not found at path $testPath"}
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $result = $dscOperation.PublishDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
+}
+
+<#
+    .SYNOPSIS
+        Set DSC LCM settings.
+
+    .Parameter ConfigurationName
+        Configuration name.
+
+    .Example
+        Set-DscLocalConfigurationManager -Path C:\metaconfig
+#>
+
+function Set-DscLocalConfigurationManager
+{
+    [CmdletBinding()]
+    param (
+        [parameter(Position=0, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $ConfigurationName,
+
+        [parameter(Position=1, Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Path
+    )
+
+    $job_id = [guid]::NewGuid().Guid
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+
+    if(-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type) {
+        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
+        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
+    }
+
+    $dscOperation = [GuestConfig.DscOperations]::New()
+    $result = $dscOperation.SetDscLocalConfigurationManager($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
+}

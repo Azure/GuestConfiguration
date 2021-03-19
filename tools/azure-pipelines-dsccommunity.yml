@@ -65,6 +65,17 @@ stages:
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
           - task: PowerShell@2
+            enabled: true
+            displayName: Enable Experimental Feature
+            inputs:
+              pwsh: true
+              targetType: inline
+              continueOnError: true
+              script: |
+                ./build.ps1 -Tasks noop
+                Import-Module GuestConfiguration
+                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+          - task: PowerShell@2
             name: test
             displayName: 'Run HQRM Test'
             inputs:
@@ -91,6 +102,17 @@ stages:
               buildType: 'current'
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+          - task: PowerShell@2
+            enabled: true
+            displayName: Enable Experimental Feature
+            inputs:
+              pwsh: true
+              targetType: inline
+              continueOnError: true
+              script: |
+                ./build.ps1 -Tasks noop
+                Import-Module GuestConfiguration
+                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
           - task: PowerShell@2
             name: test
             displayName: 'Run Unit Test'

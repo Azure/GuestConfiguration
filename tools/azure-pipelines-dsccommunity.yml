@@ -113,6 +113,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Uninstall-AzureRm
           - task: PowerShell@2
             name: test
             displayName: 'Run Unit Test'

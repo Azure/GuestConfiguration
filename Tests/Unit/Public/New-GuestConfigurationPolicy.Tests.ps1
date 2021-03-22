@@ -16,6 +16,7 @@ Context 'New-GuestConfigurationPolicy' {
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
+        Get-Command -ListImported -Name Get-AzPolicyDefinition | FT -a | Out-String | Write-Host
         function Get-AzContext {}
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
         Mock Get-AzPolicyDefinition -Verifiable
@@ -55,8 +56,6 @@ Context 'New-GuestConfigurationPolicy' {
     }
 
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
-
-        Get-Command -ListImported -Name Get-AzPolicyDefinition | FT -a | Out-String | Write-Host
         function Get-AzContext {}
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
         Mock Get-AzPolicyDefinition -Verifiable

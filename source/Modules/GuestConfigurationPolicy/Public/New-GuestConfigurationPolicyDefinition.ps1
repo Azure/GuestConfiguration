@@ -16,6 +16,8 @@ function New-GuestConfigurationPolicyDefinition
         $AuditIfNotExistsInfo
     )
 
+    Write-Verbose -Message "Creating new Guest Configuration Policy to '$PolicyFolderPath'."
+
     if (Test-Path -Path $PolicyFolderPath)
     {
         $null = Remove-Item -Path $PolicyFolderPath -Force -Recurse -ErrorAction 'SilentlyContinue'

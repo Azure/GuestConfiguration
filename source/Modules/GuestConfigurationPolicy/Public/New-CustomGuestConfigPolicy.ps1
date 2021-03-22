@@ -13,6 +13,8 @@ function New-CustomGuestConfigPolicy
         $AuditIfNotExistsInfo
     )
 
+    Write-Verbose -Message "Getting Policy Definitions from Current Context."
+
     $existingPolicies = Get-AzPolicyDefinition
 
     $existingAuditPolicy = $existingPolicies | Where-Object -FilterScript {

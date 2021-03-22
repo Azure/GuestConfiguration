@@ -4,9 +4,6 @@ BeforeDiscovery {
 
     Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
     $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
-
-    $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
-    $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 }
 
 Context 'Publish-GuestConfigurationPolicy' {

@@ -5,8 +5,6 @@ BeforeDiscovery {
 
     Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
     $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
-
-    $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
 }
 
 Context 'New-GuestConfigurationPolicy' {
@@ -42,6 +40,7 @@ Context 'New-GuestConfigurationPolicy' {
             Path        = $testOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
+            Verbose     = $true
         }
 
         $newGCPolicyParametersLinux = @{
@@ -51,10 +50,17 @@ Context 'New-GuestConfigurationPolicy' {
             Path        = $testOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
+            Verbose     = $true
         }
     }
 
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
+        function Get-AzContext {}
+        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
+        Mock Get-AzPolicyDefinition -Verifiable
+        Mock New-AzPolicyDefinition -Verifiable
+        Mock Get-AzPolicySetDefinition -Verifiable
+        Mock New-AzPolicySetDefinition -Verifiable
 
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty

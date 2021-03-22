@@ -55,6 +55,8 @@ Context 'New-GuestConfigurationPolicy' {
     }
 
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
+
+        Get-Command -ListImported -Name Get-AzPolicyDefinition | FT -a | Out-String | Write-Host
         function Get-AzContext {}
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
         Mock Get-AzPolicyDefinition -Verifiable

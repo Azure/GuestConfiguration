@@ -16,20 +16,9 @@ Context 'New-GuestConfigurationPolicy' {
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
-        function Get-AzContext {}
         inModuleScope -ModuleName GuestConfiguration {
-            inModuleScope -ModuleName GuestConfigurationPolicy {
-                Mock Get-AzPolicyDefinition -Verifiable
-                Mock New-AzPolicyDefinition -Verifiable
-                Mock Get-AzPolicySetDefinition -Verifiable
-                Mock New-AzPolicySetDefinition -Verifiable
-            }
+            Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
         }
-        # Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable -ModuleName GuestConfiguration
-        # Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-        # Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-        # Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
-        # Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
 
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
         {
@@ -48,7 +37,6 @@ Context 'New-GuestConfigurationPolicy' {
             Path        = $testOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            Verbose     = $true
         }
 
         $newGCPolicyParametersLinux = @{
@@ -58,7 +46,6 @@ Context 'New-GuestConfigurationPolicy' {
             Path        = $testOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            Verbose     = $true
         }
     }
 

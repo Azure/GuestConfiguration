@@ -17,6 +17,14 @@ Context 'New-GuestConfigurationPolicy' {
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
         function Get-AzContext {}
+        inModuleScope -ModuleName GuestConfiguration {
+            inModuleScope -ModuleName GuestConfigurationPolicy {
+                Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+                Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+                Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+                Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+            }
+        }
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable -ModuleName GuestConfiguration
         Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
         Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration

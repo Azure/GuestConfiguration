@@ -16,13 +16,12 @@ Context 'New-GuestConfigurationPolicy' {
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
-        Get-Command -ListImported -Name Get-AzPolicyDefinition | FT -a | Out-String | Write-Host
         function Get-AzContext {}
-        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
-        Mock Get-AzPolicyDefinition -Verifiable
-        Mock New-AzPolicyDefinition -Verifiable
-        Mock Get-AzPolicySetDefinition -Verifiable
-        Mock New-AzPolicySetDefinition -Verifiable
+        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable -ModuleName GuestConfiguration
+        Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+        Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+        Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+        Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
 
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
         {
@@ -56,12 +55,6 @@ Context 'New-GuestConfigurationPolicy' {
     }
 
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
-        function Get-AzContext {}
-        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
-        Mock Get-AzPolicyDefinition -Verifiable
-        Mock New-AzPolicyDefinition -Verifiable
-        Mock Get-AzPolicySetDefinition -Verifiable
-        Mock New-AzPolicySetDefinition -Verifiable
 
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty

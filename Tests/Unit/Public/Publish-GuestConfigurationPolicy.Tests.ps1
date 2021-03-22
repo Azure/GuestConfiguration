@@ -36,19 +36,15 @@ Context 'Publish-GuestConfigurationPolicy' {
             Platform    = 'Windows'
         }
 
+        function Get-AzContext {}
+        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
         Mock Get-AzPolicyDefinition -Verifiable
+        Mock New-AzPolicyDefinition -Verifiable
+        Mock Get-AzPolicySetDefinition -Verifiable
         Mock New-AzPolicySetDefinition -Verifiable
-
-        mock -CommandName Get-AzContext -Verifiable -ModuleName GuestConfiguration -MockWith {
-            [PSCustomObject]@{
-                Name = 'MyAzContextName'
-            }
-        }
-
-        mock -CommandName New-AzPolicyDefinition -Verifiable -Module GuestConfiguration
     }
 
-    It 'Should be able to publish policies' -Skip:($IsNotWindowsAndIsAzureDevOps) {
+    It 'Should be able to publish policies' {
 
         $newGCPolicyResult = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw

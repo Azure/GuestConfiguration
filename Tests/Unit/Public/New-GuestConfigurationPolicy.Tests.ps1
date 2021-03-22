@@ -7,7 +7,6 @@ BeforeDiscovery {
     $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
 
     $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
-    $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 }
 
 Context 'New-GuestConfigurationPolicy' {
@@ -19,7 +18,11 @@ Context 'New-GuestConfigurationPolicy' {
         $testOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux'
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
 
+        function Get-AzContext {}
+        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable
         Mock Get-AzPolicyDefinition -Verifiable
+        Mock New-AzPolicyDefinition -Verifiable
+        Mock Get-AzPolicySetDefinition -Verifiable
         Mock New-AzPolicySetDefinition -Verifiable
 
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)

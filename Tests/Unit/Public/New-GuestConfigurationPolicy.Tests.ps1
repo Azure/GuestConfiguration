@@ -19,17 +19,17 @@ Context 'New-GuestConfigurationPolicy' {
         function Get-AzContext {}
         inModuleScope -ModuleName GuestConfiguration {
             inModuleScope -ModuleName GuestConfigurationPolicy {
-                Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-                Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-                Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
-                Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+                Mock Get-AzPolicyDefinition -Verifiable
+                Mock New-AzPolicyDefinition -Verifiable
+                Mock Get-AzPolicySetDefinition -Verifiable
+                Mock New-AzPolicySetDefinition -Verifiable
             }
         }
-        Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable -ModuleName GuestConfiguration
-        Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-        Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-        Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
-        Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+        # Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -Verifiable -ModuleName GuestConfiguration
+        # Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+        # Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
+        # Mock Get-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
+        # Mock New-AzPolicySetDefinition -Verifiable -ModuleName GuestConfiguration
 
         if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
         {

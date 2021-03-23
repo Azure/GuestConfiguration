@@ -6,10 +6,12 @@
         'PesterScripts' in the PowerShell Modules folder.
 #>
 
-function Get-ResultsfromPesterScript {
+function Get-ResultsfromPesterScript
+{
     [CmdletBinding()]
     [OutputType([Hashtable])]
-    param(
+    param
+    (
         [Parameter(Mandatory = $true)]
         [string]
         $ScriptFilePath
@@ -27,22 +29,26 @@ function Get-ResultsfromPesterScript {
     $DescribeBlocks = $Pester | ForEach-Object TestResult | ForEach-Object Describe | Select-Object -unique
     $ContextBlocks = $Pester | ForEach-Object TestResult | ForEach-Object Context | Select-Object -unique
 
-    foreach ($Describe in $DescribeBlocks) {
+    foreach ($Describe in $DescribeBlocks)
+    {
         $testResultsInDescribe = $Pester.TestResult | Where-Object {$_.Describe -eq $Describe}
         $Phrase = "Describing $Describe`n"
 
-        foreach ($Context in $ContextBlocks) {
+        foreach ($Context in $ContextBlocks)
+        {
             $contextInDescribe = $testResultsInDescribe | Where-Object {$_.Context -eq $Context}
             $Phrase = $Phrase+"`tContext: $Context`n"
 
-            foreach ($testResult in $contextInDescribe) {
-
-                if ('' -ne $testResult.FailureMessage) {
+            foreach ($testResult in $contextInDescribe)
+            {
+                if ('' -ne $testResult.FailureMessage)
+                {
                     $Phrase = $Phrase+"`t`t[-]  $($testResult.Name)`n"
                     $Status = $false
                     $Phrase = $Phrase+"`t`t`tFailure Message: $($testResult.FailureMessage)`n"
                 }
-                else {
+                else
+                {
                     $Phrase = $Phrase+"`t`t[+]  $($testResult.Name)`n"
                 }
             }
@@ -61,10 +67,11 @@ function Get-ResultsfromPesterScript {
     }
 
     return $Return
-
 }
 
-function Get-TargetResource {
+function Get-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
     [CmdletBinding()]
     [OutputType([Hashtable])]
     param
@@ -79,7 +86,9 @@ function Get-TargetResource {
     return $Return
 }
 
-function Test-TargetResource {
+function Test-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
     [CmdletBinding()]
     [OutputType([Boolean])]
     param
@@ -94,7 +103,10 @@ function Test-TargetResource {
     return $Return
 }
 
-function Set-TargetResource {
+function Set-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
     [CmdletBinding()]
     param
     (
@@ -123,7 +135,7 @@ class PesterResource
 {
     [DscProperty(Key)]
     [string]$PesterFileName
-    
+
     [DscProperty(NotConfigurable)]
     [reasons[]]$reasons
 

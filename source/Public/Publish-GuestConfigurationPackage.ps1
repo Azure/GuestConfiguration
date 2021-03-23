@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Publish a Guest Configuration policy package to Azure blob storage.

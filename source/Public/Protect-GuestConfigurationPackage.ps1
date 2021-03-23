@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Signs a Guest Configuration policy package using certificate on Windows and Gpg keys on Linux.

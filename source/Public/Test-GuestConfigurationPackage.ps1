@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Tests a Guest Configuration policy package.

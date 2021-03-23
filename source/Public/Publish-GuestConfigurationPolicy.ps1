@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Publishes the Guest Configuration policy in Azure Policy Center.

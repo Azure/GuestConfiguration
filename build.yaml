@@ -55,6 +55,7 @@ BuildWorkflow:
       else
       {
         Write-Warning -Message "Can't download GC Agents."
+        return
       }
 
       $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.27.5.0).assets.Where{$_.Name -match 'GCService'}.id
@@ -115,8 +116,9 @@ Pester:
   # CodeCoverageMergedOutputFile: JaCoCo_Merged.xml
 
 DscTest:
-  ExcludeTag:
+  ExcludeTagFilter:
     - "Common Tests - New Error-Level Script Analyzer Rules"
+    - "Common Tests - Validate Localization"
   Tag:
   ExcludeSourceFile:
     - output

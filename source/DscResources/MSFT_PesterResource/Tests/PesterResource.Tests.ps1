@@ -42,21 +42,26 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should call the function that returns information' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
-                $get = Get-TargetResource -PesterFileName 'TestScript'
+                    }
+                } -Verifiable
+
+                $null = Get-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
 
         It 'Should return status as true' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
+                    }
+                } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.status | Should -BeTrue
             }
@@ -64,10 +69,12 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should return an empty array for the property Reasons' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
+                    }
+                } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons | Should -Be $null
             }
@@ -78,21 +85,25 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should call the function that returns information' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
-                $test = Test-TargetResource -PesterFileName "TestScript"
+                    }
+                } -Verifiable
+                $null = Test-TargetResource -PesterFileName "TestScript"
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
 
         It 'Should pass Test' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
+                    }
+                } -Verifiable
                 $test = Test-TargetResource -PesterFileName 'TestScript'
                 $test | Should -BeTrue
             }
@@ -103,21 +114,35 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should call the function that returns information' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $false
-                        reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
-                    } } -Verifiable
-                $get = Get-TargetResource -PesterFileName 'TestScript'
+                        reasons = @(
+                            @{
+                                Code = "$script:moduleName:$script:moduleName:ReasonCode"
+                                Phrase = 'test phrase'
+                            }
+                        )
+                    }
+                } -Verifiable
+                $null = Get-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
 
         It 'Should return status as true' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $false
-                        reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
-                    } } -Verifiable
+                        reasons = @(
+                            @{
+                                Code = "$script:moduleName:$script:moduleName:ReasonCode"
+                                Phrase = 'test phrase'
+                            }
+                        )
+                    }
+                } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.status | Should -BeFalse
             }
@@ -125,9 +150,15 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should return a hashtable for the property Reasons' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $false
-                        reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
+                        reasons = @(
+                            @{
+                                Code = "$script:moduleName:$script:moduleName:ReasonCode"
+                                Phrase = 'test phrase'
+                            }
+                        )
                     } } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.Reasons | Should -BeOfType 'Hashtable'
@@ -136,10 +167,17 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should have at least one reasons code' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $false
-                        reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
-                    } } -Verifiable
+                        reasons = @(
+                            @{
+                                Code = "$script:moduleName:$script:moduleName:ReasonCode"
+                                Phrase = 'test phrase'
+                            }
+                        )
+                    }
+                } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons[0] | ForEach-Object Code | Should -BeOfType 'String'
                 $get.reasons[0] | ForEach-Object Code | Should -Match "$script:moduleName:$script:moduleName:"
@@ -148,9 +186,15 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should have at least one reasons phrase' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $false
-                        reasons = @(@{Code = "$script:moduleName:$script:moduleName:ReasonCode"; Phrase = 'test phrase' })
+                        reasons = @(
+                            @{
+                                Code = "$script:moduleName:$script:moduleName:ReasonCode"
+                                Phrase = 'test phrase'
+                            }
+                        )
                     } } -Verifiable
                 $get = Get-TargetResource -PesterFileName 'TestScript'
                 $get.reasons | ForEach-Object Phrase | Should -BeOfType 'String'
@@ -162,25 +206,28 @@ Describe "MSFT_PesterResource Tests" {
 
         It 'Should call the function that returns information' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock -CommandName Get-ResultsfromPesterScript -MockWith {
+                    [PSCustomObject]@{
                         status  = $true
                         reasons = @()
-                    } } -Verifiable
-                $test = Test-TargetResource -PesterFileName 'TestScript'
+                    }
+                } -Verifiable
+                $null = Test-TargetResource -PesterFileName 'TestScript'
                 Assert-MockCalled Get-ResultsfromPesterScript
             }
         }
 
         It 'Should fail Test' {
             InModuleScope MSFT_PesterResource {
-                Mock Get-ResultsfromPesterScript { new-object -TypeName PSObject -Property @{
+                Mock Get-ResultsfromPesterScript {
+                    [PSCustomObject]@{
                         status  = $false
                         reasons = @()
-                    } } -Verifiable
+                    }
+                } -Verifiable
                 $test = Test-TargetResource -PesterFileName 'TestScript'
                 $test | Should -BeFalse
             }
         }
-
     }
 }

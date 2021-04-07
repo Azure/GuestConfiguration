@@ -1,0 +1,161 @@
+<#
+    .SYNOPSIS
+        Run Pester tests and return results as reasons
+    .DESCRIPTION
+        This module will run tests stored in folder
+        'PesterScripts' in the PowerShell Modules folder.
+#>
+
+function Get-ResultsfromPesterScript
+{
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ScriptFilePath
+    )
+
+    Write-Verbose "[$((get-date).getdatetimeformats()[45])] About to run Pester script"
+
+    $Pester = Invoke-Pester -Path $ScriptFilePath -PassThru
+
+    Write-Verbose "[$((get-date).getdatetimeformats()[45])] Capturing Pester output for Policy"
+
+    $Reasons = @()
+    $Status = $true
+
+    $DescribeBlocks = $Pester | ForEach-Object TestResult | ForEach-Object Describe | Select-Object -unique
+    $ContextBlocks = $Pester | ForEach-Object TestResult | ForEach-Object Context | Select-Object -unique
+
+    foreach ($Describe in $DescribeBlocks)
+    {
+        $testResultsInDescribe = $Pester.TestResult | Where-Object {$_.Describe -eq $Describe}
+        $Phrase = "Describing $Describe`n"
+
+        foreach ($Context in $ContextBlocks)
+        {
+            $contextInDescribe = $testResultsInDescribe | Where-Object {$_.Context -eq $Context}
+            $Phrase = $Phrase+"`tContext: $Context`n"
+
+            foreach ($testResult in $contextInDescribe)
+            {
+                if ('' -ne $testResult.FailureMessage)
+                {
+                    $Phrase = $Phrase+"`t`t[-]  $($testResult.Name)`n"
+                    $Status = $false
+                    $Phrase = $Phrase+"`t`t`tFailure Message: $($testResult.FailureMessage)`n"
+                }
+                else
+                {
+                    $Phrase = $Phrase+"`t`t[+]  $($testResult.Name)`n"
+                }
+            }
+        }
+    }
+
+    $Reasons += @{
+        Code   = 'PesterResource:PesterResource:ScriptOutput'
+        Phrase = $Phrase+"`n"
+    }
+
+    $Return = @{
+        PesterFileName = $PesterFileName
+        Status  = $Status
+        Reasons = $Reasons
+    }
+
+    return $Return
+}
+
+function Get-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
+    [CmdletBinding()]
+    [OutputType([Hashtable])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $PesterFileName
+    )
+
+    $Return = Get-ResultsfromPesterScript -ScriptFilePath "$PSScriptRoot/../../../../Modules/PesterScripts/$PesterFileName.ps1"
+
+    return $Return
+}
+
+function Test-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
+    [CmdletBinding()]
+    [OutputType([Boolean])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $PesterFileName
+    )
+
+    $Return = (Get-TargetResource -PesterFileName $PesterFileName).Status
+
+    return $Return
+}
+
+function Set-TargetResource
+{
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSDSCUseVerboseMessageInDscResource', '')]
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [string]
+        $PesterFileName
+    )
+
+    throw 'Set functionality is not supported in this version of the DSC resource.'
+}
+
+<#
+    DSC Resource
+    Class implementation holding for PWSH 7.2
+
+class reasons
+{
+    [DscProperty(Mandatory)]
+    [string]$code
+    [DscProperty(Mandatory)]
+    [string]$phrase
+}
+
+[DscResource()]
+class PesterResource
+{
+    [DscProperty(Key)]
+    [string]$PesterFileName
+
+    [DscProperty(NotConfigurable)]
+    [reasons[]]$reasons
+
+    [void] Set()
+    {
+        Set-TargetResource -path $this.PesterFileName
+    }
+
+    [bool] Test()
+    {
+        $test = Test-TargetResource -path $this.PesterFileName
+        return $test
+    }
+
+    [PesterResource] Get()
+    {
+        $get = Get-TargetResource -path $this.PesterFileName
+        $this.PesterFileName  = $get['PesterFileName']
+        $this.reasons       = $get['reasons']
+        return $this
+    }
+}
+#>

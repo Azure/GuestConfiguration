@@ -31,6 +31,9 @@ stages:
           #   inputs:
           #     runtime: 'core'
           #     configFilePath: 'GitVersion.yml'
+          - powershell: dotnet tool install --global GitVersion.Tool
+            displayName: install GitVersion dotnet tool
+
           - task: PowerShell@2
             name: package
             displayName: 'Build & Package Module'

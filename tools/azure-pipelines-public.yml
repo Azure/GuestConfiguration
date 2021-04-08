@@ -25,12 +25,12 @@ stages:
         pool:
           vmImage: 'ubuntu 16.04'
         steps:
-          - task: GitVersion@5
-            name: gitVersion
-            displayName: 'Evaluate Next Version'
-            inputs:
-              runtime: 'core'
-              configFilePath: 'GitVersion.yml'
+          # - task: GitVersion@5
+          #   name: gitVersion
+          #   displayName: 'Evaluate Next Version'
+          #   inputs:
+          #     runtime: 'core'
+          #     configFilePath: 'GitVersion.yml'
           - task: PowerShell@2
             name: package
             displayName: 'Build & Package Module'
@@ -39,7 +39,7 @@ stages:
               arguments: '-ResolveDependency -tasks pack'
               pwsh: true
             env:
-              ModuleVersion: $(gitVersion.NuGetVersionV2)
+              ModuleVersion: $(ModuleVersion) #$(gitVersion.NuGetVersionV2)
               GitHubToken: $(GitHubToken)
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'

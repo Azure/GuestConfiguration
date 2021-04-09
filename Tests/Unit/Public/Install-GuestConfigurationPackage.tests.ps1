@@ -1,7 +1,4 @@
 BeforeDiscovery {
-    # TODO How do I import this module? I need to use Get-GuestConfigBinaryPath
-    Import-Module $PSScriptRoot/Modules/GuestConfigPath -Force
-
     $script:projectPath = "$PSScriptRoot/../../.." | Convert-Path
     $script:projectName = Get-SamplerProjectName -BuildRoot $script:projectPath
 
@@ -26,8 +23,10 @@ Context 'Install-GuestConfigurationPackage' {
 
     It 'Validate that unzipping package is as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
         $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        Install-GuestConfigurationPackage -Path $package.Path | Should -Not Throw
-        Get-Item -Path Get-GuestConfigBinaryPath | Should -Not Throw
+        { Install-GuestConfigurationPackage -Path $package.Path } | Should -Not -Throw
+        InModuleScope -ModuleName GuestConfiguration {
+            { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
+        }
 
     }
 
@@ -37,7 +36,9 @@ Context 'Install-GuestConfigurationPackage' {
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
 
         $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        Install-GuestConfigurationPackage -Path $package.Path | Should -Not Throw
-        Get-Item -Path Get-GuestConfigBinaryPath | Should -Not Throw
+        { Install-GuestConfigurationPackage -Path $package.Path } | Should -Not -Throw
+        InModuleScope -ModuleName GuestConfiguration {
+            { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
+        }
     }
 }

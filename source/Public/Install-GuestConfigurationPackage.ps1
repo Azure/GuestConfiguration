@@ -28,13 +28,14 @@
 function Install-GuestConfigurationPackage {
     [CmdletBinding()]
     param (
-        [parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Path,
 
-        [parameter(Mandatory = $false)]
+        [Parameter()]
         [Hashtable[]] $Parameter = @()
     )
+
     if ($env:OS -notmatch "Windows" -and $IsMacOS) {
         Throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
@@ -46,14 +47,15 @@ function Install-GuestConfigurationPackage {
     $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
 
-    Try {
+    try
+    {
         # Create policy folder
         $Path = Resolve-Path $Path
         $policyPath = Join-Path $(Get-GuestConfigPolicyPath) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
         Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
-        New-Item -ItemType Directory -Force -Path $policyPath | Out-Null
+        $null = New-Item -ItemType Directory -Force -Path $policyPath
 
-        # Unzip policy package.
+        # Unzip policy package
         Expand-Archive -LiteralPath $Path $policyPath
 
         # Get policy name
@@ -63,7 +65,7 @@ function Install-GuestConfigurationPackage {
         }
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
 
-        # update configuration parameters
+        # Update configuration parameters
         if ($Parameter.Count -gt 0) {
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }

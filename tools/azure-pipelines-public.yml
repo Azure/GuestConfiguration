@@ -152,7 +152,7 @@ stages:
             displayName: 'Run Unit Test'
             inputs:
               filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'tests/Unit'"
+              arguments: "-Tasks test -PesterScript 'Tests/Unit'"
               pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -166,7 +166,7 @@ stages:
             condition: succeededOrFailed()
             inputs:
               targetPath: '$(buildFolderName)/$(testResultFolderName)/'
-              artifactName: $(testArtifactName)
+              artifactName: $(testArtifactName)_windows
               parallel: true
 
       - job: Test_Unit_Linux
@@ -198,7 +198,7 @@ stages:
             displayName: 'Run Unit Test'
             inputs:
               filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'tests/Unit'"
+              arguments: "-Tasks test -PesterScript 'Tests/Unit'"
               pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -212,7 +212,7 @@ stages:
             condition: succeededOrFailed()
             inputs:
               targetPath: '$(buildFolderName)/$(testResultFolderName)/'
-              artifactName: $(testArtifactName)
+              artifactName: $(testArtifactName)_Linux
               parallel: true
 
   - stage: Coverage
@@ -237,18 +237,35 @@ stages:
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
           - task: DownloadPipelineArtifact@2
-            displayName: 'Download Test Artifact'
+            displayName: 'Download Linux Test Artifact'
             inputs:
               buildType: 'current'
-              artifactName: $(testArtifactName)
-              targetPath: '$(Build.SourcesDirectory)/$(testResultFolderName)/$(testArtifactName)'
+              artifactName: '$(testArtifactName)_Linux'
+              targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)/$(testResultFolderName)/$(testArtifactName)_Linux'
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Windows Test Artifact'
+            inputs:
+              buildType: 'current'
+              artifactName: '$(testArtifactName)_Windows'
+              targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)/$(testResultFolderName)/$(testArtifactName)_Windows'
+
+          - task: PowerShell@2
+            name: merge
+            displayName: 'Merge Code Coverage files'
+            inputs:
+              filePath: './build.ps1'
+              arguments: "-Tasks Merge_CodeCoverage_Files"
+              pwsh: true
+
           - task: PublishCodeCoverageResults@1
             displayName: 'Publish Azure Code Coverage'
             condition: succeededOrFailed()
             inputs:
               codeCoverageTool: 'JaCoCo'
-              summaryFileLocation: '$(buildFolderName)/$(testResultFolderName)/JaCoCo_coverage.xml'
+              summaryFileLocation: '$(Build.SourcesDirectory)/$(buildFolderName)/$(testResultFolderName)/CodeCov_Merged.xml'
               pathToSources: '$(Build.SourcesDirectory)/$(buildFolderName)/$(dscBuildVariable.RepositoryName)'
+
           # - script: |
           #     bash <(curl -s https://codecov.io/bash) -f "./$(buildFolderName)/$(testResultFolderName)/JaCoCo_coverage.xml" -F unit
           #   displayName: 'Upload to Codecov.io'

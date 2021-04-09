@@ -31,8 +31,15 @@ stages:
           #   inputs:
           #     runtime: 'core'
           #     configFilePath: 'GitVersion.yml'
-          - pwsh: dotnet tool install --global GitVersion.Tool
+          - pwsh: |
+              dotnet tool install --global GitVersion.Tool
+              $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
+              $gitVersionObject.psobject.properties.Foreach{
+                  Write-Host -Object "##vso[task.setvariable variable=$($_.Name);]$($_.Value)"
+              }
+              Write-Host -Object "##vso[build.updatebuildnumber]$($gitVersionObject.FullSemVer)"
             displayName: install GitVersion dotnet tool
+            name: gitVersion
 
           - task: PowerShell@2
             name: package
@@ -42,6 +49,7 @@ stages:
               arguments: '-ResolveDependency -tasks pack'
               pwsh: true
             env:
+              ModuleVersion: $(GitVersion.NuGetVersionV2)
               GitHubToken: $(GitHubToken)
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'

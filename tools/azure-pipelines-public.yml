@@ -172,7 +172,7 @@ stages:
       - job: Test_Unit_Linux
         displayName: 'Linux Unit Test'
         pool:
-          vmImage: 'ubuntu-latest'
+          vmImage: 'ubuntu-16.04'
         timeoutInMinutes: 0
         steps:
           - task: DownloadPipelineArtifact@2

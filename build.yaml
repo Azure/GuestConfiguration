@@ -110,10 +110,12 @@ Pester:
     # - tests/Unit
     # - tests/Integration
   Tag:
+  ExcludeTagFilter:
+    - PesterLanguage
   CodeCoverageThreshold: 0 # Set to 0 to bypass
   CodeCoverageOutputFile: JaCoCo_coverage.xml
   CodeCoverageOutputFileEncoding: ascii
-  # CodeCoverageMergedOutputFile: JaCoCo_Merged.xml
+  CodeCoverageMergedOutputFile: JaCoCo_Merged.xml
 
 DscTest:
   ExcludeTagFilter:

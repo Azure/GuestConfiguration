@@ -19,7 +19,6 @@ Context 'Test-GuestConfigurationPackage' {
         $policyName = 'testPolicy'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
-
     }
 
     It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {

@@ -49,7 +49,7 @@ stages:
               arguments: '-ResolveDependency -tasks pack'
               pwsh: true
             env:
-              ModuleVersion: $(GitVersion.NuGetVersionV2)
+              ModuleVersion: $(NuGetVersionV2)
               GitHubToken: $(GitHubToken)
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'

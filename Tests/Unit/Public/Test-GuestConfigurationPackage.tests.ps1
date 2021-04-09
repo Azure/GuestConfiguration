@@ -31,7 +31,7 @@ Context 'Test-GuestConfigurationPackage' {
         $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
     }
 
-    It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
+    It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS -or ($env:ADO -and (&whoami -notmatch 'root'))) {
         $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'

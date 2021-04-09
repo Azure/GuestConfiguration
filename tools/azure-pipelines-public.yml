@@ -215,9 +215,11 @@ stages:
               artifactName: $(testArtifactName)
               parallel: true
 
+  - stage: Coverage
+    dependsOn: Test
+    jobs:
       - job: Code_Coverage
         displayName: 'Publish Code Coverage'
-        dependsOn: Test
         pool:
           vmImage: 'ubuntu-latest'
         timeoutInMinutes: 0

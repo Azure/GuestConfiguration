@@ -197,9 +197,15 @@ stages:
             name: test
             displayName: 'Run Unit Test'
             inputs:
-              filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests/Unit'"
               pwsh: true
+              targetType: inline
+              script: |
+                if ($IsWindows) {
+                  ./build.ps1 -Tasks test -PesterScript 'Tests/Unit'
+                }
+                elseif ($IsLinux) {
+                  sudo pwsh { ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'}
+                }
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             condition: succeededOrFailed()

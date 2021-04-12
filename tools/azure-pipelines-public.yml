@@ -205,7 +205,7 @@ stages:
                   ./build.ps1 -Tasks test -PesterScript 'Tests/Unit'
                 }
                 elseif ($IsLinux) {
-                  sudo pwsh { ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'}
+                  sudo pwsh { $ProgressPreference = 'SilentlyContinue'; ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'}
                 }
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'

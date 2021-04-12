@@ -27,16 +27,25 @@ function Publish-DscConfiguration
 
     $job_id = [guid]::NewGuid().Guid
     $gcBinPath = Get-GuestConfigBinaryPath
-    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+    $dsclibPath = (Get-DscLibPath) -replace  '[""\\]','\$&'
 
-    $testGCbinPath = Test-Path $gcBinPath
-    if ($false -eq $testGCbinPath) {throw "Guest Config binaries not found at path $gcBinPath"}
+    $testGCbinPath = Test-Path -Path $gcBinPath
+    if ($false -eq $testGCbinPath)
+    {
+        throw "Guest Config binaries not found at path $gcBinPath"
+    }
 
     $testDSClibPath = Test-Path $dsclibPath
-    if ($false -eq $testDSClibPath) {throw "Guest Config binaries not found at path $dsclibPath"}
+    if ($false -eq $testDSClibPath)
+    {
+        throw "Guest Config DSC Lib not found at path $dsclibPath"
+    }
 
-    $testPath = Test-Path $Path
-    if ($false -eq $testPath) {throw "Guest Config binaries not found at path $testPath"}
+    $testPath = Test-Path -Path $Path
+    if ($false -eq $testPath)
+    {
+        throw "Guest Config DSC Config not found at path $testPath"
+    }
 
     if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
     {
@@ -45,5 +54,5 @@ function Publish-DscConfiguration
     }
 
     $dscOperation = [GuestConfig.DscOperations]::New()
-    $result = $dscOperation.PublishDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
+    $null = $dscOperation.PublishDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
 }

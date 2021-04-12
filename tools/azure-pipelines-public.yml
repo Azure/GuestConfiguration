@@ -199,6 +199,7 @@ stages:
             inputs:
               pwsh: true
               targetType: inline
+              continueOnError: true
               script: |
                 $ProgressPreference = 'SilentlyContinue'
                 if ($IsWindows) {

@@ -200,6 +200,7 @@ stages:
               pwsh: true
               targetType: inline
               script: |
+                $ProgressPreference = 'SilentlyContinue'
                 if ($IsWindows) {
                   ./build.ps1 -Tasks test -PesterScript 'Tests/Unit'
                 }

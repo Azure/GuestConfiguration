@@ -203,11 +203,14 @@ stages:
               script: |
                 $ProgressPreference = 'SilentlyContinue'
                 if ($IsWindows) {
-                  ./build.ps1 -Tasks test -PesterScript 'Tests/Unit'
+                  ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
+                } elseif ($IsLinux) {
+                    sudo pwsh {
+                        $ProgressPreference = 'SilentlyContinue'
+                        ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
+                    }
                 }
-                elseif ($IsLinux) {
-                  sudo pwsh { $ProgressPreference = 'SilentlyContinue'; ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'}
-                }
+                Write-Host '----------------------------------------'
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             condition: succeededOrFailed()

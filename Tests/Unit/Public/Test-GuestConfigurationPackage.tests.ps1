@@ -41,11 +41,13 @@ Context 'Test-GuestConfigurationPackage' {
         $testPackageResult = $null
         try
         {
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction Stop
+            $VerbosePreference = 'Continue'
+            $DebugPreference = 'Continue'
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction Stop -Verbose -Debug
         }
         catch
         {
-            Write-Host -ForegroundColor 'Red' -Object "Error running 'Test-GuestConfigurationPackage': $($_.Exception.Message)"
+            Write-Host -ForegroundColor 'Red' -Object "Error running 'Test-GuestConfigurationPackage': $($_.Exception.Message)."
             throw $_
         }
 

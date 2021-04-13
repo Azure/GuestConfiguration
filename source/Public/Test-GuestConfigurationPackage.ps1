@@ -50,7 +50,7 @@ function Test-GuestConfigurationPackage
         throw 'Invalid Guest Configuration package path : $($Path)'
     }
 
-    $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
+    $verbose = $PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true)
     $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
 
     try
@@ -61,10 +61,11 @@ function Test-GuestConfigurationPackage
         Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
         $null = New-Item -ItemType Directory -Force -Path $policyPath
 
-        # Unzip policy package.
-        Expand-Archive -LiteralPath $Path $policyPath -Force
+        Write-Verbose -Message "Unzipping the policy package to '$($policyPath)'."
+        Expand-Archive -LiteralPath $Path $policyPath -Force -ErrorAction Stop
 
         # Get policy name
+        Write-Debug -Message "Getting the policy name from the MOF:"
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
         if (-not $dscDocument)
         {
@@ -72,10 +73,12 @@ function Test-GuestConfigurationPackage
         }
 
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
+        Write-Debug -Message "PolicyName: '$policyName'."
 
         # update configuration parameters
         if ($Parameter.Count -gt 0)
         {
+            Write-Debug -Message "Updating MOF with $($Parameter.Count) parameters."
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
@@ -84,6 +87,7 @@ function Test-GuestConfigurationPackage
         $gcBinRootPath = Get-GuestConfigBinaryRootPath
         if (-not (Test-Path -Path $gcBinPath))
         {
+            Write-Debug -Message "Installing the Guest Config binaries..."
             # Clean the bin folder
             Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -101,13 +105,16 @@ function Test-GuestConfigurationPackage
                 $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
             }
 
+            Write-Debug -Message "Extracting '$zippedBinaryPath' to '$gcBinPath'."
             [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
         }
 
-        # Publish policy package
+
+        Write-Verbose -Message "Publishing policy package '$policyName' from '$policyPath'."
         Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         # Set LCM settings to force load powershell module.
+        Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
         $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
         "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
         Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose

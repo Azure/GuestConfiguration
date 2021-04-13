@@ -5,6 +5,9 @@
     .Parameter ConfigurationName
         Configuration name.
 
+    .Parameter Path
+        Policy Path.
+
     .Example
         Publish-DscConfiguration -Path C:\metaconfig
 #>
@@ -29,20 +32,17 @@ function Publish-DscConfiguration
     $gcBinPath = Get-GuestConfigBinaryPath
     $dsclibPath = (Get-DscLibPath) -replace  '[""\\]','\$&'
 
-    $testGCbinPath = Test-Path -Path $gcBinPath
-    if ($false -eq $testGCbinPath)
+    if (-not (Test-Path -Path $gcBinPath))
     {
         throw "Guest Config binaries not found at path $gcBinPath"
     }
 
-    $testDSClibPath = Test-Path $dsclibPath
-    if ($false -eq $testDSClibPath)
+    if (-not (Test-Path -Path $dsclibPath))
     {
         throw "Guest Config DSC Lib not found at path $dsclibPath"
     }
 
-    $testPath = Test-Path -Path $Path
-    if ($false -eq $testPath)
+    if (-not (Test-Path -Path $Path))
     {
         throw "Guest Config DSC Config not found at path $testPath"
     }
@@ -54,5 +54,7 @@ function Publish-DscConfiguration
     }
 
     $dscOperation = [GuestConfig.DscOperations]::New()
+
+    Write-Debug -Message "Running [GuestConfig.DscOperations] `$dscOperation.PublishDscConfiguration method with: $PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path."
     $null = $dscOperation.PublishDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
 }

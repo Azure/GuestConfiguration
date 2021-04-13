@@ -23,6 +23,26 @@ jobs:
     pool:
       vmImage: $(imageName)
     steps:
+      - task: UniversalPackages@0
+        displayName: Download Linux agent
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: linux_agent
+          versionDownloadExternal: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
+      - task: UniversalPackages@0
+        displayName: Download Windows agent
+        inputs:
+          command: download
+          feedsToUse: external
+          externalFeedCredentials: guestconfiguration
+          feedDownloadExternal: guestconfiguration
+          packageDownloadExternal: windows_agent
+          versionDownloadExternal: '*'
+          downloadDirectory: '$(Build.SourcesDirectory)/bin/'
       - task: PowerShell@2
         displayName: Install modules
         inputs:

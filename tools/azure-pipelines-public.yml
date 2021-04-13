@@ -5,6 +5,7 @@ trigger:
     - '*' # Build all branches (early feedback for devs and trigger fork builds)
   paths:
     include:
+    - '*'
     - source/*
   tags:   # build tags when it's a release (not a prerelease, because pre-releases are already triggered by update of main branch)
     include:

@@ -37,7 +37,18 @@ Context 'Test-GuestConfigurationPackage' {
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
 
         $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+        Write-Host "Package Created '$($package.Path)'."
+        $testPackageResult = $null
+        try
+        {
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction Stop
+        }
+        catch
+        {
+            Write-Host -ForegroundColor 'Red' -Object "Error running 'Test-GuestConfigurationPackage': $($_.Exception.Message)"
+            throw $_
+        }
+
         $testPackageResult.complianceStatus | Should -Be $true
         $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
         $testPackageResult.resources[0].complianceStatus | Should -Be $true

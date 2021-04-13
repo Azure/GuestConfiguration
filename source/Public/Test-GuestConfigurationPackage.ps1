@@ -62,7 +62,7 @@ function Test-GuestConfigurationPackage
         $null = New-Item -ItemType Directory -Force -Path $policyPath
 
         # Unzip policy package.
-        Expand-Archive -LiteralPath $Path $policyPath
+        Expand-Archive -LiteralPath $Path $policyPath -Force
 
         # Get policy name
         $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof

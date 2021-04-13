@@ -78,7 +78,7 @@ jobs:
           script: |
             if ($IsWindows) { $env:ADO = $true; Invoke-Pester -CI }
             else { sudo pwsh { $env:ADO = $true; Invoke-Pester -CI }}
-        env: 
+        env:
           AZURE_SUBSCRIPTIONID: $(AZURESUBSCRIPTIONID)
           AZURE_SERVICEPRINCIPALPASSWORD: $(AZURESERVICEPRINCIPALPASSWORD)
           AZURE_SERVICEPRINCIPALUSERNAME: $(AZURESERVICEPRINCIPALUSERNAME)
@@ -109,16 +109,6 @@ jobs:
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psd1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psd1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/GuestConfiguration.psm1 -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/GuestConfiguration.psm1
             Copy-Item -Path $env:BUILD_SOURCESDIRECTORY/LICENSE -Destination $env:BUILD_ARTIFACTSTAGINGDIRECTORY/GuestConfiguration/LICENSE
-      - task: UniversalPackages@0
-        displayName: Universal download
-        inputs:
-          command: download
-          feedsToUse: external
-          externalFeedCredentials: guestconfiguration
-          feedDownloadExternal: guestconfiguration
-          packageDownloadExternal: gc_agents
-          versionDownloadExternal: '*'
-          downloadDirectory: '$(Build.ArtifactStagingDirectory)\GuestConfiguration\bin\'
       - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
         displayName: 'Component Detection'
         inputs:

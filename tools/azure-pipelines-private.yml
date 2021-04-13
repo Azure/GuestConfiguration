@@ -1,0 +1,54 @@
+trigger: none
+
+variables:
+  triggeringPipelineAlias: PublicPipeline
+  buildFolderName: output
+  buildArtifactName: output
+  testResultFolderName: testResults
+  testArtifactName: testResults
+
+resources:
+  pipelines:
+  - pipeline: PublicPipeline # $(triggeringPipelineAlias)
+    source: dsccommunity.MyModule
+    trigger:
+      branches:
+        - privbuild
+        - f/newstructure
+
+pool:
+  vmImage: 'ubuntu 16.04'
+
+stages:
+  - stage: init_private_build
+    jobs:
+      - job: retrieve_previous_pipeline_artifact
+        displayName: 'Downloading Public Pipeline Output'
+        timeoutInMinutes: 0
+        steps:
+          - download: PublicPipeline # $(triggeringPipelineAlias)
+            artifact: $(buildFolderName)
+
+          - task: GitVersion@5
+            name: gitVersion
+            displayName: 'Evaluate Next Version'
+            inputs:
+              runtime: 'core'
+              configFilePath: 'GitVersion.yml'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Pipeline Artifact'
+            inputs:
+              targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
+              artifact: $(buildArtifactName)
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Pipeline Artifact'
+            inputs:
+              buildType: 'current'
+              artifactName: $(buildArtifactName)
+              targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+
+          - pwsh: gci .

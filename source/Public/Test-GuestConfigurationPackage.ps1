@@ -119,13 +119,17 @@ function Test-GuestConfigurationPackage
         "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
         Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
-        # Clear Inspec profiles
-        Remove-Item -Path $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
+        $inspecProfilePath = Get-InspecProfilePath
+        Write-Debug -Message "Clearing Inspec profiles at '$inspecProfilePath'."
+        Remove-Item -Path $inspecProfilePath -Recurse -Force -ErrorAction SilentlyContinue
 
+        Write-Verbose -Message "Testing ConfigurationName '$policyName'."
         $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        Write-Verbose -Message "Getting Configuration resources status."
         $getResult = @()
         $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
 
+        Write-Debug -Message "Processing Resources not in Desired state."
         $testResult.resources_not_in_desired_state | ForEach-Object {
             $resourceId = $_;
             if ($getResult.count -gt 1)

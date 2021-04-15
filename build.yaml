@@ -59,7 +59,7 @@ BuildWorkflow:
       }
 
       $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.27.5.0).assets.Where{$_.Name -match 'GCService'}.id
-      $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.9.0).assets.Where{$_.Name -match 'GCService'}.id
+      $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.10.0).assets.Where{$_.Name -match 'AzureGCService_Linux-1.26.10.0.zip'}.id
       Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $binPath/DSC_Windows.zip -Force
       Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $binPath/DSC_Linux.zip -Force
     }
@@ -110,10 +110,13 @@ Pester:
     # - tests/Unit
     # - tests/Integration
   Tag:
+  ExcludeTagFilter:
+    - PesterLanguage
+    - bugLinuxGCAgent
   CodeCoverageThreshold: 0 # Set to 0 to bypass
   CodeCoverageOutputFile: JaCoCo_coverage.xml
   CodeCoverageOutputFileEncoding: ascii
-  # CodeCoverageMergedOutputFile: JaCoCo_Merged.xml
+  CodeCoverageMergedOutputFile: JaCoCo_Merged.xml
 
 DscTest:
   ExcludeTagFilter:

@@ -26,8 +26,18 @@ Context 'New-GuestConfigurationPackage' {
 
     }
 
-    It 'creates custom policy package' {
+    It 'creates custom Windows policy package' -skip:(-not $IsWindows) {
         $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
+        Test-Path -Path $package.Path | Should -BeTrue
+        $package.Name | Should -Be $policyName
+    }
+
+    It 'creates custom Linux policy package' -skip:(-not $IsLinux) {
+        $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
+        $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
+        $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
+
+        $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
         Test-Path -Path $package.Path | Should -BeTrue
         $package.Name | Should -Be $policyName
     }

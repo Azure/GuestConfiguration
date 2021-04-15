@@ -19,7 +19,6 @@ Context 'Test-GuestConfigurationPackage' {
         $policyName = 'testPolicy'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
-
     }
 
     It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
@@ -32,13 +31,26 @@ Context 'Test-GuestConfigurationPackage' {
         $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
     }
 
-    It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
+    It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) -Tag bugLinuxGCAgent {
         $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
 
         $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+        Write-Host "Package Created '$($package.Path)'."
+        $testPackageResult = $null
+        try
+        {
+            $VerbosePreference = 'Continue'
+            $DebugPreference = 'Continue'
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction Stop -Verbose -Debug
+        }
+        catch
+        {
+            Write-Host -ForegroundColor 'Red' -Object "Error running 'Test-GuestConfigurationPackage': $($_.Exception.Message)."
+            throw $_
+        }
+
         $testPackageResult.complianceStatus | Should -Be $true
         $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
         $testPackageResult.resources[0].complianceStatus | Should -Be $true

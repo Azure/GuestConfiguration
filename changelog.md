@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Install-GuestConfigurationPackage
+
 ### Changed
 
 - Pipeline and project structure updated to match DSC Community Projects.

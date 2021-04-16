@@ -23,4 +23,5 @@ localhost.mof
 Vagrantfile
 VagrantRun.ps1
 *.zip
+!**/testPolicy.zip
 *.log

@@ -95,5 +95,4 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
     }
-
 }

@@ -18,7 +18,8 @@
 function Install-GuestConfigurationPackage
 {
     [CmdletBinding()]
-    param (
+    param
+    (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]

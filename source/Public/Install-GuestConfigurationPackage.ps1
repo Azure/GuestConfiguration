@@ -1,48 +1,99 @@
+
+<#
+    .SYNOPSIS
+        Installs a Guest Configuration policy package.
+
+    .Parameter Path
+        Full path of the zipped Guest Configuration package.
+
+    .Example
+        Install-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
+
+        Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip
+
+    .OUTPUTS
+        None
+#>
+
 function Install-GuestConfigurationPackage
 {
+    [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [System.String[]]
-        [ValidateScript({$_.Where{-not ((Test-Path -Path $_ -PathType 'Leaf') -or (([uri]$_).Scheme -match 'http'))}})]
-        # Each package should either be a local or UNC path to a file (not a folder), or an uri of http/https scheme
-        # When it's an URI, we can't assume it will end with .zip
-        $Package
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.String]
+        $Path
     )
 
-    begin
+    $osPlatform = Get-OSPlatform
+
+    if ($osPlatform -eq 'MacOS')
     {
-        # Determine if verbose is enabled to pass down to other functions
-        $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-        $guestConfigPolicyPath = Get-GuestConfigPolicyPath
+        throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    process
+    if (-not (Test-Path -Path $Path -PathType Leaf))
     {
-        foreach ($PackageItem in $Package)
+        throw 'Invalid Guest Configuration package path : $($Path)'
+    }
+
+    $verbose = $PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true)
+    $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
+
+    try
+    {
+        # Create policy folder
+        $Path = Resolve-Path -Path $Path
+        $policyPath = Join-Path -Path $(Get-GuestConfigPolicyPath) -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension($Path))
+        Remove-Item -Path $policyPath -Recurse -Force -ErrorAction SilentlyContinue
+        $null = New-Item -ItemType Directory -Force -Path $policyPath
+
+        # Unzip policy package
+        Expand-Archive -LiteralPath $Path -DestinationPath $policyPath
+
+        # Get policy name
+        $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
+        if (-not $dscDocument)
         {
-            if ($PackageItem -as [uri])
+            throw 'Invalid policy package, failed to find dsc document in policy package.'
+        }
+
+        $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
+
+        # Unzip Guest Configuration binaries
+        $gcBinPath = Get-GuestConfigBinaryPath
+        $gcBinRootPath = Get-GuestConfigBinaryRootPath
+        if (-not (Test-Path -Path $gcBinPath))
+        {
+            # Clean the bin folder
+            Remove-Item -Path "$gcBinRootPath/*" -Recurse -Force -ErrorAction SilentlyContinue
+
+            $zippedBinaryPath = Join-Path -Path (Get-GuestConfigurationModulePath) -ChildPath 'bin'
+            if ($osPlatform -eq 'Windows')
             {
-                # Download the package from http/s
-                $PackageItemPath = (Get-GuestConfigurationPackageFromUri -Path $PackageItem).FullName
+                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Windows.zip'
             }
             else
             {
-                $PackageItemPath = [System.Io.Path]::GetFullPath($PackageItem, $PWD.Path)
+                # Linux zip package contains an additional DSC folder
+                # Remove DSC folder from binary path to avoid two nested DSC folders.
+                $null = New-Item -ItemType Directory -Force -Path $gcBinPath
+                $gcBinPath = (Get-Item -Path $gcBinPath).Parent.FullName
+                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Linux.zip'
             }
 
-            $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageItemPath
-            $destinationPackagePath = Join-Path -Path $guestConfigPolicyPath -ChildPath $packageName
-
-            if (Test-Path -Path $destinationPackagePath)
-            {
-                Write-Debug -Message "The package '$packageName' already exists. Cleaning up..."
-                Remove-Item -Path $destinationPackagePath -Force -Recurse -ErrorAction 'Stop'
-            }
-
-            $null = Expand-Archive -LiteralPath $PackageItemPath -DestinationPath $destinationPackagePath -Verbose:$verbose
-
-            return $destinationPackagePath
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
         }
+
+        # Publish policy package
+        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+
+        # Clear Inspec profiles
+        Remove-Item -Path (Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    finally
+    {
+        $env:PSModulePath = $systemPSModulePath
     }
 }

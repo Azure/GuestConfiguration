@@ -232,6 +232,7 @@ process
                     Write-Host -Object "Importing tasks from module $module" -ForegroundColor DarkGray
 
                     $loadedModule = Import-Module -Name $module -PassThru -ErrorAction Stop
+                    Start-Sleep -Milliseconds 250
 
                     foreach ($TaskToExport in $BuildInfo['ModuleBuildTasks'].($module))
                     {

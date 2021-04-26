@@ -16,6 +16,9 @@
     .Parameter ChefInspecProfilePath
         Chef profile path, supported only on Linux.
 
+    .Parameter Type
+        Specifies whether or not package will support AuditAndSet or only Audit. Set to Audit by default.
+
     .Parameter Force
         Overwrite the package files if already present.
 
@@ -57,6 +60,11 @@ function New-GuestConfigurationPackage
         $Path = '.',
 
         [Parameter()]
+        [System.String]
+        [ValidateSet('Audit', 'AuditAndSet')]
+        $Type = 'Audit',
+
+        [Parameter()]
         [System.Management.Automation.SwitchParameter]
         $Force
     )
@@ -71,6 +79,7 @@ function New-GuestConfigurationPackage
         throw "Invalid mof file path, please specify full file path for dsc configuration in -Configuration parameter."
     }
 
+
     Write-Verbose -Message "Creating Guest Configuration package in temporary directory '$unzippedPackageDirectory'"
 
     # Verify that only supported resources are used in DSC configuration.
@@ -82,6 +91,12 @@ function New-GuestConfigurationPackage
 
     # Copy DSC resources
     Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackageDirectory -Verbose:$verbose -Force:$Force
+
+    # Modify metaconfig file
+    $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
+    "{""Type"":""$Type""}" | Out-File $metaConfigPath -Encoding ascii
+    # What does this do? Does this need to be run now?
+    Set-DscLocalConfigurationManager -ConfigurationName $Name -Path $unzippedPackageDirectory -Verbose:$verbose
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

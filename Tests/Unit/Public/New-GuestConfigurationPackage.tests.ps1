@@ -42,6 +42,21 @@ Context 'New-GuestConfigurationPackage' {
         $package.Name | Should -Be $policyName
     }
 
+    It 'Verify default value from -Type is Audit ' -skip:(-not $IsWindows) {
+        # $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
+        # $packageName = $package.Name
+        # $metaConfigPath = Join-Path -Path $package.Path -ChildPath "$packageName.metaconfig.json"
+
+        # Test-Path -Path $metaConfigPath | Should -BeTrue
+        # Get-Content -Path $metaConfigPath | Should -Contain '"Type":"Audit"'
+    }
+
+    It 'Verify passing in -Type AuditAndSet modifies metaconfig to AuditAndSet' {
+    }
+
+    It 'Verify passing in -Type Audit modifies metaconfig to Audit' {
+    }
+
     It 'does not overwrite a custom policy package when -Force is not specified' {
         { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
     }
@@ -127,4 +142,5 @@ Context 'New-GuestConfigurationPackage' {
         $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
         $inspecRbExtractedFile | Should -Exist
     }
+
 }

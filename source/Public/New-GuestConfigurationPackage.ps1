@@ -95,8 +95,6 @@ function New-GuestConfigurationPackage
     # Modify metaconfig file
     $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
     "{""Type"":""$Type""}" | Out-File $metaConfigPath -Encoding ascii
-    # What does this do? Does this need to be run now?
-    Set-DscLocalConfigurationManager -ConfigurationName $Name -Path $unzippedPackageDirectory -Verbose:$verbose
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

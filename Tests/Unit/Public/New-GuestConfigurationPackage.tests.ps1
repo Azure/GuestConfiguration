@@ -42,29 +42,6 @@ Context 'New-GuestConfigurationPackage' {
         $package.Name | Should -Be $policyName
     }
 
-    It 'Verify default value from -Type is Audit ' -skip:(-not $IsWindows) {
-        # $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        # $packageName = $package.Name
-        # $metaConfigPath = Join-Path -Path $package.Path -ChildPath "$packageName.metaconfig.json"
-
-        # Test-Path -Path $metaConfigPath | Should -BeTrue
-        # Get-Content -Path $metaConfigPath | Should -Contain '"Type":"Audit"'
-    }
-
-    It 'Verify passing in -Type AuditAndSet modifies metaconfig to AuditAndSet' {
-    }
-
-    It 'Verify passing in -Type Audit modifies metaconfig to Audit' {
-    }
-
-    It 'does not overwrite a custom policy package when -Force is not specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
-    }
-
-    It 'overwrites a custom policy package when -Force is specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
-    }
-
     It 'Verify the package can be extracted' {
         $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
 
@@ -75,6 +52,14 @@ Context 'New-GuestConfigurationPackage' {
 
     It 'Verify extracted mof document exists' {
         Test-Path -Path $mofFilePath | Should -BeTrue
+    }
+
+    It 'does not overwrite a custom policy package when -Force is not specified' {
+        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
+    }
+
+    It 'overwrites a custom policy package when -Force is specified' {
+        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
     }
 
     It 'has Linux-friendly line endings in InSpec install script' {
@@ -143,4 +128,45 @@ Context 'New-GuestConfigurationPackage' {
         $inspecRbExtractedFile | Should -Exist
     }
 
+    It 'Verify default value from -Type is Audit in mof file' -skip:(-not $IsWindows) {
+        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
+        $packageName = $package.Name
+
+        # Extract package to read metaconfig file
+        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'defaultType'
+        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+
+        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
+        Test-Path -Path $metaConfigPath | Should -BeTrue
+        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"Audit"}'
+    }
+
+    It 'Verify passing in -Type AuditAndSet modifies metaconfig to AuditAndSet' {
+        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Type 'AuditAndSet' -Force
+        $packageName = $package.Name
+
+        # Extract package to read metaconfig file
+        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'AuditAndSet'
+        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+
+        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
+        Test-Path -Path $metaConfigPath | Should -BeTrue
+        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"AuditAndSet"}'
+    }
+
+    It 'Verify passing in -Type Audit modifies metaconfig to Audit' {
+        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Type 'Audit' -Force
+        $packageName = $package.Name
+
+        # Extract package to read metaconfig file
+        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'Audit'
+        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
+        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+
+        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
+        Test-Path -Path $metaConfigPath | Should -BeTrue
+        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"Audit"}'
+    }
 }

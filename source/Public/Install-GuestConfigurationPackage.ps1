@@ -18,6 +18,7 @@
 function Install-GuestConfigurationPackage
 {
     [CmdletBinding()]
+    [OutputType([System.String])]
     param
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -96,4 +97,6 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
     }
+
+    return $policyPath
 }

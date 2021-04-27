@@ -5,7 +5,7 @@ function Get-GuestConfigurationPackageComplianceStatus
     param
     (
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-        [System.Name]
+        [System.String]
         $Package,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
@@ -42,6 +42,8 @@ function Get-GuestConfigurationPackageComplianceStatus
                 Write-Debug -Message "The Package is the Package Name. It has to exist."
                 $PackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve -ErrorAction 'Stop'
             }
+
+            Write-Debug -Message "Looking into Package $PackagePath for MOF document."
 
             $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
             $dscDocument = Get-Item -Path (Join-Path -Path $PackagePath -ChildPath ('{0}.mof' -f $packageName)) -ErrorAction 'Stop'

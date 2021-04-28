@@ -117,7 +117,6 @@ function Test-GuestConfigurationPackage
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
         $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
         Update-Metaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-
         Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         $inspecProfilePath = Get-InspecProfilePath

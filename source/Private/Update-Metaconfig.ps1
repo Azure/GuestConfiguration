@@ -26,5 +26,4 @@ function Update-Metaconfig
     {
         "{""$key"":""$value""}" | Out-File $metaConfigPath -Encoding ascii
     }
-
 }

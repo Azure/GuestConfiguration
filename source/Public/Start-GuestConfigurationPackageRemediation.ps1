@@ -67,7 +67,6 @@ function Start-GuestConfigurationPackageRemediation
             # Set LCM settings to force load powershell module.
             $metaConfigPath = Join-Path -Path $PackagePath -ChildPath "$packageName.metaconfig.json"
             Update-Metaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-
             Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
 

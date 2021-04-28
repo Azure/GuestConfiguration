@@ -139,7 +139,7 @@ Context 'New-GuestConfigurationPackage' {
 
         $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
         Test-Path -Path $metaConfigPath | Should -BeTrue
-        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"Audit"}'
+        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"Audit"}'
     }
 
     It 'Verify passing in -Type AuditAndSet modifies metaconfig to AuditAndSet' {
@@ -153,7 +153,7 @@ Context 'New-GuestConfigurationPackage' {
 
         $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
         Test-Path -Path $metaConfigPath | Should -BeTrue
-        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"AuditAndSet"}'
+        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"AuditAndSet"}'
     }
 
     It 'Verify passing in -Type Audit modifies metaconfig to Audit' {
@@ -167,6 +167,6 @@ Context 'New-GuestConfigurationPackage' {
 
         $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "$packageName.metaconfig.json"
         Test-Path -Path $metaConfigPath | Should -BeTrue
-        Get-Content -Path $metaConfigPath | Should -MatchExactly '{"Type":"Audit"}'
+        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"Audit"}'
     }
 }

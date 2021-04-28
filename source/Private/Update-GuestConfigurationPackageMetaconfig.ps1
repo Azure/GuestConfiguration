@@ -16,7 +16,7 @@ function Update-GuestConfigurationPackageMetaconfig
         $Value
     )
 
-    if (Test-Path $MetaConfigPath)
+    if (Test-Path -Path $MetaConfigPath)
     {
         $metaConfigObject = Get-Content -Raw -Path $MetaConfigPath | ConvertFrom-Json -AsHashtable
         $metaConfigObject[$Key] = $Value

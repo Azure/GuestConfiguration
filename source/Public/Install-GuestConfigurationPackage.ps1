@@ -1,4 +1,3 @@
-
 <#
     .SYNOPSIS
         Installs a Guest Configuration policy package.

@@ -42,6 +42,14 @@ Context 'New-GuestConfigurationPackage' {
         $package.Name | Should -Be $policyName
     }
 
+    It 'does not overwrite a custom policy package when -Force is not specified' {
+        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
+    }
+
+    It 'overwrites a custom policy package when -Force is specified' {
+        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
+    }
+
     It 'Verify the package can be extracted' {
         $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
 
@@ -52,14 +60,6 @@ Context 'New-GuestConfigurationPackage' {
 
     It 'Verify extracted mof document exists' {
         Test-Path -Path $mofFilePath | Should -BeTrue
-    }
-
-    It 'does not overwrite a custom policy package when -Force is not specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
-    }
-
-    It 'overwrites a custom policy package when -Force is specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
     }
 
     It 'has Linux-friendly line endings in InSpec install script' {

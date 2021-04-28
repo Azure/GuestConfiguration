@@ -79,7 +79,6 @@ function New-GuestConfigurationPackage
         throw "Invalid mof file path, please specify full file path for dsc configuration in -Configuration parameter."
     }
 
-
     Write-Verbose -Message "Creating Guest Configuration package in temporary directory '$unzippedPackageDirectory'"
 
     # Verify that only supported resources are used in DSC configuration.
@@ -95,7 +94,6 @@ function New-GuestConfigurationPackage
     # Modify metaconfig file
     $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
     Update-Metaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value "$Type"
-    #"{""Type"":""$Type""}" | Out-File $metaConfigPath -Encoding ascii -Force
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

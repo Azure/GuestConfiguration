@@ -18,12 +18,12 @@ function Update-GuestConfigurationPackageMetaconfig
 
     if (Test-Path $MetaConfigPath)
     {
-        $metaConfigObject = Get-Content -Path $MetaConfigPath | ConvertFrom-Json -AsHashtable
+        $metaConfigObject = Get-Content -Raw -Path $MetaConfigPath | ConvertFrom-Json -AsHashtable
         $metaConfigObject[$Key] = $Value
-        $metaConfigObject | ConvertTo-Json | Out-File $MetaConfigPath -Encoding ascii -Force
+        $metaConfigObject | ConvertTo-Json | Out-File -Path $MetaConfigPath -Encoding ascii -Force
     }
     else
     {
-        @{$Key = $Value} | ConvertTo-Json | Out-File $MetaConfigPath -Encoding ascii -Force
+        @{$Key = $Value} | ConvertTo-Json | Out-File -Path $MetaConfigPath -Encoding ascii -Force
     }
 }

@@ -16,6 +16,9 @@
     .Parameter ChefInspecProfilePath
         Chef profile path, supported only on Linux.
 
+    .Parameter Type
+        Specifies whether or not package will support AuditAndSet or only Audit. Set to Audit by default.
+
     .Parameter Force
         Overwrite the package files if already present.
 
@@ -57,6 +60,10 @@ function New-GuestConfigurationPackage
         $Path = '.',
 
         [Parameter()]
+        [PackageType]
+        $Type = 'Audit',
+
+        [Parameter()]
         [System.Management.Automation.SwitchParameter]
         $Force
     )
@@ -82,6 +89,10 @@ function New-GuestConfigurationPackage
 
     # Copy DSC resources
     Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackageDirectory -Verbose:$verbose -Force:$Force
+
+    # Modify metaconfig file
+    $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
+    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

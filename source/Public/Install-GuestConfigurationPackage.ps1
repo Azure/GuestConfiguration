@@ -18,6 +18,7 @@
 function Install-GuestConfigurationPackage
 {
     [CmdletBinding()]
+    [OutputType([System.String])]
     param
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
@@ -64,26 +65,11 @@ function Install-GuestConfigurationPackage
         # Unzip Guest Configuration binaries
         $gcBinPath = Get-GuestConfigBinaryPath
         $gcBinRootPath = Get-GuestConfigBinaryRootPath
+
+        # Unzip Guest Configuration binaries if missing
         if (-not (Test-Path -Path $gcBinPath))
         {
-            # Clean the bin folder
-            Remove-Item -Path "$gcBinRootPath/*" -Recurse -Force -ErrorAction SilentlyContinue
-
-            $zippedBinaryPath = Join-Path -Path (Get-GuestConfigurationModulePath) -ChildPath 'bin'
-            if ($osPlatform -eq 'Windows')
-            {
-                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Windows.zip'
-            }
-            else
-            {
-                # Linux zip package contains an additional DSC folder
-                # Remove DSC folder from binary path to avoid two nested DSC folders.
-                $null = New-Item -ItemType Directory -Force -Path $gcBinPath
-                $gcBinPath = (Get-Item -Path $gcBinPath).Parent.FullName
-                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Linux.zip'
-            }
-
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
+            Install-GuestConfigurationAgent -verbose:$verbose
         }
 
         # Publish policy package
@@ -96,4 +82,6 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
     }
+
+    return $policyPath
 }

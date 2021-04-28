@@ -5,7 +5,7 @@ function Get-GuestConfigurationPackageComplianceStatus
     param
     (
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-        [System.Name]
+        [System.String]
         $Package,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
@@ -43,6 +43,8 @@ function Get-GuestConfigurationPackageComplianceStatus
                 $PackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve -ErrorAction 'Stop'
             }
 
+            Write-Debug -Message "Looking into Package '$PackagePath' for MOF document."
+
             $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
             $dscDocument = Get-Item -Path (Join-Path -Path $PackagePath -ChildPath ('{0}.mof' -f $packageName)) -ErrorAction 'Stop'
 
@@ -62,7 +64,8 @@ function Get-GuestConfigurationPackageComplianceStatus
 
             # Set LCM settings to force load powershell module.
             $metaConfigPath = Join-Path -Path $PackagePath -ChildPath "$packageName.metaconfig.json"
-            "{""debugMode"":""ForceModuleImport""}" | Out-File $metaConfigPath -Encoding ascii
+            Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
+
             Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $PackagePath -Verbose:$verbose
 
 

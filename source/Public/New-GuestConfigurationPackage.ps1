@@ -93,7 +93,7 @@ function New-GuestConfigurationPackage
 
     # Modify metaconfig file
     $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
-    Update-Metaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value "$Type"
+    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

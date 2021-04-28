@@ -116,7 +116,7 @@ function Test-GuestConfigurationPackage
         # Set LCM settings to force load powershell module.
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
         $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
-        Update-Metaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
+        Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
         Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         $inspecProfilePath = Get-InspecProfilePath

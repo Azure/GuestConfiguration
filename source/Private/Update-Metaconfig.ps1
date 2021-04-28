@@ -1,29 +1,29 @@
-function Update-Metaconfig
+function Update-GuestConfigurationPackageMetaconfig
 {
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true)]
         [System.String]
-        $metaConfigPath,
+        $MetaConfigPath,
 
         [Parameter(Mandatory = $true)]
         [System.String]
-        $key,
+        $Key,
 
         [Parameter(Mandatory = $true)]
         [System.String]
-        $value
+        $Value
     )
 
-    if (Test-Path $metaConfigPath)
+    if (Test-Path $MetaConfigPath)
     {
-        $metaConfigObject = Get-Content -Path $metaConfigPath | ConvertFrom-Json -AsHashTable
-        $metaConfigObject[$key] = $value
-        $metaConfigObject | ConvertTo-Json | Out-File $metaConfigPath -Encoding ascii -Force
+        $metaConfigObject = Get-Content -Path $MetaConfigPath | ConvertFrom-Json -AsHashtable
+        $metaConfigObject[$Key] = $Value
+        $metaConfigObject | ConvertTo-Json | Out-File $MetaConfigPath -Encoding ascii -Force
     }
     else
     {
-        "{""$key"":""$value""}" | Out-File $metaConfigPath -Encoding ascii
+        @{$Key = $Value} | ConvertTo-Json | Out-File $MetaConfigPath -Encoding ascii -Force
     }
 }

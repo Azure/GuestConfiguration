@@ -60,8 +60,7 @@ function New-GuestConfigurationPackage
         $Path = '.',
 
         [Parameter()]
-        [System.String]
-        [ValidateSet('Audit', 'AuditAndSet')]
+        [PackageType]
         $Type = 'Audit',
 
         [Parameter()]
@@ -93,7 +92,7 @@ function New-GuestConfigurationPackage
 
     # Modify metaconfig file
     $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
-    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type
+    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

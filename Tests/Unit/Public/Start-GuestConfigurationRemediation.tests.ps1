@@ -16,12 +16,12 @@ Context 'Start-GuestConfigurationPackageRemediation' {
 
         # Path to temp files
         $Env:MyTestPath = $TestDrive
-        $tempParameterFile = Join-Path -Path $TestDrive -ChildPath 'test_gen.txt'
+        $tempWithParameterFile = Join-Path -Path $TestDrive -ChildPath 'test_gen.txt'
         $tempDefaultFile = Join-Path -Path $TestDrive -ChildPath 'test.txt'
 
         # Contents of temp file
         $tempFileDefaultContents = 'foobar'
-        $tempFileParameterContents = 'barfoo'
+        $tempWithParameterContents = 'barfoo'
     }
 
     It 'Validate that start scenario is working as expected on Windows without parameters' -Skip:($IsLinux -or $IsMacOS) {
@@ -41,35 +41,35 @@ Context 'Start-GuestConfigurationPackageRemediation' {
 
     It 'Validate that start scenario is working as expected on Windows with parameters' -Skip:($IsLinux -or $IsMacOS) {
         # Validate that dummy file does not exist
-        Test-Path -Path $tempParameterFile | Should -Be $False
+        Test-Path -Path $tempWithParameterFile | Should -Be $False
 
         # Run start, validate it does not throw
         $Parameter = @(
             @{
                 ResourceType = 'MyFile'
-                ResourceId = 'hi'
+                ResourceId = 'createFoobarTestFile'
                 ResourcePropertyName = 'Ensure'
                 ResourcePropertyValue = 'Present'
             },
             @{
                 ResourceType = 'MyFile'
-                ResourceId = 'hi'
+                ResourceId = 'createFoobarTestFile'
                 ResourcePropertyName = 'path'
-                ResourcePropertyValue = $tempParameterFile
+                ResourcePropertyValue = $tempWithParameterFile
             },
             @{
                 ResourceType = 'MyFile'
-                ResourceId = 'hi'
+                ResourceId = 'createFoobarTestFile'
                 ResourcePropertyName = 'content'
-                ResourcePropertyValue = $tempFileParameterContents
+                ResourcePropertyValue = $tempWithParameterContents
             })
         { Start-GuestConfigurationPackageRemediation -Path $packagePath -Parameter $Parameter -Force } | Should -Not -Throw
 
         # Validate temp file exists
-        Test-Path -Path $tempParameterFile | Should -Be $True
+        Test-Path -Path $tempWithParameterFile | Should -Be $True
 
         # Validate contents of temp file
-        Get-Content -Path $tempParameterFile -Raw | Should -Be $tempFileParameterContents
+        Get-Content -Path $tempWithParameterFile -Raw | Should -Be $tempWithParameterContents
     }
 
     It 'Validate that start scenario is working as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {

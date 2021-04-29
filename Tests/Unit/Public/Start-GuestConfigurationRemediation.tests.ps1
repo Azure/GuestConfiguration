@@ -24,7 +24,7 @@ Context 'Start-GuestConfigurationPackageRemediation' {
         $tempWithParameterContents = 'barfoo'
     }
 
-    It 'Validate that start scenario is working as expected on Windows without parameters' -Skip:($IsLinux -or $IsMacOS) {
+    It 'Validate that start scenario is working as expected on Windows without parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
 
@@ -39,7 +39,7 @@ Context 'Start-GuestConfigurationPackageRemediation' {
     }
 
 
-    It 'Validate that start scenario is working as expected on Windows with parameters' -Skip:($IsLinux -or $IsMacOS) {
+    It 'Validate that start scenario is working as expected on Windows with parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempWithParameterFile | Should -Be $False
 
@@ -71,12 +71,4 @@ Context 'Start-GuestConfigurationPackageRemediation' {
         # Validate contents of temp file
         Get-Content -Path $tempWithParameterFile -Raw | Should -Be $tempWithParameterContents
     }
-
-    It 'Validate that start scenario is working as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
-        # { Install-GuestConfigurationPackage -Path $packagePath } | Should -Not -Throw
-        # InModuleScope -ModuleName GuestConfiguration {
-        #     { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
-        # }
-    }
-
 }

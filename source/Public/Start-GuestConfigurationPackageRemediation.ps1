@@ -92,6 +92,9 @@ function Start-GuestConfigurationPackageRemediation
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
+        Write-Verbose -Message "Publishing policy package '$policyName' from '$policyPath'."
+        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+
         # Set LCM settings to force load powershell module.
         $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."

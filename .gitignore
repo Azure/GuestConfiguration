@@ -24,7 +24,6 @@ Vagrantfile
 VagrantRun.ps1
 *.zip
 !**/testPolicy.zip
-!**/testStartPolicy.zip
 !**/testStartPolicy-MyFile.zip
 *.log
 source/gc_agents

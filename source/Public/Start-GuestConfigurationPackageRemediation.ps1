@@ -78,7 +78,7 @@ function Start-GuestConfigurationPackageRemediation
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
         $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
-        $metaConfigFile = Get-ChildItem -Path $policyPath -Filter "$policyName.metaconfig.json"
+        $metaConfigFile = Get-Item -Path (Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json") -ErrorAction Stop
         $metaConfig = Get-Content -Raw -Path $metaConfigFile | ConvertFrom-Json
         if ($metaConfig.Type -ne "AuditAndSet")
         {

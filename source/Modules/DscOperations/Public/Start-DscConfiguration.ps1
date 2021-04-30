@@ -14,7 +14,8 @@ function Start-DscConfiguration
     param (
         [parameter(Position=0, Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [string] $ConfigurationName
+        [System.String]
+        $ConfigurationName
     )
 
     $job_id = [guid]::NewGuid().Guid

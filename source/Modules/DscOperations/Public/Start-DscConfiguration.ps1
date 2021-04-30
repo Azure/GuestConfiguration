@@ -12,7 +12,7 @@ function Start-DscConfiguration
 {
     [CmdletBinding()]
     param (
-        [parameter(Position=0, Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
         $ConfigurationName

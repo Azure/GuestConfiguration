@@ -105,7 +105,6 @@ function Start-GuestConfigurationPackageRemediation
 
         # Run Deploy/Remediation
         Start-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
-
     }
     finally
     {

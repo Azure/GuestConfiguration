@@ -65,7 +65,7 @@ BuildWorkflow:
       }
       if (-not (Test-Path $localWindowsAgent))
       {
-          $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.27.5.0).assets.Where{$_.Name -match 'GCService'}.id
+          $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.29.17.0).assets.Where{$_.Name -match 'GCService'}.id
           Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $localWindowsAgent -Force
       }
       if ( -not (Test-Path $localLinuxAgent))

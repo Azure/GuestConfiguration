@@ -8,6 +8,8 @@ function Get-GuestConfigurationPackageNameFromZip
         $Path
     )
 
+    $Path = [System.IO.Path]::GetFullPath($Path) # Get Absolute path as .Net method don't like relative paths.
+
     try
     {
         $zipRead = [IO.Compression.ZipFile]::OpenRead($Path)
@@ -26,7 +28,7 @@ function Get-GuestConfigurationPackageNameFromZip
     }
     elseif ($mofFile.count -gt 1)
     {
-        throw "Multiple MOF file found at the root of the package."
+        throw "Multiple MOF files found at the root of the package."
     }
 
     return ([System.Io.Path]::GetFileNameWithoutExtension($mofFile))

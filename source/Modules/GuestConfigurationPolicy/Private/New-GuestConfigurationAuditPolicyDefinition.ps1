@@ -92,14 +92,14 @@ function New-GuestConfigurationAuditPolicyDefinition
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
-        Type          = "String"
-        Metadata      = [Ordered]@{
-            DisplayName = 'Include Arc connected servers'
-            Description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        type          = "string"
+        metadata      = [Ordered]@{
+            displayName = 'Include Arc connected servers'
+            description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
         }
 
-        AllowedValues = @('True', 'False')
-        DefaultValue  = 'False'
+        allowedValues = @('True', 'False')
+        defaultValue  = 'False'
     }
 
     $auditPolicyContentHashtable = [Ordered]@{

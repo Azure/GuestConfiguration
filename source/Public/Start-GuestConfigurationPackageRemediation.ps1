@@ -39,7 +39,7 @@ function Start-GuestConfigurationPackageRemediation
         [string]
         $Path,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter()]
         [Switch]
         $Force,
 
@@ -66,20 +66,21 @@ function Start-GuestConfigurationPackageRemediation
     try
     {
         # Install the package
-        Install-GuestConfigurationPackage -Path $Path
+        $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$Force.IsPresent -ErrorAction 'Stop'
+
+        # The leaf part of the Path returned by Install-GCPackage will always be the BaseName of the MOF.
+        $packageName = Split-Path -Leaf -Path $packagePath
 
         # Confirm mof exists
-        $policyPath = Join-Path -Path $(Get-GuestConfigPolicyPath) -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension($Path))
-        $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
+        $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
+        $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
         if (-not $dscDocument)
         {
-            throw "Invalid policy package, failed to find dsc document in policy package."
+            throw "Invalid Guest Configuration package, failed to find dsc document at $packageMof path."
         }
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
-        $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
-        $metaConfigFile = Get-Item -Path (Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json") -ErrorAction Stop
-        $metaConfig = Get-Content -Raw -Path $metaConfigFile | ConvertFrom-Json
+        $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
         if ($metaConfig.Type -ne "AuditAndSet")
         {
             throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"
@@ -92,19 +93,19 @@ function Start-GuestConfigurationPackageRemediation
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
-        Write-Verbose -Message "Publishing policy package '$policyName' from '$policyPath'."
-        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+        Write-Verbose -Message "Publishing policy package '$packageName' from '$packagePath'."
+        Publish-DscConfiguration -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
 
         # Set LCM settings to force load powershell module.
-        $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
+        $metaConfigPath = Join-Path -Path $packagePath -ChildPath "$packageName.metaconfig.json"
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
         Write-Debug -Message "Setting 'LCM' configuratoin mode to ApplyAndMonitor."
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'configurationMode' -Value 'ApplyAndMonitor'
-        Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+        Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
 
         # Run Deploy/Remediation
-        Start-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        Start-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose
     }
     finally
     {

@@ -1,12 +1,16 @@
 BeforeDiscovery {
-    $script:projectPath = "$PSScriptRoot/../../.." | Convert-Path
-    $script:projectName = Get-SamplerProjectName -BuildRoot $script:projectPath
+    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
-    Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
+    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
+    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
-Context 'Start-GuestConfigurationPackageRemediation' {
+Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
+    ProjectPath    = $projectPath
+    projectName    = $projectName
+    importedModule = $importedModule
+} {
     BeforeAll {
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
         $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/testStartPolicy-MyFile.zip'

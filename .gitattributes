@@ -10,3 +10,4 @@
 *.xl* binary
 *.pfx binary
 *.zip binary
+*.dll binary

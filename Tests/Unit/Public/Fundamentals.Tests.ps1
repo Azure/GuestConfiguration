@@ -10,6 +10,10 @@ BeforeDiscovery {
 Describe 'GuestConfiguration Module validation' {
 
     BeforeAll {
+        $script:projectPath = "$PSScriptRoot/../../.." | Convert-Path
+        $script:projectName = Get-SamplerProjectName -BuildRoot $script:projectPath
+
+        Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
         $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
     }
 

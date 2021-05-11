@@ -1,4 +1,4 @@
-BeforeAll {
+BeforeDiscovery {
 
     $projectPath = "$PSScriptRoot/../../.." | Convert-Path
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
@@ -7,7 +7,11 @@ BeforeAll {
     $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
-Describe 'GuestConfiguration Module validation' {
+Describe 'GuestConfiguration Module validation' -ForEach @{
+    ProjectPath    = $projectPath
+    projectName    = $projectName
+    importedModule = $importedModule
+} -Fixture {
 
     Context 'Module fundamentals' {
 

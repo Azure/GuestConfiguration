@@ -113,6 +113,14 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                # Enable-ExperimentalFeature -Name PS7DscSupport
+                $userConfig =  Join-Path -Path (split-path -parent $PROFILE) -ChildPath 'powershell.config.json'
+                if (Test-Path -Path $userConfig)
+                {
+                    $config = Get-Content -Raw $userConfig | ConvertFrom-Json
+                    $config.ExperimentalFeatures += 'PS7DscSupport'
+                    Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
+                }
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test

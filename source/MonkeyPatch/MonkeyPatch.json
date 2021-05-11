@@ -1,0 +1,14 @@
+{
+    "Linux|MacOS": {
+        "Copy": [
+            {
+                "Source": "Microsoft.Windows.DSC.CoreConfProviders.dll",
+                "Destination": "$gcBinPath/"
+            },
+            {
+                "Source": "System.Management.Automation.dll",
+                "Destination": "$gcBinPath/"
+            }
+        ]
+    }
+}

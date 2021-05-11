@@ -6,6 +6,7 @@
 CopyPaths:
   - en-US
   - DscResources
+  - MonkeyPatch
 prefix: prefix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true

@@ -34,6 +34,7 @@ function Install-GuestConfigurationAgent
             $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
         }
 
+        Write-Verbose -Message "Extracting '$zippedBinaryPath' to '$gcBinPath'."
         [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
 
         if ($OsPlatform -ne 'Windows')
@@ -43,9 +44,12 @@ function Install-GuestConfigurationAgent
                 Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
             }
 
-            chmod -R +x $gcBinPath
+            Get-ChildItem -Path $gcBinPath -Filter *.sh -Recurse | ForEach-Object -Process {
+                chmod @('+x', $_.FullName)
+            }
         }
 
+        Install-GuestConfigurationMonkeyPatch
     }
     else
     {

@@ -10,7 +10,7 @@ BeforeDiscovery {
 Describe 'GuestConfiguration Module validation' {
 
     BeforeAll {
-
+        $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
     }
 
     Context 'Module fundamentals' {

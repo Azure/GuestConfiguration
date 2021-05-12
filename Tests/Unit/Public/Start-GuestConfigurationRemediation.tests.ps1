@@ -25,7 +25,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         $tempWithParameterContents = 'barfoo'
     }
 
-    It 'Validate that start scenario is working as expected on Windows without parameters' {
+    It 'Validate that start scenario is working as expected on Windows without parameters' -Skip:($IsMacOS -or $IsLinux) {
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
 

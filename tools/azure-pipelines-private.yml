@@ -10,7 +10,7 @@ variables:
 resources:
   pipelines:
   - pipeline: PublicPipeline # $(triggeringPipelineAlias)
-    source: PowerShell.GuestConfiguration (Public)
+    source: PowerShell.GuestConfiguration.Public
     trigger:
       branches:
         - master

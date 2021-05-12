@@ -32,7 +32,7 @@ function Get-OSPlatform {
 $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
 $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 
-if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)') {
+if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration.Private') {
     $releaseBuild = $true
     write-host "AZ MOCKS: Az cmdlets are NOT mocked"
 }
@@ -382,7 +382,7 @@ describe 'Test Environment' {
             $firstPSModulePathFolder = ($Env:PSModulePath -split [io.path]::PathSeparator)[0]
             # Let build.ps1 manage the PSModulePath, and no need to copy as this is where the module is Built
 
-            $gcModulePath = Join-Path (Join-Path $firstPSModulePathFolder 'GuestConfiguration') 'GuestConfiguration.psd1'
+            $gcModulePath = Resolve-path (Get-SamplerBuiltModuleManifest -OutputDirectory output -ModuleName 'GuestConfiguration' -VersionedOutputDirector)
             Import-Module $gcModulePath -Force
             Write-ModuleInfo -ModuleName 'GuestConfiguration'
         }
@@ -482,7 +482,7 @@ describe 'Test Environment' {
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Inspec'
         New-TestDscConfiguration -DestinationFolderPath $TestDrive -Type 'Pester'
 
-        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration (Private)' -AND $false -eq $IsMacOS) {
+        if ($Env:BUILD_DEFINITIONNAME -eq 'PowerShell.GuestConfiguration.Private' -AND $false -eq $IsMacOS) {
             # TODO
             # Az PowerShell login from macOS currently has issue
             # https://github.com/microsoft/azure-pipelines-tasks/issues/12030

@@ -10,11 +10,10 @@ variables:
 resources:
   pipelines:
   - pipeline: PublicPipeline # $(triggeringPipelineAlias)
-    source: dsccommunity.MyModule
+    source: PowerShell.GuestConfiguration (Public)
     trigger:
       branches:
-        - privbuild
-        - f/newstructure
+        - master
 
 pool:
   vmImage: 'ubuntu 16.04'
@@ -44,15 +43,6 @@ stages:
               publishLocation: 'pipeline'
               parallel: true
 
-          - task: PkgESCodeSign@10
-            displayName: 'CodeSign'
-            env:
-              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-            inputs:
-              signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
-              inPathRoot: '$(Build.SourcesDirectory)'
-              outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
-
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Pipeline Artifact'
             inputs:
@@ -61,3 +51,5 @@ stages:
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
 
           - pwsh: gci .
+
+          # Test integration tests ./build.ps1 - tasks tests -PEterScript 3Path to integrated test

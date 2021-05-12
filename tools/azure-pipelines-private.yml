@@ -44,6 +44,15 @@ stages:
               publishLocation: 'pipeline'
               parallel: true
 
+          - task: PkgESCodeSign@10
+            displayName: 'CodeSign'
+            env:
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            inputs:
+              signConfigXml: '$(Build.SourcesDirectory)\tools\SignConfig.xml'
+              inPathRoot: '$(Build.SourcesDirectory)'
+              outPathRoot: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
+
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Pipeline Artifact'
             inputs:

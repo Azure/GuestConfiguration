@@ -61,3 +61,4 @@ stages:
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
 
           - pwsh: gci .
+  

@@ -52,4 +52,39 @@ stages:
 
           - pwsh: gci .
 
-          # Test integration tests ./build.ps1 - tasks tests -PEterScript 3Path to integrated test
+          - task: PowerShell@2
+            enabled: true
+            displayName: Enable Experimental Feature
+            inputs:
+              pwsh: true
+              targetType: inline
+              continueOnError: true
+              script: |
+                ./build.ps1 -Tasks noop
+                Import-Module GuestConfiguration
+                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
+                # Enable-ExperimentalFeature -Name PS7DscSupport
+                $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
+                Write-Host "Testing PS Config at '$userConfig'."
+                if (Test-Path -Path $userConfig)
+                {
+                    $config = Get-Content -Raw $userConfig | ConvertFrom-Json
+                    $config.ExperimentalFeatures += 'PS7DscSupport'
+                    Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
+                    Write-Host "PS Config updated at '$userConfig'."
+                    Get-Content -Raw $userConfig | Write-Host
+                }
+                else
+                {
+                    Write-Host "PowerShell Config not found at '$userConfig'."
+                }
+                Uninstall-AzureRm
+
+          - task: PowerShell@2
+            name: test
+            displayName: 'Run Integration Test'
+            inputs:
+              filePath: './build.ps1'
+              arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
+              pwsh: true

@@ -1,15 +1,16 @@
 BeforeDiscovery {
-    $script:projectPath = "$PSScriptRoot/../../.." | Convert-Path
-    $script:projectName = Get-SamplerProjectName -BuildRoot $script:projectPath
+    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
-    Get-Module $script:projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $script:importedModule = Import-Module $script:projectName -Force -PassThru -ErrorAction 'Stop'
-
-    $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
-    $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
+    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
+    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
-Context 'Install-GuestConfigurationPackage' {
+Describe 'Install-GuestConfigurationPackage' -ForEach @{
+    ProjectPath    = $projectPath
+    projectName    = $projectName
+    importedModule = $importedModule
+} {
     BeforeAll {
         # test Assets path
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
@@ -18,14 +19,14 @@ Context 'Install-GuestConfigurationPackage' {
     }
 
     It 'Validate that unzipping package is as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
-        { Install-GuestConfigurationPackage -Path $packagePath } | Should -Not -Throw
+        { Install-GuestConfigurationPackage -Path $packagePath -Force } | Should -Not -Throw
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }
     }
 
     It 'Validate that unzipping package is as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
-        { Install-GuestConfigurationPackage -Path $packagePath } | Should -Not -Throw
+        { Install-GuestConfigurationPackage -Path $packagePath -Force } | Should -Not -Throw
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }

@@ -33,7 +33,7 @@ function Get-GuestConfigurationPackageComplianceStatus
     {
         try
         {
-            if ($Package -as [uri] -or ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$'))
+            if (($Package -as [uri]).Scheme -match '^http' -or ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$'))
             {
                 $PackagePath = Install-GuestConfigurationPackage -Path $Package
             }

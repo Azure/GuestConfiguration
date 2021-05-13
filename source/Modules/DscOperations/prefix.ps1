@@ -22,6 +22,9 @@ namespace GuestConfig
         public static extern Int32 test_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
+        public static extern void start_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path, bool p_use_existing, bool p_force);
+
+        [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
         public static extern Int32 get_dsc_configuration(IntPtr context, string job_id, string assignment_name, string file_path);
 
         [DllImport("{0}", CharSet = CharSet.Ansi, SetLastError = true, CallingConvention = CallingConvention.StdCall)]
@@ -118,6 +121,49 @@ namespace GuestConfig
             }}
 
             return m_result;
+        }}
+
+        public void StartDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path, bool p_use_existing, bool p_force)
+        {{
+            IntPtr context = IntPtr.Zero;
+            try
+            {{
+                ClearMessages();
+
+                context = new_dsc_library_context(configuration_name, gc_bin_path, m_write_message_callback, m_write_error_callback, m_write_result_callback);
+                if(context == IntPtr.Zero)
+                {{
+                    ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", "Failed to initialize Guest Configuration library.", true));
+                }}
+
+
+                start_dsc_configuration(context, job_id, configuration_name, "", p_use_existing, p_force);
+                for (int i = 0; i < m_messages.Count; i++)
+                {{
+                    var message = m_messages[i];
+                    if(message.Item1 == MessageChannel.Error)
+                    {{
+                        ps_cmdlet.WriteError(CreateErrorRecord("StartGuestConfiguration", message.Item2, false));
+                    }}
+                    else if(message.Item1 == MessageChannel.Warning)
+                    {{
+                        ps_cmdlet.WriteWarning(message.Item2);
+                    }}
+                    else if(message.Item1 == MessageChannel.Debug)
+                    {{
+                        ps_cmdlet.WriteDebug(message.Item2);
+                    }}
+                    else
+                    {{
+                        ps_cmdlet.WriteVerbose(message.Item2);
+                    }}
+                }}
+            }}
+            finally
+            {{
+                delete_dsc_library_context(context);
+            }}
+
         }}
 
         public string GettDscConfiguration(PSCmdlet ps_cmdlet, string job_id, string configuration_name, string gc_bin_path)

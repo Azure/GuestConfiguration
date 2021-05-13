@@ -1,88 +1,114 @@
+
+<#
+    .SYNOPSIS
+        Starting to remediate a Guest Configuration policy package.
+
+    .Parameter Path
+        Relative/Absolute local path of the zipped Guest Configuration package.
+
+    .Parameter Parameter
+        Policy parameters.
+
+    .Parameter Force
+        Allows cmdlet to make changes on machine for remediation that cannot otherwise be changed.
+
+    .Example
+        Start-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Force
+
+        $Parameter = @(
+            @{
+                ResourceType = "MyFile"            # dsc configuration resource type (mandatory)
+                ResourceId = 'hi'       # dsc configuration resource property id (mandatory)
+                ResourcePropertyName = "Ensure"       # dsc configuration resource property name (mandatory)
+                ResourcePropertyValue = 'Present'     # dsc configuration resource property value (mandatory)
+            })
+
+        Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter -Force
+
+    .OUTPUTS
+        None.
+#>
+
 function Start-GuestConfigurationPackageRemediation
 {
     [CmdletBinding()]
-    [OutputType()]
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-        [System.Name]
-        $Package,
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Path,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
+        [Switch]
+        $Force,
+
+        [Parameter()]
         [Hashtable[]]
-        $Parameter = @()#,
-
-        # [Parameter()]
-        # [switch]
-        # $AsJob          # Stretch goal ;)
+        $Parameter = @()
     )
 
-    begin
-    {
-        # Determine if verbose is enabled to pass down to other functions
-        $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-        $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
-        $gcBinPath = Get-GuestConfigBinaryPath
-        $guestConfigurationPolicyPath = Get-GuestConfigPolicyPath
+    $osPlatform = Get-OSPlatform
 
-        # Unzip Guest Configuration binaries if missing
-        if (-not (Test-Path -Path $gcBinPath))
-        {
-            Install-GuestConfigurationAgent -verbose:$verbose
-            # We may want to be a bit more clever with checking which version is installed
-        }
+    if ($osPlatform -eq 'MacOS')
+    {
+        throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    process
+    if (-not (Test-Path -Path $Path -PathType Leaf))
     {
-        try
-        {
-            if ($Package -as [uri] -or ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$'))
-            {
-                $PackagePath = Install-GuestConfigurationPackage -Path $Package
-            }
-            else
-            {
-                Write-Debug -Message "The Package is the Package Name. It has to exist."
-                $PackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve -ErrorAction 'Stop'
-            }
-
-            $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
-            $dscDocument = Get-Item -Path (Join-Path -Path $PackagePath -ChildPath ('{0}.mof' -f $packageName)) -ErrorAction 'Stop'
-
-            if (-not $dscDocument)
-            {
-                throw "Invalid policy package, failed to find dsc document in policy package."
-            }
-
-            # update configuration parameters
-            if ($Parameter.Count -gt 0)
-            {
-                Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
-            }
-
-            # Publish policy package
-            Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
-
-            # Set LCM settings to force load powershell module.
-            $metaConfigPath = Join-Path -Path $PackagePath -ChildPath "$packageName.metaconfig.json"
-            Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-            Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
-
-
-            # Clear Inspec profiles
-            Remove-Item -Path $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
-
-            Start-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
-        }
-        finally
-        {
-            $env:PSModulePath = $systemPSModulePath
-        }
+        throw 'Invalid Guest Configuration package path : $($Path)'
     }
 
-    end
-    {
+    $verbose = ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
+    $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
 
+    try
+    {
+        # Install the package
+        $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$Force.IsPresent -ErrorAction 'Stop'
+
+        # The leaf part of the Path returned by Install-GCPackage will always be the BaseName of the MOF.
+        $packageName = Split-Path -Leaf -Path $packagePath
+
+        # Confirm mof exists
+        $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
+        $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
+        if (-not $dscDocument)
+        {
+            throw "Invalid Guest Configuration package, failed to find dsc document at $packageMof path."
+        }
+
+        # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
+        $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
+        if ($metaConfig.Type -ne "AuditAndSet")
+        {
+            throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"
+        }
+
+        # Update mof values
+        if ($Parameter.Count -gt 0)
+        {
+            Write-Debug -Message "Updating MOF with $($Parameter.Count) parameters."
+            Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
+        }
+
+        Write-Verbose -Message "Publishing policy package '$packageName' from '$packagePath'."
+        Publish-DscConfiguration -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
+
+        # Set LCM settings to force load powershell module.
+        $metaConfigPath = Join-Path -Path $packagePath -ChildPath "$packageName.metaconfig.json"
+        Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
+        Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
+        Write-Debug -Message "Setting 'LCM' configuratoin mode to ApplyAndMonitor."
+        Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'configurationMode' -Value 'ApplyAndMonitor'
+        Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
+
+        # Run Deploy/Remediation
+        Start-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose
+    }
+    finally
+    {
+        $env:PSModulePath = $systemPSModulePath
     }
 }

@@ -1,4 +1,3 @@
-
 <#
     .SYNOPSIS
         Installs a Guest Configuration policy package.
@@ -6,13 +5,16 @@
     .Parameter Path
         Full path of the zipped Guest Configuration package.
 
+    .Parameter Force
+        Force installing over an existing package, even if it already exists.
+
     .Example
         Install-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
 
         Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip
 
     .OUTPUTS
-        None
+        The path to the installed Guest Configuration package.
 #>
 
 function Install-GuestConfigurationPackage
@@ -21,10 +23,15 @@ function Install-GuestConfigurationPackage
     [OutputType([System.String])]
     param
     (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Path
+        [Alias('Package')]
+        $Path,
+
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [System.Management.Automation.SwitchParameter]
+        $Force
     )
 
     $osPlatform = Get-OSPlatform
@@ -39,41 +46,32 @@ function Install-GuestConfigurationPackage
         throw 'Invalid Guest Configuration package path : $($Path)'
     }
 
-    $verbose = $PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true)
+    $verbose = $VerbosePreference -ne 'SilentlyContinue' -or ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
+
+    # Unzip Guest Configuration binaries if missing
+    Install-GuestConfigurationAgent -verbose:$verbose
 
     try
     {
         # Create policy folder
         $Path = Resolve-Path -Path $Path
-        $policyPath = Join-Path -Path $(Get-GuestConfigPolicyPath) -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension($Path))
-        Remove-Item -Path $policyPath -Recurse -Force -ErrorAction SilentlyContinue
-        $null = New-Item -ItemType Directory -Force -Path $policyPath
+        $packageName = Get-GuestConfigurationPackageNameFromZip -Path $Path
+        $packagePath = Join-Path -Path $(Get-GuestConfigPolicyPath) -ChildPath $packageName
+        $isPackageAlreadyInstalled = (Test-Path -Path $packagePath) -and (Test-Path -Path (Join-Path -Path $packagePath -ChildPath "$PackageName.mof"))
 
-        # Unzip policy package
-        Expand-Archive -LiteralPath $Path -DestinationPath $policyPath
-
-        # Get policy name
-        $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
-        if (-not $dscDocument)
+        if ((-not $isPackageAlreadyInstalled) -or $Force.IsPresent)
         {
-            throw 'Invalid policy package, failed to find dsc document in policy package.'
+            Remove-Item -Path $packagePath -Recurse -Force -ErrorAction SilentlyContinue
+            $null = New-Item -ItemType Directory -Force -Path $packagePath
+            # Unzip policy package
+            Write-Verbose -Message "Unzipping the Guest Configuration Package to '$packagePath'."
+            Expand-Archive -LiteralPath $Path -DestinationPath $packagePath -ErrorAction Stop
         }
-
-        $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
-
-        # Unzip Guest Configuration binaries
-        $gcBinPath = Get-GuestConfigBinaryPath
-        $gcBinRootPath = Get-GuestConfigBinaryRootPath
-
-        # Unzip Guest Configuration binaries if missing
-        if (-not (Test-Path -Path $gcBinPath))
+        else
         {
-            Install-GuestConfigurationAgent -verbose:$verbose
+            Write-Verbose -Message "Package is already installed at '$packagePath', skipping install."
         }
-
-        # Publish policy package
-        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
 
         # Clear Inspec profiles
         Remove-Item -Path (Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
@@ -83,5 +81,5 @@ function Install-GuestConfigurationPackage
         $env:PSModulePath = $systemPSModulePath
     }
 
-    return $policyPath
+    return $packagePath
 }

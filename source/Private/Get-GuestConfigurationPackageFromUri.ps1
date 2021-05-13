@@ -6,7 +6,7 @@ function Get-GuestConfigurationPackageFromUri
     (
         [Parameter()]
         [Uri]
-        [ValidateScript({([Uri]$_).Scheme -match 'http'})]
+        [ValidateScript({([Uri]$_).Scheme -match '^http'})]
         [Alias('Url')]
         $Uri
     )

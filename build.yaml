@@ -6,6 +6,7 @@
 CopyPaths:
   - en-US
   - DscResources
+  - MonkeyPatch
 prefix: prefix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true
@@ -41,8 +42,10 @@ BuildWorkflow:
   download_gc_agents: |
     {
       $binPath = Join-Path -Path (Get-Item ./output/GuestConfiguration/*) -ChildPath 'bin'
-      New-Item -ItemType Directory -force -Path $binPath
-
+      New-Item -ItemType Directory -Force -Path $binPath
+      New-Item -ItemType Directory -Force -Path './source/gc_agents'
+      $localLinuxAgent =  './source/gc_agents/DSC_Linux.zip'
+      $localWindowsAgent = './source/gc_agents/DSC_Windows.zip'
       $GitHubPATPath = 'GHPAT.local.txt'
       if ($env:GitHubToken)
       {
@@ -52,16 +55,27 @@ BuildWorkflow:
       {
         $GHPAT = (gc -raw $GitHubPATPath).Trim()
       }
+      elseif ((Test-Path $localLinuxAgent) -and (Test-Path $localWindowsAgent))
+      {
+        Write-Warning "Using local versions of the agent available in './source/gc_agents'"
+      }
       else
       {
-        Write-Warning -Message "Can't download GC Agents."
+        Write-Warning -Message "Unable to download GC Agents."
         return
       }
-
-      $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.27.5.0).assets.Where{$_.Name -match 'GCService'}.id
-      $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.10.0).assets.Where{$_.Name -match 'AzureGCService_Linux-1.26.10.0.zip'}.id
-      Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $binPath/DSC_Windows.zip -Force
-      Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $binPath/DSC_Linux.zip -Force
+      if (-not (Test-Path $localWindowsAgent))
+      {
+          $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.29.17.0).assets.Where{$_.Name -match 'GCService'}.id
+          Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $localWindowsAgent -Force
+      }
+      if ( -not (Test-Path $localLinuxAgent))
+      {
+          $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.11.0).assets.Where{$_.Name -match 'AzureGCService_Linux-1.26.11.0.zip'}.id
+          Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $localLinuxAgent
+      }
+      Copy-Item -Path $localLinuxAgent -Destination $binPath
+      Copy-Item -Path $localWindowsAgent -Destination $binPath
     }
 
   build:

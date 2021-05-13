@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Pipeline and project structure updated to match DSC Community Projects.
+- Fixed casing of default parameter in generated policy, which caused issues on manual import
 
 ## [3.2.0] - 2021-02-23
 

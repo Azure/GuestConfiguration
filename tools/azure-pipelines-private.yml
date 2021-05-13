@@ -85,10 +85,10 @@ stages:
                 }
                 Uninstall-AzureRm
 
-          - task: PowerShell@2
-            name: test
-            displayName: 'Run Integration Test'
-            inputs:
-              filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
-              pwsh: true
+          # - task: PowerShell@2
+          #   name: test
+          #   displayName: 'Run Integration Test'
+          #   inputs:
+          #     filePath: './build.ps1'
+          #     arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
+          #     pwsh: true

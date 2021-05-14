@@ -20,6 +20,7 @@
 function Install-GuestConfigurationPackage
 {
     [CmdletBinding()]
+    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType([System.String])]
     param
     (

@@ -163,6 +163,7 @@ stages:
                 {
                     Write-Host "PowerShell Config not found at '$userConfig'."
                 }
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test
@@ -225,6 +226,7 @@ stages:
                 {
                     Write-Host "PowerShell Config not found at '$userConfig'."
                 }
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test

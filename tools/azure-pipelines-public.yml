@@ -147,6 +147,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 # Enable-ExperimentalFeature -Name PS7DscSupport
                 $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
@@ -209,6 +210,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 # Enable-ExperimentalFeature -Name PS7DscSupport
                 $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'

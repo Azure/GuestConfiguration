@@ -32,6 +32,8 @@
 function Start-GuestConfigurationPackageRemediation
 {
     [CmdletBinding()]
+    [Experimental('GuestConfiguration.SetScenario', 'Show')]
+    [OutputType()]
     param
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]

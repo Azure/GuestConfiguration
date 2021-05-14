@@ -60,6 +60,7 @@ function New-GuestConfigurationPackage
         $Path = '.',
 
         [Parameter()]
+        [Experimental('GuestConfiguration.SetScenario', 'Show')]
         [PackageType]
         $Type = 'Audit',
 

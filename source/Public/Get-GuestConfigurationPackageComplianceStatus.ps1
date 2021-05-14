@@ -1,6 +1,7 @@
 function Get-GuestConfigurationPackageComplianceStatus
 {
     [CmdletBinding()]
+    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType([PSCustomObject])]
     param
     (

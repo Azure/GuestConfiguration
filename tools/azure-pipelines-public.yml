@@ -147,6 +147,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 # Enable-ExperimentalFeature -Name PS7DscSupport
                 $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
@@ -163,7 +164,6 @@ stages:
                 {
                     Write-Host "PowerShell Config not found at '$userConfig'."
                 }
-                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test
@@ -210,6 +210,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 # Enable-ExperimentalFeature -Name PS7DscSupport
                 $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
@@ -226,7 +227,6 @@ stages:
                 {
                     Write-Host "PowerShell Config not found at '$userConfig'."
                 }
-                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test

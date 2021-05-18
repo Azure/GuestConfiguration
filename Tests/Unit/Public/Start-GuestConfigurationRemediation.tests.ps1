@@ -22,7 +22,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 
         # Contents of temp file
         $tempFileDefaultContents = 'foobar'
-        $tempWithParameterContents = 'barfooo'
+        $tempWithParameterContents = 'barfoo'
     }
 
     It 'Validate that start scenario is working as expected without parameters' {

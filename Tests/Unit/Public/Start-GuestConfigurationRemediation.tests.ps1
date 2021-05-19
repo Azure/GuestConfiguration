@@ -38,7 +38,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 
 
         # Run start, validate it does not throw
-        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force } | Should -Not -Throw
+        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force -Verbose } | Should -Not -Throw
 
         # Validate temp file exists
         Test-Path -Path $tempDefaultFile | Should -Be $True

@@ -83,6 +83,7 @@ function Start-GuestConfigurationPackageRemediation
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
         $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
+
         if ($metaConfig.Type -ne "AuditAndSet")
         {
             throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"
@@ -102,9 +103,12 @@ function Start-GuestConfigurationPackageRemediation
         $metaConfigPath = Join-Path -Path $packagePath -ChildPath "$packageName.metaconfig.json"
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-        Write-Debug -Message "Setting 'LCM' configuratoin mode to ApplyAndMonitor."
+        Write-Debug -Message "Setting 'LCM' configuration mode to ApplyAndMonitor."
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'configurationMode' -Value 'ApplyAndMonitor'
         Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
+
+        Write-Debug("micy: This is what mof looks like right now")
+        Write-Debug((Get-Content $dscDocument) | Out-String )
 
         # Run Deploy/Remediation
         Start-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose

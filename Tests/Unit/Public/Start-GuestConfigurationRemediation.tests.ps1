@@ -28,9 +28,14 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
     It 'Validate that start scenario is working as expected without parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
+        $VerbosePreference = 'Continue'
+        $DebugPreference = 'Continue'
+        $ProgressPreference = 'SilentlyContinue'
 
         Write-Debug("micy: This is what the env looks like right now")
         Write-Debug($Env:MyTestPath)
+
+
 
         # Run start, validate it does not throw
         { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force } | Should -Not -Throw

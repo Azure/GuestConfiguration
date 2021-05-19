@@ -107,8 +107,8 @@ function Start-GuestConfigurationPackageRemediation
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'configurationMode' -Value 'ApplyAndMonitor'
         Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
 
-        Write-Debug("micy: This is what mof looks like right now")
-        Write-Debug((Get-Content $dscDocument) | Out-String )
+        Write-Verbose("micy: This is what mof looks like right now")
+        Write-Verbose((Get-Content $dscDocument) | Out-String )
 
         # Run Deploy/Remediation
         Start-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose

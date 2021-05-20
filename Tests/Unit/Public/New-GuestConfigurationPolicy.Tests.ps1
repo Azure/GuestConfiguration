@@ -77,7 +77,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
 
     # AINE Tests
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
-        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
         Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
 
@@ -87,7 +88,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Generated Audit policy file should exist' {
-        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+        $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
 
         $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
@@ -95,7 +98,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Audit policy should contain expected content' {
-        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
+        [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+        $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
         $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyAINEParametersWindows.DisplayName) | Should -BeTrue
         $auditPolicyContentWindows.properties.description.Contains($newGCPolicyAINEParametersWindows.Description) | Should -BeTrue

@@ -35,6 +35,9 @@ function New-GuestConfigurationDeployPolicyDefinition
         [String]
         $ContentHash,
 
+        [AssignmentType]
+        $AssignmentType,
+
         [Parameter(Mandatory = $true)]
         [String]
         $ReferenceId,
@@ -207,10 +210,11 @@ function New-GuestConfigurationDeployPolicyDefinition
             location   = "[parameters('location')]"
             properties = [Ordered]@{
                 guestConfiguration = [Ordered]@{
-                    name        = "[parameters('configurationName')]"
-                    contentUri  = "[parameters('contentUri')]"
-                    contentHash = "[parameters('contentHash')]"
-                    version     = $ConfigurationVersion.ToString()
+                    name            = "[parameters('configurationName')]"
+                    contentUri      = "[parameters('contentUri')]"
+                    contentHash     = "[parameters('contentHash')]"
+                    assignmentType  = "[parameters('assignmentType')]"
+                    version         = $ConfigurationVersion.ToString()
                 }
             }
             condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
@@ -225,6 +229,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                     name        = "[parameters('configurationName')]"
                     contentUri  = "[parameters('contentUri')]"
                     contentHash = "[parameters('contentHash')]"
+                    assignmentType  = "[parameters('assignmentType')]"
                     version     = $ConfigurationVersion.ToString()
                 }
             }

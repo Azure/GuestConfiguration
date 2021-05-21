@@ -1,6 +1,33 @@
+
 <#
     .SYNOPSIS
         Creates a new policy for guest configuration.
+
+    .PARAMETER PolicyFolderPath
+        Folder where policy exists.
+
+    .PARAMETER PolicyInfo
+        Policy information.
+
+    .EXAMPLE
+        $PolicyInfo = @{
+            FileName                 = $FileName
+            DisplayName              = $DisplayName
+            Description              = $Description
+            Platform                 = $Platform
+            ConfigurationName        = $policyName
+            ConfigurationVersion     = $Version
+            ContentUri               = $ContentUri
+            ContentHash              = $contentHash
+            AssignmentType           = $Mode
+            ReferenceId              = "Deploy_$policyName"
+            ParameterInfo            = $ParameterInfo
+            UseCertificateValidation = $packageIsSigned
+            Category                 = $Category
+            Tag                      = $Tag
+        }
+        New-GuestConfigurationPolicyDefinition -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo
+
 #>
 function New-GuestConfigurationPolicyDefinition
 {

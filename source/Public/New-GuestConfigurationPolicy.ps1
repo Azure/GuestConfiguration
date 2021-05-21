@@ -100,8 +100,7 @@ function New-GuestConfigurationPolicy
         $Platform = 'Windows',
 
         [Parameter()]
-        [ValidateSet('DeployAndAutoCorrect', 'DeployOnceAndMonitor', 'MonitorOnly')]
-        [System.String]
+        [AssignmentType]
         $Mode = 'MonitorOnly',
 
         [Parameter()]
@@ -172,6 +171,7 @@ function New-GuestConfigurationPolicy
             ConfigurationVersion     = $Version
             ContentUri               = $ContentUri
             ContentHash              = $contentHash
+            AssignmentType           = $Mode
             ReferenceId              = "Deploy_$policyName"
             ParameterInfo            = $ParameterInfo
             UseCertificateValidation = $packageIsSigned

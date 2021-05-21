@@ -47,6 +47,9 @@ function New-GuestConfigurationAuditPolicyDefinition
         [String]
         $ContentHash,
 
+        [AssignmentType]
+        $AssignmentType,
+
         [Parameter()]
         [bool]
         $UseCertificateValidation = $false,

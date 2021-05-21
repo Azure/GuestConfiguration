@@ -156,17 +156,10 @@ function New-GuestConfigurationPolicy
         $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
-        # Determine if policy is AINE or DINE
-        if ($Mode -eq "Audit")
-        {
-            $FileName = 'AuditIfNotExists.json'
-        }
-        else {
-            $FileName = 'DeployIfNotExists.json'
-        }
-
+        # Design 2: Create a PolicyInfo and change file name as needed. Use File name to determine what type of file it is later on.
+        # TODO: Determine if AINE or DINE
         $PolicyInfo = @{
-            FileName                 = $FileName
+            FileName                 = 'AuditIfNotExists.json'
             DisplayName              = $DisplayName
             Description              = $Description
             Platform                 = $Platform
@@ -181,7 +174,7 @@ function New-GuestConfigurationPolicy
             Category                 = $Category
             Tag                      = $Tag
         }
-
+        # TODO: Potentially change name of parameter
         $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo -Verbose:$verbose
 
         [pscustomobject]@{

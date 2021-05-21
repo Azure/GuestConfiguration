@@ -40,6 +40,7 @@ function New-GuestConfigurationPolicyDefinition
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
+        # TODO Rename this?
         $PolicyInfo
     )
 
@@ -52,16 +53,19 @@ function New-GuestConfigurationPolicyDefinition
 
     $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
 
+    # Determine DINE or AINE
     if ($PolicyInfo.FileName -eq 'DeployIfNotExists.json')
     {
-        foreach ($currentDeployPolicyInfo in $PolicyInfo)
-        {
-            $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
-            New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
-        }
+        # DINE:
+        # foreach ($currentDeployPolicyInfo in $PolicyInfo)
+        # {
+        #     $currentDeployPolicyInfo['FoslderPath'] = $PolicyFolderPath
+        #     New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
+        # }
     }
     else
     {
+        # AINE:
         foreach ($currentAuditPolicyInfo in $PolicyInfo)
         {
             $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath

@@ -57,11 +57,11 @@ function New-GuestConfigurationPolicyDefinition
     if ($PolicyInfo.FileName -eq 'DeployIfNotExists.json')
     {
         # DINE:
-        # foreach ($currentDeployPolicyInfo in $PolicyInfo)
-        # {
-        #     $currentDeployPolicyInfo['FoslderPath'] = $PolicyFolderPath
-        #     New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
-        # }
+        foreach ($currentDeployPolicyInfo in $PolicyInfo)
+        {
+            $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
+            New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
+        }
     }
     else
     {

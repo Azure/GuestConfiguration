@@ -105,6 +105,27 @@ function New-GuestConfigurationDeployPolicyDefinition
         defaultValue  = 'False'
     }
 
+    # Add Arc machines
+    $ParameterDefinitions = @{ }
+
+    # Do we need this? We are missing corresponding functions for DINE
+    if ($null -ne $ParameterInfo)
+    {
+        # $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitionsDINE $ParameterInfo
+    }
+
+    $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
+        type          = "string"
+        metadata      = [Ordered]@{
+            displayName = 'Include Arc connected servers'
+            description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        }
+
+        allowedValues = @('True', 'False')
+        defaultValue  = 'False'
+    }
+
     $deployPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName

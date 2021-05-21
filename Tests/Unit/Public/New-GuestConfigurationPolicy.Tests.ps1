@@ -61,7 +61,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            Mode        = 'ApplyAndMonitor'
+            Mode        = 'DeployOnceAndMonitor'
         }
 
         $newGCPolicyDINEParametersLinux = @{
@@ -71,13 +71,13 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            Mode        = 'ApplyAndMonitor'
+            Mode        = 'DeployOnceAndMonitor'
         }
     }
 
     # AINE Tests
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
-        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
+        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
         Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
 
@@ -87,8 +87,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Generated Audit policy file should exist' {
-
-        $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
+        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
 
         $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
@@ -96,8 +95,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Audit policy should contain expected content' {
-
-        $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
+        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
         $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyAINEParametersWindows.DisplayName) | Should -BeTrue
         $auditPolicyContentWindows.properties.description.Contains($newGCPolicyAINEParametersWindows.Description) | Should -BeTrue
@@ -117,7 +115,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     # DINE Tests
-    It 'New-GuestConfigurationPolicy -Type ApplyAndMonitor should output path to generated policies' {
+    It 'New-GuestConfigurationPolicy -Type DeployAndMonitor should output path to generated policies' {
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
         Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue

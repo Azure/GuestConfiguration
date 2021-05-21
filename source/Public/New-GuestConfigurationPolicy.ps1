@@ -103,8 +103,9 @@ function New-GuestConfigurationPolicy
         $Platform = 'Windows',
 
         [Parameter()]
-        [AssignmentType]
-        $Mode = 'Audit',
+        [ValidateSet('DeployAndAutoCorrect', 'DeployOnceAndMonitor', 'MonitorOnly')]
+        [System.String]
+        $Mode = 'MonitorOnly',
 
         [Parameter()]
         [System.Collections.Hashtable[]]
@@ -158,8 +159,19 @@ function New-GuestConfigurationPolicy
 
         # Design 2: Create a PolicyInfo and change file name as needed. Use File name to determine what type of file it is later on.
         # TODO: Determine if AINE or DINE
+        # Determine if policy is AINE or DINE
+        $metaconfigContents = Get-GuestConfigurationPackageMetaConfig -PackagePath $policyDefinitionsPath
+        if ($metaconfigContents.Type -eq "AuditAndSet")
+        {
+            $FileName = 'DeployIfNotExists.json'
+        }
+        else
+        {
+            $FileName = 'AuditIfNotExists.json'
+        }
+
         $PolicyInfo = @{
-            FileName                 = 'AuditIfNotExists.json'
+            FileName                 = $FileName
             DisplayName              = $DisplayName
             Description              = $Description
             Platform                 = $Platform
@@ -174,7 +186,7 @@ function New-GuestConfigurationPolicy
             Category                 = $Category
             Tag                      = $Tag
         }
-        # TODO: Potentially change name of parameter
+
         $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo -Verbose:$verbose
 
         [pscustomobject]@{

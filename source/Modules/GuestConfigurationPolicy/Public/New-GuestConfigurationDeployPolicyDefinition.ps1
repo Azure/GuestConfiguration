@@ -76,6 +76,27 @@ function New-GuestConfigurationDeployPolicyDefinition
 
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
 
+    # Add Arc machines
+    $ParameterDefinitions = @{ }
+
+    # Do we need this? We are missing corresponding functions for DINE
+    if ($null -ne $ParameterInfo)
+    {
+        # $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitionsDINE $ParameterInfo
+    }
+
+    $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
+        type          = "string"
+        metadata      = [Ordered]@{
+            displayName = 'Include Arc connected servers'
+            description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        }
+
+        allowedValues = @('True', 'False')
+        defaultValue  = 'False'
+    }
+
     $deployPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
@@ -88,6 +109,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                     'Microsoft.GuestConfiguration'
                 )
             }
+            parameters  = $ParameterDefinitions
         }
     }
 
@@ -103,7 +125,11 @@ function New-GuestConfigurationDeployPolicyDefinition
                     )
                 },
                 [Ordered]@{
-                    allOf = @(,
+                    allOf = @(
+                        [Ordered]@{
+                            value  = "[parameters('IncludeArcMachines')]"
+                            equals = "true"
+                        },
                         [Ordered]@{
                             field  = "type"
                             equals = "Microsoft.HybridCompute/machines"

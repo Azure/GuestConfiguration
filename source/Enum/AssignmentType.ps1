@@ -1,6 +1,6 @@
 enum AssignmentType
 {
-    ApplyAndAutoCorrect
-    ApplyAndMonitor
-    Audit
+    DeployAndAutoCorrect
+    DeployOnceAndMonitor
+    MonitorOnly
 }

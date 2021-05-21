@@ -240,11 +240,10 @@ function New-GuestConfigurationDeployPolicyDefinition
             properties = [Ordered]@{
                 guestConfiguration = [Ordered]@{
                     name            = "[parameters('configurationName')]"
-                    version         = $ConfigurationVersion
                     contentUri      = "[parameters('contentUri')]"
                     contentHash     = "[parameters('contentHash')]"
                     assignmentType  = "[parameters('assignmentType')]"
-                    configurationParameter = $ParameterMapping
+                    version         = $ConfigurationVersion.ToString()
                 }
             }
         }
@@ -261,8 +260,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                     contentUri  = "[parameters('contentUri')]"
                     contentHash = "[parameters('contentHash')]"
                     assignmentType  = "[parameters('assignmentType')]"
-                    version     = $ConfigurationVersion
-                    configurationParameter = $ParameterMapping
+                    version     = $ConfigurationVersion.ToString()
                 }
             }
         }

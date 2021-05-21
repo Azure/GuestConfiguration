@@ -114,12 +114,12 @@ function New-GuestConfigurationPolicy
         $unzippedPkgPath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp'
         $tempContentPackageFilePath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp.zip'
 
-        # update parameter info
+        # Update parameter info
         $ParameterInfo = Update-PolicyParameter -Parameter $Parameter
 
         $null = New-Item -ItemType Directory -Force -Path $policyDefinitionsPath
 
-        # Check if ContentUri is a valid web Uri
+        # Check if ContentUri is a valid web URI
         if (-not ($null -ne $ContentUri.AbsoluteURI -and $ContentUri.Scheme -match '[http|https]'))
         {
             throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
@@ -149,7 +149,9 @@ function New-GuestConfigurationPolicy
         $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
-        $AuditIfNotExistsInfo = @{
+        # Design 2: Create a PolicyInfo and change file name as needed. Use File name to determine what type of file it is later on.
+        # TODO: Determine if AINE or DINE
+        $PolicyInfo = @{
             FileName                 = 'AuditIfNotExists.json'
             DisplayName              = $DisplayName
             Description              = $Description
@@ -164,8 +166,8 @@ function New-GuestConfigurationPolicy
             Category                 = $Category
             Tag                      = $Tag
         }
-
-        $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose
+        # TODO: Potentially change name of parameter
+        $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo -Verbose:$verbose
 
         [pscustomobject]@{
             PSTypeName = 'GuestConfiguration.Policy'

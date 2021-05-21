@@ -13,7 +13,8 @@ function New-GuestConfigurationPolicyDefinition
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditIfNotExistsInfo
+        # TODO Rename this?
+        $PolicyInfo
     )
 
     Write-Verbose -Message "Creating new Guest Configuration Policy to '$PolicyFolderPath'."
@@ -25,9 +26,23 @@ function New-GuestConfigurationPolicyDefinition
 
     $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
 
-    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo)
+    # Determine DINE or AINE
+    if ($PolicyInfo.FileName -eq 'DeployIfNotExists.json')
     {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        # DINE:
+        # foreach ($currentDeployPolicyInfo in $PolicyInfo)
+        # {
+        #     $currentDeployPolicyInfo['FoslderPath'] = $PolicyFolderPath
+        #     New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
+        # }
+    }
+    else
+    {
+        # AINE:
+        foreach ($currentAuditPolicyInfo in $PolicyInfo)
+        {
+            $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+            New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        }
     }
 }

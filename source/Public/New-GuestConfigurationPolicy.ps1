@@ -157,10 +157,7 @@ function New-GuestConfigurationPolicy
         $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
-        # Design 2: Create a PolicyInfo and change file name as needed. Use File name to determine what type of file it is later on.
-        # TODO: Determine if AINE or DINE
         # Determine if policy is AINE or DINE
-
         if ($Mode -eq "MonitorOnly")
         {
             $FileName = 'AuditIfNotExists.json'
@@ -168,7 +165,6 @@ function New-GuestConfigurationPolicy
         else {
             $FileName = 'DeployIfNotExists.json'
         }
-
 
         $PolicyInfo = @{
             FileName                 = $FileName

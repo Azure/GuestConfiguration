@@ -104,7 +104,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [AssignmentType]
-        $Mode = 'MonitorOnly',
+        $Mode = 'Audit',
 
         [Parameter()]
         [System.Collections.Hashtable[]]
@@ -157,7 +157,7 @@ function New-GuestConfigurationPolicy
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
         # Determine if policy is AINE or DINE
-        if ($Mode -eq "MonitorOnly")
+        if ($Mode -eq "Audit")
         {
             $FileName = 'AuditIfNotExists.json'
         }

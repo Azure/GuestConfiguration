@@ -61,7 +61,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            Mode        = 'DeployOnceAndMonitor'
+            Mode        = 'ApplyAndMonitor'
         }
 
         $newGCPolicyDINEParametersLinux = @{
@@ -71,7 +71,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            Mode        = 'DeployOnceAndMonitor'
+            Mode        = 'ApplyAndMonitor'
         }
     }
 
@@ -115,7 +115,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     # DINE Tests
-    It 'New-GuestConfigurationPolicy -Type DeployAndMonitor should output path to generated policies' {
+    It 'New-GuestConfigurationPolicy -Type ApplyAndMonitor should output path to generated policies' {
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
         Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue

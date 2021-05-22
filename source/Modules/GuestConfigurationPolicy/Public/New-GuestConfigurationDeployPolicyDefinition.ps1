@@ -107,14 +107,6 @@ function New-GuestConfigurationDeployPolicyDefinition
 
     # Add Arc machines
     $ParameterDefinitions = @{ }
-
-    # Do we need this? We are missing corresponding functions for DINE
-    if ($null -ne $ParameterInfo)
-    {
-        # $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitionsDINE $ParameterInfo
-    }
-
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
         type          = "string"
         metadata      = [Ordered]@{
@@ -126,6 +118,11 @@ function New-GuestConfigurationDeployPolicyDefinition
         defaultValue  = 'False'
     }
 
+    $existenceConditionList = [Ordered]@{
+        allOf = [System.Collections.ArrayList]@()
+    }
+
+
     $deployPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
             displayName = $DisplayName
@@ -133,11 +130,18 @@ function New-GuestConfigurationDeployPolicyDefinition
             mode        = 'Indexed'
             description = $Description
             metadata    = [Ordered]@{
-                version = $ConfigurationVersion
+                version = $ConfigurationVersion.ToString()
                 category          = $Category
                 requiredProviders = @(
                     'Microsoft.GuestConfiguration'
                 )
+                guestConfiguration = [Ordered]@{
+                    name                   = $ConfigurationName
+                    version                = $ConfigurationVersion
+                    contentType            = "Custom"
+                    contentUri             = $ContentUri
+                    contentHash            = $ContentHash
+                }
             }
             parameters  = $ParameterDefinitions
         }
@@ -428,6 +432,25 @@ function New-GuestConfigurationDeployPolicyDefinition
                 like  = 'windows*'
             }
         )
+
+        # $guestConfigurationExtensionHashtable = [Ordered]@{
+        #     apiVersion = '2015-05-01-preview'
+        #     name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
+        #     type       = 'Microsoft.Compute/virtualMachines/extensions'
+        #     location   = "[parameters('location')]"
+        #     properties = [Ordered]@{
+        #         publisher               = 'Microsoft.GuestConfiguration'
+        #         type                    = 'ConfigurationforWindows'
+        #         typeHandlerVersion      = '1.1'
+        #         autoUpgradeMinorVersion = $true
+        #         settings                = @{ }
+        #         protectedSettings       = @{ }
+        #     }
+        #     dependsOn  = @(
+        #         "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
+        #     )
+        #     condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+        # }
     }
     elseif ($Platform -ieq 'Linux')
     {
@@ -666,6 +689,22 @@ function New-GuestConfigurationDeployPolicyDefinition
             }
         )
 
+        # $guestConfigurationExtensionHashtable = [Ordered]@{
+        #     apiVersion = '2015-05-01-preview'
+        #     name       = "[concat(parameters('vmName'), '/AzurePolicyforLinux')]"
+        #     type       = 'Microsoft.Compute/virtualMachines/extensions'
+        #     location   = "[parameters('location')]"
+        #     properties = [Ordered]@{
+        #         publisher               = 'Microsoft.GuestConfiguration'
+        #         type                    = 'ConfigurationforLinux'
+        #         typeHandlerVersion      = '1.0'
+        #         autoUpgradeMinorVersion = $true
+        #     }
+        #     dependsOn  = @(
+        #         "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
+        #     )
+        #     condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+        # }
     }
     else
     {
@@ -770,21 +809,51 @@ function New-GuestConfigurationDeployPolicyDefinition
         }
     }
 
-    # Existence Condition section
-    $existenceConditionList['allOf'].Add([Ordered]@{
+
+    # $existenceConditionList = [Ordered]@{
+    #     allOf = [System.Collections.ArrayList]@()
+    # }
+    # $existenceConditionList['allOf'].Add([Ordered]@{
+    #     field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+    #     equals = 'Compliant'
+    # })
+    # if ($null -ne $ParameterInfo)
+    # {
+    #     $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
+    #     $existenceConditionList['allOf'].Add($parametersExistenceCondition)
+    # }
+    # $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
+    $existenceConditionList += [Ordered]@{
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/contentHash'
         equals = "$ContentHash"
-    })
+    }
     $existenceConditionList['allOf'].Add([Ordered]@{
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
         equals = 'Compliant'
     })
-
-    $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
+    $policyRuleHashtable['then']['details']['existenceCondition'] = [Ordered]@{
+        allOf = $existenceConditionList
+    }
 
     # Deployment Section
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
+
+    # $systemAssignedHashtable = [Ordered]@{
+    #     apiVersion = '2019-07-01'
+    #     type       = 'Microsoft.Compute/virtualMachines'
+    #     identity   = [Ordered]@{
+    #         type = 'SystemAssigned'
+    #     }
+    #     name       = "[parameters('vmName')]"
+    #     location   = "[parameters('location')]"
+    #     condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+    # }
+
+    # $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
+
+    # $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
+
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
     $deployPolicyContentHashtable += [Ordered]@{

@@ -133,7 +133,7 @@ function New-GuestConfigurationPolicy
         }
 
         # Generate checksum hash for policy content.
-        Invoke-WebRequest -Uri $ContentUri -OutFile $tempContentPackageFilePath -SslProtocol Tls12
+        Invoke-WebRequest -Uri $ContentUri -OutFile $tempContentPackageFilePath
         $tempContentPackageFilePath = Resolve-Path $tempContentPackageFilePath
         $contentHash = (Get-FileHash $tempContentPackageFilePath -Algorithm SHA256).Hash
         Write-Verbose "SHA256 Hash for content '$ContentUri' : $contentHash."

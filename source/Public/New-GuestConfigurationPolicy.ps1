@@ -25,6 +25,9 @@
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Mode
+        Defines whether or not the policy is Audit or Deploy. Acceptable values: Audit, ApplyAndAutoCorrect, or ApplyAndMonitor. Audit is the default mode.
+
     .Parameter Tag
         The name and value of a tag used in Azure.
 
@@ -101,7 +104,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [AssignmentType]
-        $Mode = 'MonitorOnly',
+        $Mode = 'Audit',
 
         [Parameter()]
         [System.Collections.Hashtable[]]
@@ -154,7 +157,7 @@ function New-GuestConfigurationPolicy
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
         # Determine if policy is AINE or DINE
-        if ($Mode -eq "MonitorOnly")
+        if ($Mode -eq "Audit")
         {
             $FileName = 'AuditIfNotExists.json'
         }

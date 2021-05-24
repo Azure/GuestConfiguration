@@ -28,10 +28,7 @@ function Publish-GuestConfigurationPolicy
     Write-Verbose -Message "Publishing Guest Configuration policy using '$($rmContext.Name)' AzContext."
 
     # Publish policies
-    $currentFiles = @(Get-ChildItem $Path | Where-Object -FilterScript {
-        $_.name -like "DeployIfNotExists.json" -or $_.name -like "AuditIfNotExists.json"
-    })
-
+    $currentFiles = Get-ChildItem $Path | where {$_.name -like "DeployIfNotExists.json" -or $_.name -like "AuditIfNotExists.json"}
     if ($currentFiles.Count -eq 0)
     {
         throw "No valid AuditIfNotExists.json or DeployIfNotExists.json files found at $Path"

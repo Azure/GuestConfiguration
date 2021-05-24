@@ -831,9 +831,7 @@ function New-GuestConfigurationDeployPolicyDefinition
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
         equals = 'Compliant'
     })
-    $policyRuleHashtable['then']['details']['existenceCondition'] = [Ordered]@{
-        allOf = $existenceConditionList
-    }
+    $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 
     # Deployment Section
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable

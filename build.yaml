@@ -127,8 +127,8 @@ Pester:
       Verbosity:
     CodeCoverage:
       Path:
-      OutputFormat: JaCoCo
-      CoveragePercentTarget: 0.1
+      OutputFormat: NUnitXML
+      CoveragePercentTarget: 0
       OutputPath: JaCoCo_coverage.xml
 
 DscTest:

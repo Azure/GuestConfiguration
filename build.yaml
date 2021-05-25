@@ -128,8 +128,8 @@ Pester:
     CodeCoverage:
       Path:
       OutputFormat: JaCoCo
-      CoveragePercentTarget: 0.1
-      OutputPath: JaCoCo_coverage.xml
+      CoveragePercentTarget: 45
+      OutputPath:
 
 DscTest:
   ExcludeTagFilter:

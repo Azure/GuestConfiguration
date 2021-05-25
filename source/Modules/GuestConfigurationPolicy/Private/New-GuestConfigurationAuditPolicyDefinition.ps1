@@ -90,8 +90,8 @@ function New-GuestConfigurationAuditPolicyDefinition
 
     if ($null -ne $ParameterInfo)
     {
-        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitions $ParameterInfo
+        $ParameterMapping = Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinitions -ParameterInfo $ParameterInfo
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{

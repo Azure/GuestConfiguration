@@ -21,7 +21,7 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
     It 'Validate output contents' -Skip:($IsLinux -or $IsMacOS) {
         inModuleScope -ModuleName GuestConfiguration {
             inModuleScope -ModuleName GuestConfigurationPolicy {
-
+                # Calculate actual output
                 $Parameter = @(
                     @{
                         Name = 'ensure'
@@ -51,9 +51,9 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
                         DefaultValue = 'Example content'
                     })
                 $ParameterInfo = Update-PolicyParameter -Parameter $Parameter
-                $actualOutput = ( Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo ) | ConvertTo-Json
-                # $actualOutput | Should -be $correctOutput
-                Write-Output $actualOutput
+                $actualOutput = ( Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo )
+
+                # Expected output
                 $expectedOutput = @(
                     @{
                         'name'= "[MyFile]createFoobarTestFile;path"
@@ -67,11 +67,27 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
                         'name'= "[MyFile]createFoobarTestFile;content"
                         'value'= "[parameters('content')]"
                     }
-                ) | ConvertTo-Json
-                write-output $expectedOutput
-                $actualOutput  | Should -Be $expectedOutput
-                # Assert-Equivalent -Actual ($actualOutput)  -Expected ($expectedOutput)
+                )
 
+                # Comapare expected output to actual output
+                $actualOutputArray = @()
+                foreach ($object in $actualOutput)
+                {
+                    Write-Verbose "output $($object | ConvertTo-Json -Compress | Out-String)"
+                    $actualOutputArray += $object | ConvertTo-Json -Compress | Out-String
+                }
+
+                $expectedOutputArray = @()
+                foreach ($object in $expectedOutput)
+                {
+                    Write-Verbose "output $($object | ConvertTo-Json -Compress | Out-String)"
+                    $expectedOutputArray += $object | ConvertTo-Json -Compress | Out-String
+                }
+
+                $diff = @()
+                $diff += ($expectedOutputArray | ?{$actualOutputArray -notcontains $_})
+                $diff += ($actualOutputArray | ?{$expectedOutputArray -notcontains $_})
+                $diff.Count | Should -Be 0
             }
         }
     }

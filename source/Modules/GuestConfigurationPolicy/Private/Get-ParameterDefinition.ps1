@@ -4,7 +4,7 @@
     .PARAMETER ParameterInfo
         A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
 #>
-function Get-ParameterDefinitions
+function Get-ParameterDefinition
 {
     [CmdletBinding()]
     param

@@ -91,7 +91,7 @@ function New-GuestConfigurationDeployPolicyDefinition
     if ($null -ne $ParameterInfo)
     {
         $ParameterMapping = Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitions -ParameterInfo $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{

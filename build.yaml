@@ -128,7 +128,7 @@ Pester:
     CodeCoverage:
       Path:
       OutputFormat: NUnitXML
-      CoveragePercentTarget: 0
+      CoveragePercentTarget: 0.1
       OutputPath: JaCoCo_coverage.xml
 
 DscTest:

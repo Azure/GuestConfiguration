@@ -47,6 +47,9 @@ function New-GuestConfigurationAuditPolicyDefinition
         [String]
         $ContentHash,
 
+        [AssignmentType]
+        $AssignmentType,
+
         [Parameter()]
         [bool]
         $UseCertificateValidation = $false,
@@ -87,8 +90,8 @@ function New-GuestConfigurationAuditPolicyDefinition
 
     if ($null -ne $ParameterInfo)
     {
-        $ParameterMapping = Get-ParameterMappingForAINE $ParameterInfo
-        $ParameterDefinitions = Get-ParameterDefinitionsAINE $ParameterInfo
+        $ParameterMapping = Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{

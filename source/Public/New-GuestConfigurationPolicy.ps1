@@ -25,6 +25,9 @@
         Target platform (Windows/Linux) for Guest Configuration policy and content package.
         Windows is the default platform.
 
+    .Parameter Mode
+        Defines whether or not the policy is Audit or Deploy. Acceptable values: Audit, ApplyAndAutoCorrect, or ApplyAndMonitor. Audit is the default mode.
+
     .Parameter Tag
         The name and value of a tag used in Azure.
 
@@ -100,6 +103,10 @@ function New-GuestConfigurationPolicy
         $Platform = 'Windows',
 
         [Parameter()]
+        [AssignmentType]
+        $Mode = 'Audit',
+
+        [Parameter()]
         [System.Collections.Hashtable[]]
         $Tag
     )
@@ -114,12 +121,12 @@ function New-GuestConfigurationPolicy
         $unzippedPkgPath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp'
         $tempContentPackageFilePath = Join-Path -Path $policyDefinitionsPath -ChildPath 'temp.zip'
 
-        # update parameter info
+        # Update parameter info
         $ParameterInfo = Update-PolicyParameter -Parameter $Parameter
 
         $null = New-Item -ItemType Directory -Force -Path $policyDefinitionsPath
 
-        # Check if ContentUri is a valid web Uri
+        # Check if ContentUri is a valid web URI
         if (-not ($null -ne $ContentUri.AbsoluteURI -and $ContentUri.Scheme -match '[http|https]'))
         {
             throw "Invalid ContentUri : $ContentUri. Please specify a valid http URI in -ContentUri parameter."
@@ -149,8 +156,17 @@ function New-GuestConfigurationPolicy
         $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
             (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 
-        $AuditIfNotExistsInfo = @{
-            FileName                 = 'AuditIfNotExists.json'
+        # Determine if policy is AINE or DINE
+        if ($Mode -eq "Audit")
+        {
+            $FileName = 'AuditIfNotExists.json'
+        }
+        else {
+            $FileName = 'DeployIfNotExists.json'
+        }
+
+        $PolicyInfo = @{
+            FileName                 = $FileName
             DisplayName              = $DisplayName
             Description              = $Description
             Platform                 = $Platform
@@ -158,6 +174,7 @@ function New-GuestConfigurationPolicy
             ConfigurationVersion     = $Version
             ContentUri               = $ContentUri
             ContentHash              = $contentHash
+            AssignmentType           = $Mode
             ReferenceId              = "Deploy_$policyName"
             ParameterInfo            = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
@@ -165,7 +182,7 @@ function New-GuestConfigurationPolicy
             Tag                      = $Tag
         }
 
-        $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -AuditIfNotExistsInfo $AuditIfNotExistsInfo -Verbose:$verbose
+        $null = New-CustomGuestConfigPolicy -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo -Verbose:$verbose
 
         [pscustomobject]@{
             PSTypeName = 'GuestConfiguration.Policy'

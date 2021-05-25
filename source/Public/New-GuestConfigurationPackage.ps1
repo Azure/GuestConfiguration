@@ -69,6 +69,11 @@ function New-GuestConfigurationPackage
         $Force
     )
 
+    if (-not (Get-Variable -Name Type -ErrorAction SilentlyContinue))
+    {
+        $Type = 'Audit'
+    }
+
     $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
     $stagingPackagePath = Join-Path -Path (Join-Path -Path $Path -ChildPath $Name) -ChildPath 'unzippedPackage'
     $unzippedPackageDirectory = New-Item -ItemType Directory -Force -Path $stagingPackagePath

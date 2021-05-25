@@ -24,7 +24,7 @@ function New-GuestConfigurationDeployPolicyDefinition
         $ConfigurationName,
 
         [Parameter(Mandatory = $true)]
-        [version]
+        [String]
         $ConfigurationVersion,
 
         [Parameter(Mandatory = $true)]
@@ -34,6 +34,9 @@ function New-GuestConfigurationDeployPolicyDefinition
         [Parameter(Mandatory = $true)]
         [String]
         $ContentHash,
+
+        [AssignmentType]
+        $AssignmentType,
 
         [Parameter(Mandatory = $true)]
         [String]
@@ -65,6 +68,10 @@ function New-GuestConfigurationDeployPolicyDefinition
         $Tag
     )
 
+
+    $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
+    Write-Verbose -Message "Creating Guest Configuration Deploy Policy Definition to '$filePath'."
+
     if (-not [String]::IsNullOrEmpty($Guid))
     {
         $deployPolicyGuid = $Guid
@@ -74,7 +81,29 @@ function New-GuestConfigurationDeployPolicyDefinition
         $deployPolicyGuid = [Guid]::NewGuid()
     }
 
-    $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
+    $ParameterMapping = @{ }
+    $ParameterDefinitions = @{ }
+    $PolicyContentHashtable = [Ordered]@{ }
+    $existenceConditionList = [Ordered]@{
+        allOf = [System.Collections.ArrayList]@()
+    }
+
+    if ($null -ne $ParameterInfo)
+    {
+        $ParameterMapping = Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
+        $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
+    }
+
+    $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
+        type          = "string"
+        metadata      = [Ordered]@{
+            displayName = 'Include Arc connected servers'
+            description = 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+        }
+
+        allowedValues = @('True', 'False')
+        defaultValue  = 'False'
+    }
 
     $deployPolicyContentHashtable = [Ordered]@{
         properties = [Ordered]@{
@@ -83,11 +112,13 @@ function New-GuestConfigurationDeployPolicyDefinition
             mode        = 'Indexed'
             description = $Description
             metadata    = [Ordered]@{
+                version = $ConfigurationVersion
                 category          = $Category
                 requiredProviders = @(
                     'Microsoft.GuestConfiguration'
                 )
             }
+            parameters  = $ParameterDefinitions
         }
     }
 
@@ -103,7 +134,11 @@ function New-GuestConfigurationDeployPolicyDefinition
                     )
                 },
                 [Ordered]@{
-                    allOf = @(,
+                    allOf = @(
+                        [Ordered]@{
+                            value  = "[parameters('IncludeArcMachines')]"
+                            equals = "true"
+                        },
                         [Ordered]@{
                             field  = "type"
                             equals = "Microsoft.HybridCompute/machines"
@@ -174,22 +209,27 @@ function New-GuestConfigurationDeployPolicyDefinition
     }
 
     $guestConfigurationAssignmentHashtable = @(
+        # Compute
         [Ordered]@{
+            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
             apiVersion = '2018-11-20'
             type       = 'Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments'
             name       = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
             location   = "[parameters('location')]"
             properties = [Ordered]@{
                 guestConfiguration = [Ordered]@{
-                    name        = "[parameters('configurationName')]"
-                    contentUri  = "[parameters('contentUri')]"
-                    contentHash = "[parameters('contentHash')]"
-                    version     = $ConfigurationVersion.ToString()
+                    name            = "[parameters('configurationName')]"
+                    version         = $ConfigurationVersion
+                    contentUri      = "[parameters('contentUri')]"
+                    contentHash     = "[parameters('contentHash')]"
+                    assignmentType  = "[parameters('assignmentType')]"
+                    configurationParameter = $ParameterMapping
                 }
             }
-            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        },
+        }
+        # Hybrid Compute
         [Ordered]@{
+            condition  = "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
             apiVersion = '2018-11-20'
             type       = 'Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments'
             name       = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
@@ -199,10 +239,11 @@ function New-GuestConfigurationDeployPolicyDefinition
                     name        = "[parameters('configurationName')]"
                     contentUri  = "[parameters('contentUri')]"
                     contentHash = "[parameters('contentHash')]"
-                    version     = $ConfigurationVersion.ToString()
+                    assignmentType  = "[parameters('assignmentType')]"
+                    version     = $ConfigurationVersion
+                    configurationParameter = $ParameterMapping
                 }
             }
-            condition  = "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
         }
     )
 
@@ -368,25 +409,6 @@ function New-GuestConfigurationDeployPolicyDefinition
                 like  = 'windows*'
             }
         )
-
-        $guestConfigurationExtensionHashtable = [Ordered]@{
-            apiVersion = '2015-05-01-preview'
-            name       = "[concat(parameters('vmName'), '/AzurePolicyforWindows')]"
-            type       = 'Microsoft.Compute/virtualMachines/extensions'
-            location   = "[parameters('location')]"
-            properties = [Ordered]@{
-                publisher               = 'Microsoft.GuestConfiguration'
-                type                    = 'ConfigurationforWindows'
-                typeHandlerVersion      = '1.1'
-                autoUpgradeMinorVersion = $true
-                settings                = @{ }
-                protectedSettings       = @{ }
-            }
-            dependsOn  = @(
-                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
-            )
-            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        }
     }
     elseif ($Platform -ieq 'Linux')
     {
@@ -625,51 +647,35 @@ function New-GuestConfigurationDeployPolicyDefinition
             }
         )
 
-        $guestConfigurationExtensionHashtable = [Ordered]@{
-            apiVersion = '2015-05-01-preview'
-            name       = "[concat(parameters('vmName'), '/AzurePolicyforLinux')]"
-            type       = 'Microsoft.Compute/virtualMachines/extensions'
-            location   = "[parameters('location')]"
-            properties = [Ordered]@{
-                publisher               = 'Microsoft.GuestConfiguration'
-                type                    = 'ConfigurationforLinux'
-                typeHandlerVersion      = '1.0'
-                autoUpgradeMinorVersion = $true
-            }
-            dependsOn  = @(
-                "[concat('Microsoft.Compute/virtualMachines/',parameters('vmName'),'/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/',parameters('configurationName'))]"
-            )
-            condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-        }
     }
     else
     {
         throw "The specified platform '$Platform' is not currently supported by this script."
     }
 
-    # if there is atleast one tag
+    # If there is at least one tag
     if ($PSBoundParameters.ContainsKey('Tag') -AND $null -ne $Tag)
     {
-        # capture existing 'anyOf' section
+        # Capture existing 'anyOf' section
         $anyOf = $policyRuleHashtable['if']
-        # replace with new 'allOf' at top order
+        # Replace with new 'allOf' at top order
         $policyRuleHashtable['if'] = [Ordered]@{
             allOf = @(
             )
         }
 
-        # add tags section under new 'allOf'
+        # Add tags section under new 'allOf'
         $policyRuleHashtable['if']['allOf'] += [Ordered]@{
             allOf = @(
             )
         }
 
-        # re-insert 'anyOf' under new 'allOf' after tags 'allOf'
+        # Re-insert 'anyOf' under new 'allOf' after tags 'allOf'
         $policyRuleHashtable['if']['allOf'] += $anyOf
-        # add each tag individually to tags 'allOf'
+        # Add each tag individually to tags 'allOf'
         for ($i = 0; $i -lt $Tag.count; $i++)
         {
-            # if there is atleast one tag
+            # If there is at least one tag
             if (-not [string]::IsNullOrEmpty($Tag[$i].Keys))
             {
                 $policyRuleHashtable['if']['allOf'][0]['allOf'] += [Ordered]@{
@@ -680,7 +686,6 @@ function New-GuestConfigurationDeployPolicyDefinition
         }
     }
 
-    $existenceConditionList = @()
     # Handle adding parameters if needed
     if ($null -ne $ParameterInfo -and $ParameterInfo.Count -gt 0)
     {
@@ -691,41 +696,35 @@ function New-GuestConfigurationDeployPolicyDefinition
             $deployPolicyContentHashtable['properties']['parameters'] = [Ordered]@{ }
         }
 
-        if (-not $guestConfigurationAssignmentHashtable['properties']['guestConfiguration'].Contains('configurationParameter'))
+        foreach ($guestConfigurationAssignment in $guestConfigurationAssignmentHashtable)
         {
-            $guestConfigurationAssignmentHashtable['properties']['guestConfiguration']['configurationParameter'] = @()
+            if (-not $guestConfigurationAssignment['properties']['guestConfiguration'].Contains('configurationParameter'))
+            {
+                $guestConfigurationAssignment['properties']['guestConfiguration']['configurationParameter'] = @()
+            }
         }
 
-        foreach ($currentParameterInfo in $ParameterInfo)
+        # Parameter Hash Section
+        $parameterValueConceatenatedStringList = @()
+        foreach ($parameterPair in $ParameterMapping) {
+            $name = $parameterPair.name
+            $value = $parameterPair.value -replace "[][]",""
+
+            $currentParameterValueConcatenatedString = "'$name', '=', $value"
+            $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
+        }
+
+        $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
+        $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
+        $existenceConditionList['allOf'].Add([Ordered]@{
+            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
+            equals = $parameterExistenceConditionEqualsValue
+        })
+
+        # Adding parameters into the deploymentHashTable
+        foreach ($currentParameterInfo in $parameterInfo)
         {
-            $deployPolicyContentHashtable['properties']['parameters'] += [Ordered]@{
-                $currentParameterInfo.ReferenceName = [Ordered]@{
-                    type     = $currentParameterInfo.Type
-                    metadata = [Ordered]@{
-                        displayName = $currentParameterInfo.DisplayName
-                    }
-                }
-            }
-
-            if ($currentParameterInfo.ContainsKey('Description'))
-            {
-                $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName]['metadata']['description'] = $currentParameterInfo['Description']
-            }
-
-            if ($currentParameterInfo.ContainsKey('DefaultValue'))
-            {
-                $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-                    defaultValue = $currentParameterInfo.DefaultValue
-                }
-            }
-
-            if ($currentParameterInfo.ContainsKey('AllowedValues'))
-            {
-                $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-                    allowedValues = $currentParameterInfo.AllowedValues
-                }
-            }
-
+            # Add values in Deployment > Properties > Parameter section
             if ($currentParameterInfo.ContainsKey('DeploymentValue'))
             {
                 $deploymentHashtable['properties']['parameters'] += [Ordered]@{
@@ -743,83 +742,35 @@ function New-GuestConfigurationDeployPolicyDefinition
                 }
             }
 
+            # Add Type to Deployment > Properties > Template > Parameters section
             $deploymentHashtable['properties']['template']['parameters'] += [Ordered]@{
                 $currentParameterInfo.ReferenceName = [Ordered]@{
                     type = $currentParameterInfo.Type
                 }
             }
-
-            $configurationParameterName = "$($currentParameterInfo.MofResourceReference);$($currentParameterInfo.MofParameterName)"
-
-            if ($currentParameterInfo.ContainsKey('ConfigurationValue'))
-            {
-                $configurationParameterValue = $currentParameterInfo.ConfigurationValue
-
-                if ($currentParameterInfo.ConfigurationValue.StartsWith('[') -and $currentParameterInfo.ConfigurationValue.EndsWith(']'))
-                {
-                    $configurationParameterStringValue = $currentParameterInfo.ConfigurationValue.Substring(1, $currentParameterInfo.ConfigurationValue.Length - 2)
-                }
-                else
-                {
-                    $configurationParameterStringValue = "'$($currentParameterInfo.ConfigurationValue)'"
-                }
-            }
-            else
-            {
-                $configurationParameterValue = "[parameters('$($currentParameterInfo.ReferenceName)')]"
-                $configurationParameterStringValue = "parameters('$($currentParameterInfo.ReferenceName)')"
-            }
-
-            $guestConfigurationAssignmentHashtable['properties']['guestConfiguration']['configurationParameter'] += [Ordered]@{
-                name  = $configurationParameterName
-                value = $configurationParameterValue
-            }
-
-            $currentParameterValueConcatenatedString = "'$configurationParameterName', '=', $configurationParameterStringValue"
-            $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
-        }
-
-        $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
-        $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
-
-        $existenceConditionList += [Ordered]@{
-            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
-            equals = $parameterExistenceConditionEqualsValue
         }
     }
 
-    $existenceConditionList += [Ordered]@{
+    # Existence Condition section
+    $existenceConditionList['allOf'].Add([Ordered]@{
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/contentHash'
         equals = "$ContentHash"
-    }
+    })
+    $existenceConditionList['allOf'].Add([Ordered]@{
+        field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+        equals = 'Compliant'
+    })
 
-    $policyRuleHashtable['then']['details']['existenceCondition'] = [Ordered]@{
-        allOf = $existenceConditionList
-    }
+    $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
 
+    # Deployment Section
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable
-
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
-
-    $systemAssignedHashtable = [Ordered]@{
-        apiVersion = '2019-07-01'
-        type       = 'Microsoft.Compute/virtualMachines'
-        identity   = [Ordered]@{
-            type = 'SystemAssigned'
-        }
-        name       = "[parameters('vmName')]"
-        location   = "[parameters('location')]"
-        condition  = "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-    }
-
-    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $systemAssignedHashtable
-
-    $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationExtensionHashtable
-
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
     $deployPolicyContentHashtable += [Ordered]@{
         id   = "/providers/Microsoft.Authorization/policyDefinitions/$deployPolicyGuid"
+        type = "Microsoft.Authorization/policyDefinitions"
         name = $deployPolicyGuid
     }
 

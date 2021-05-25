@@ -1,6 +1,33 @@
+
 <#
     .SYNOPSIS
         Creates a new policy for guest configuration.
+
+    .PARAMETER PolicyFolderPath
+        Folder where policy exists.
+
+    .PARAMETER PolicyInfo
+        Policy information.
+
+    .EXAMPLE
+        $PolicyInfo = @{
+            FileName                 = $FileName
+            DisplayName              = $DisplayName
+            Description              = $Description
+            Platform                 = $Platform
+            ConfigurationName        = $policyName
+            ConfigurationVersion     = $Version
+            ContentUri               = $ContentUri
+            ContentHash              = $contentHash
+            AssignmentType           = $Mode
+            ReferenceId              = "Deploy_$policyName"
+            ParameterInfo            = $ParameterInfo
+            UseCertificateValidation = $packageIsSigned
+            Category                 = $Category
+            Tag                      = $Tag
+        }
+        New-GuestConfigurationPolicyDefinition -PolicyFolderPath $policyDefinitionsPath -PolicyInfo $PolicyInfo
+
 #>
 function New-GuestConfigurationPolicyDefinition
 {
@@ -13,7 +40,7 @@ function New-GuestConfigurationPolicyDefinition
 
         [Parameter(Mandatory = $true)]
         [Hashtable]
-        $AuditIfNotExistsInfo
+        $PolicyInfo
     )
 
     Write-Verbose -Message "Creating new Guest Configuration Policy to '$PolicyFolderPath'."
@@ -25,9 +52,20 @@ function New-GuestConfigurationPolicyDefinition
 
     $null = New-Item -Path $PolicyFolderPath -ItemType 'Directory'
 
-    foreach ($currentAuditPolicyInfo in $AuditIfNotExistsInfo)
+    if ($PolicyInfo.FileName -eq 'DeployIfNotExists.json')
     {
-        $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
-        New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        foreach ($currentDeployPolicyInfo in $PolicyInfo)
+        {
+            $currentDeployPolicyInfo['FolderPath'] = $PolicyFolderPath
+            New-GuestConfigurationDeployPolicyDefinition @currentDeployPolicyInfo
+        }
+    }
+    else
+    {
+        foreach ($currentAuditPolicyInfo in $PolicyInfo)
+        {
+            $currentAuditPolicyInfo['FolderPath'] = $PolicyFolderPath
+            New-GuestConfigurationAuditPolicyDefinition @currentAuditPolicyInfo
+        }
     }
 }

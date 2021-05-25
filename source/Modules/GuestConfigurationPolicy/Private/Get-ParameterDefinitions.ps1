@@ -1,10 +1,10 @@
 <#
     .SYNOPSIS
-        Define the parmameters of AINE policy for AuditWithout DINE scenario.
+        Define the parmameters of a policy for Audit or Deploy.
     .PARAMETER ParameterInfo
         A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
 #>
-function Get-ParameterDefinitionsAINE
+function Get-ParameterDefinitions
 {
     [CmdletBinding()]
     param

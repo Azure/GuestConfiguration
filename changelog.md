@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `Install-GuestConfigurationPackage`.
+- Updated `New-GuestConfigurationPackage` to support PackageType.
+- Updated `New-GuestConfigurationPolicy` to support AssignmentType (Audit, ApplyAndMonitor, ApplyAndCorrect) and creation of DeployIfNotExists.json
 
 ### Changed
 

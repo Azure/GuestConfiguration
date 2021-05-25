@@ -51,7 +51,7 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
             $ParameterInfo = Update-PolicyParameter -Parameter $Parameter
             $actualOutput = ( Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo ) | ConvertTo-Json
             # $actualOutput | Should -be $correctOutput
-
+            Write-Output $actualOutput
             $expectedOutput = @(
                 @{
                     'name'= "[MyFile]createFoobarTestFile;path"
@@ -66,7 +66,7 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
                     'value'= "[parameters('content')]"
                 }
             ) | ConvertTo-Json
-
+            write-output $expectedOutput
             $actualOutput  | Should -Be $expectedOutput
             # Assert-Equivalent -Actual ($actualOutput)  -Expected ($expectedOutput)
 

@@ -713,9 +713,9 @@ function New-GuestConfigurationDeployPolicyDefinition
             $currentParameterValueConcatenatedString = "'$name', '=', $value"
             $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
         }
+
         $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
         $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
-
         $existenceConditionList['allOf'].Add([Ordered]@{
             field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
             equals = $parameterExistenceConditionEqualsValue
@@ -749,106 +749,9 @@ function New-GuestConfigurationDeployPolicyDefinition
                 }
             }
         }
-
-        # this is what the DINE function above does
-        # foreach ($currentParameterInfo in $ParameterInfo)
-        # {
-        #     # This might be a repeat
-        #     $deployPolicyContentHashtable['properties']['parameters'] += [Ordered]@{
-        #         $currentParameterInfo.ReferenceName = [Ordered]@{
-        #             type     = $currentParameterInfo.Type
-        #             metadata = [Ordered]@{
-        #                 displayName = $currentParameterInfo.DisplayName
-        #             }
-        #         }
-        #     }
-
-        #     # if ($currentParameterInfo.ContainsKey('Description'))
-        #     # {
-        #     #     $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName]['metadata']['description'] = $currentParameterInfo['Description']
-        #     # }
-
-        #     # if ($currentParameterInfo.ContainsKey('DefaultValue'))
-        #     # {
-        #     #     $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-        #     #         defaultValue = $currentParameterInfo.DefaultValue
-        #     #     }
-        #     # }
-
-        #     # if ($currentParameterInfo.ContainsKey('AllowedValues'))
-        #     # {
-        #     #     $deployPolicyContentHashtable['properties']['parameters'][$currentParameterInfo.ReferenceName] += [Ordered]@{
-        #     #         allowedValues = $currentParameterInfo.AllowedValues
-        #     #     }
-        #     # }
-
-        #     # if ($currentParameterInfo.ContainsKey('DeploymentValue'))
-        #     # {
-        #     #     $deploymentHashtable['properties']['parameters'] += [Ordered]@{
-        #     #         $currentParameterInfo.ReferenceName = [Ordered]@{
-        #     #             value = $currentParameterInfo.DeploymentValue
-        #     #         }
-        #     #     }
-        #     # }
-        #     # else
-        #     # {
-        #     #     $deploymentHashtable['properties']['parameters'] += [Ordered]@{
-        #     #         $currentParameterInfo.ReferenceName = [Ordered]@{
-        #     #             value = "[parameters('$($currentParameterInfo.ReferenceName)')]"
-        #     #         }
-        #     #     }
-        #     # }
-
-        #     $deploymentHashtable['properties']['template']['parameters'] += [Ordered]@{
-        #         $currentParameterInfo.ReferenceName = [Ordered]@{
-        #             type = $currentParameterInfo.Type
-        #         }
-        #     }
-
-        #     # Add parameters into parameterHash
-        #     # $configurationParameterName = "$($currentParameterInfo.MofResourceReference);$($currentParameterInfo.MofParameterName)"
-        #     # if ($currentParameterInfo.ContainsKey('ConfigurationValue'))
-        #     # {
-        #     #     $configurationParameterValue = $currentParameterInfo.ConfigurationValue
-
-        #     #     if ($currentParameterInfo.ConfigurationValue.StartsWith('[') -and $currentParameterInfo.ConfigurationValue.EndsWith(']'))
-        #     #     {
-        #     #         $configurationParameterStringValue = $currentParameterInfo.ConfigurationValue.Substring(1, $currentParameterInfo.ConfigurationValue.Length - 2)
-        #     #     }
-        #     #     else
-        #     #     {
-        #     #         $configurationParameterStringValue = "'$($currentParameterInfo.ConfigurationValue)'"
-        #     #     }
-        #     # }
-        #     # else
-        #     # {
-        #     #     $configurationParameterValue = "[parameters('$($currentParameterInfo.ReferenceName)')]"
-        #     #     $configurationParameterStringValue = "parameters('$($currentParameterInfo.ReferenceName)')"
-        #     # }
-
-        #     # $guestConfigurationAssignmentHashtable['properties']['guestConfiguration']['configurationParameter'] += [Ordered]@{
-        #     #     name  = $configurationParameterName
-        #     #     value = $configurationParameterValue
-        #     # }
-
-        #     # $currentParameterValueConcatenatedString = "'$configurationParameterName', '=', $configurationParameterStringValue"
-        #     # $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
-        # }
-
-
     }
 
-
-    # $existenceConditionList = [Ordered]@{
-    #     allOf = [System.Collections.ArrayList]@()
-    # }
-
-    # if ($null -ne $ParameterInfo)
-    # {
-    #     $parametersExistenceCondition = Get-GuestConfigurationAssignmentParametersExistenceConditionSection -ParameterInfo $ParameterInfo
-    #     $existenceConditionList['allOf'].Add($parametersExistenceCondition)
-    # }
-    # $policyRuleHashtable['then']['details']['existenceCondition'] = $existenceConditionList
+    # Existence Condition section
     $existenceConditionList['allOf'].Add([Ordered]@{
         field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/contentHash'
         equals = "$ContentHash"
@@ -863,7 +766,6 @@ function New-GuestConfigurationDeployPolicyDefinition
     # Deployment Section
     $policyRuleHashtable['then']['details']['deployment'] = $deploymentHashtable
     $policyRuleHashtable['then']['details']['deployment']['properties']['template']['resources'] += $guestConfigurationAssignmentHashtable
-
     $deployPolicyContentHashtable['properties']['policyRule'] = $policyRuleHashtable
 
     $deployPolicyContentHashtable += [Ordered]@{

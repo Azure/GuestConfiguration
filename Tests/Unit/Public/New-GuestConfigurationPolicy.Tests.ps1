@@ -54,7 +54,6 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
-
         $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyParametersWindows
         $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
         Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
@@ -65,6 +64,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Generated Audit policy file should exist' {
+
         $auditPolicyFileWindows = Join-Path -Path $testOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
 

@@ -128,8 +128,15 @@ Pester:
     CodeCoverage:
       Path:
       OutputFormat: JaCoCo
-      CoveragePercentTarget: 0.1
-      OutputPath: JaCoCo_coverage.xml
+      CoveragePercentTarget: 45
+      OutputPath:
+
+CodeCoverage:
+  # Filename of the file that will be outputted by the task Merge_CodeCoverage_Files.
+  CodeCoverageMergedOutputFile: JaCoCo_coverage.xml
+  # File pattern used to search for files under the ./output/testResults folder
+  # by task Merge_CodeCoverage_Files.
+  CodeCoverageFilePattern: Codecov*.xml
 
 DscTest:
   ExcludeTagFilter:

@@ -19,7 +19,6 @@ Describe ' Get-ParameterMappingForDINE.ps1' -ForEach @{
     }
 
     It 'Validate output contents' -Skip:($IsLinux -or $IsMacOS) {
-
         $ParameterInfo = @(
             @{
                 Name = 'ensure'

@@ -4,11 +4,7 @@
     .PARAMETER ParameterInfo
         A list of hashtables indicating the necessary info for parameters that need to be passed into this Guest Configuration Assignment.
 #>
-<<<<<<< HEAD:source/Modules/GuestConfigurationPolicy/Private/Get-ParameterDefinition.ps1
 function Get-ParameterDefinition
-=======
-function Get-ParameterDefinitions
->>>>>>> 32833ae... Add support for paramInfo:source/Modules/GuestConfigurationPolicy/Private/Get-ParameterDefinitions.ps1
 {
     [CmdletBinding()]
     param

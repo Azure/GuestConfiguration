@@ -742,7 +742,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                 }
             }
 
-            # Add Type to Deployment > Properties > Temaplate > Parameters section
+            # Add Type to Deployment > Properties > Template > Parameters section
             $deploymentHashtable['properties']['template']['parameters'] += [Ordered]@{
                 $currentParameterInfo.ReferenceName = [Ordered]@{
                     type = $currentParameterInfo.Type

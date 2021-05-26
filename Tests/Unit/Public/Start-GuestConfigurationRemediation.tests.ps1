@@ -25,7 +25,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         $tempWithParameterContents = 'barfoo'
     }
 
-    It 'Validate that start scenario is working as expected without parameters'  -Skip:($IsLinux -or $IsMacOS) {
+    It 'Validate that start scenario is working as expected without parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
         $VerbosePreference = 'Continue'
@@ -41,12 +41,12 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         # Validate temp file exists
         Test-Path -Path $tempDefaultFile | Should -Be $True
 
-        # # Validate contents of temp file
+        # Validate contents of temp file
         Get-Content -Path $tempDefaultFile -Raw | Should -Be $tempFileDefaultContents
     }
 
 
-    It 'Validate that start scenario is working as expected with parameters'  -Skip:($IsLinux -or $IsMacOS) {
+    It 'Validate that start scenario is working as expected with parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempWithParameterFile | Should -Be $False
 

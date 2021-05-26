@@ -13,7 +13,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 } {
     BeforeAll {
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/testStartPolicy-MyFile.zip'
+        $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/MyFile.zip'
 
         # Path to temp files
         $Env:MyTestPath = $TestDrive

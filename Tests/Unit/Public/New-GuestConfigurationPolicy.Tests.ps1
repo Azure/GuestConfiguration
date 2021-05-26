@@ -87,7 +87,11 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     }
 
     It 'Generated Audit policy file should exist' {
+        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
         Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
+
+        $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
+        Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
     }
 
     It 'Audit policy should contain expected content' {

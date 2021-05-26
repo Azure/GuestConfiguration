@@ -41,7 +41,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         # Validate temp file exists
         Test-Path -Path $tempDefaultFile | Should -Be $True
 
-        # # Validate contents of temp file
+        # Validate contents of temp file
         Get-Content -Path $tempDefaultFile -Raw | Should -Be $tempFileDefaultContents
     }
 

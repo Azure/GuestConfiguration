@@ -47,7 +47,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
     }
 
 
-    It 'Validate that start scenario is working on Windows as expected with parameters' {
+    It 'Validate that start scenario is working as expected with parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempWithParameterFile | Should -Be $False
 

@@ -83,7 +83,6 @@ function Start-GuestConfigurationPackageRemediation
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
         $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
-
         if ($metaConfig.Type -ne "AuditAndSet")
         {
             throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"

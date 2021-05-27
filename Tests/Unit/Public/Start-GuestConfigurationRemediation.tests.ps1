@@ -13,7 +13,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 } {
     BeforeAll {
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/MyFile.zip'
+        $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/testStartPolicy-MyFile.zip'
 
         # Path to temp files
         $Env:MyTestPath = $TestDrive
@@ -36,15 +36,8 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
 
-        $VerbosePreference = 'Continue'
-        $DebugPreference = 'Continue'
-        $ProgressPreference = 'SilentlyContinue'
-
-        Write-Debug("micy: This is what the test path looks like right now")
-        Write-Debug($Env:MyTestPath)
-
         # Run start, validate it does not throw
-        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force -Verbose } | Should -Not -Throw
+        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force } | Should -Not -Throw
 
         # Validate temp file exists
         Test-Path -Path $tempDefaultFile | Should -Be $True

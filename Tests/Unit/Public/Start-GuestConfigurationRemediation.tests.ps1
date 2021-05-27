@@ -17,15 +17,22 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 
         # Path to temp files
         $Env:MyTestPath = $TestDrive
+        if ($IsWindows)
+        {
+            $tempDefaultFile = Join-Path -Path $TestDrive -ChildPath 'test.txt'
+        }
+        else
+        {
+            $tempDefaultFile = "/tmp/test.txt"
+        }
         $tempWithParameterFile = Join-Path -Path $TestDrive -ChildPath 'test_gen.txt'
-        $tempDefaultFile = Join-Path -Path $TestDrive -ChildPath 'test.txt'
 
         # Contents of temp file
         $tempFileDefaultContents = 'foobar'
         $tempWithParameterContents = 'barfoo'
     }
 
-    It 'Validate that start scenario is working as expected on Windows without parameters' -Skip:($IsMacOS -or $IsLinux) {
+    It 'Validate that start scenario is working as expected without parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempDefaultFile | Should -Be $False
 
@@ -40,7 +47,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
     }
 
 
-    It 'Validate that start scenario is working as expected on Windows with parameters' -Skip:($IsMacOS -or $IsLinux) {
+    It 'Validate that start scenario is working as expected with parameters' {
         # Validate that dummy file does not exist
         Test-Path -Path $tempWithParameterFile | Should -Be $False
 

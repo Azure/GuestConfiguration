@@ -33,9 +33,7 @@ stages:
               $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
               $gitVersionObject.psobject.properties.Foreach{
                   Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
-                  Write-Host -Object "##vso[task.setvariable variable=$($_.Name);]$($_.Value)"
               }
-              Write-Host -Object "##vso[build.updatebuildnumber]$($gitVersionObject.FullSemVer)"
             displayName: Calculate ModuleVersion (GitVersion)
             name: gitVersion
 
@@ -274,8 +272,6 @@ stages:
         steps:
           - pwsh: |
               $repositoryOwner,$repositoryName = $env:BUILD_REPOSITORY_NAME -split '/'
-              echo "##vso[task.setvariable variable=RepositoryOwner;isOutput=true]$repositoryOwner"
-              echo "##vso[task.setvariable variable=RepositoryName;isOutput=true]$repositoryName"
             name: dscBuildVariable
             displayName: 'Set Environment Variables'
           - task: DownloadPipelineArtifact@2

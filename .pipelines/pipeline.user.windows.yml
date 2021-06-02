@@ -26,7 +26,6 @@ build:
     - !!buildcommand
       name: 'Build Windows '
       command: '.cdpx_scripts\build.ps1'
-      arguments: '"Any CPU"'
       fail_on_stderr: true
       artifacts:
         - from: 'build'

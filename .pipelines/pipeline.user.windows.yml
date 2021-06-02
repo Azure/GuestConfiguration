@@ -3,6 +3,7 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+
 environment:
   host:
     os: 'windows'
@@ -10,9 +11,9 @@ environment:
     version: '2019'
   runtime:
     provider: 'appcontainer'
-    # we will want to shift this to latest in the near future but this unblocks us
-    image: 'cdpxwin1809.azurecr.io/global/vse2019@sha256:44a8af0de5efa68829dbdfc3ecef3864d9770f1fc426b897fc37888032c9f60c'
-    source_mode: 'map'
+    image: 'cdpxwin1809.azurecr.io/global/vse2019:latest'
+    source_mode: 'link'
+
 
 version:
   name: 'First version'
@@ -25,7 +26,7 @@ build:
   commands:
     - !!buildcommand
       name: 'Build Windows '
-      command: '.cdpx_scripts\build.ps1'
+      command: '.cdpx_scripts\build.cmd'
       fail_on_stderr: true
       artifacts:
         - from: 'build'

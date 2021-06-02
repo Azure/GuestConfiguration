@@ -21,6 +21,12 @@ version:
   minor: 0
   system: 'patch'
 
+restore:
+  commands:
+    - !!defaultcommand
+      name: 'Install packages'
+      command: '.cdpx_scripts\restore.cmd'
+      fail_on_stderr: false
 
 build:
   commands:

@@ -27,7 +27,7 @@ echo "Installing chocolaty"
 @REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
 
 echo "Installing powershell 7"
-call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "choco install powershell-core --pre"
+call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "choco install powershell-core --pre -y"
 
 echo "Using powershell 7 to run build commands"
 where.exe pwsh

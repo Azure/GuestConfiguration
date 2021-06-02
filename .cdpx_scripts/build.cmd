@@ -22,7 +22,7 @@ cd "%~dp0"
 set guestConfigRoot=%CD%
 echo extension root path ..%guestConfigRoot%...
 where.exe pwsh
-call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
+@REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
 call %SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
 echo "Finished running build command  ..."
 

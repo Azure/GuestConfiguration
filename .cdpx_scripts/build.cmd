@@ -19,11 +19,11 @@ rem switch to the folder this script resides in. Don't assume absolute paths bec
 pushd .
 cd "%~dp0"
 
-set guestConfigRoot=%CD%
-echo extension root path ..%guestConfigRoot%...
-where.exe pwsh
-@REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
-call %SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
-echo "Finished running build command  ..."
+@REM set guestConfigRoot=%CD%
+@REM echo extension root path ..%guestConfigRoot%...
+@REM where.exe pwsh
+@REM @REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
+@REM call %SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
+@REM echo "Finished running build command  ..."
 
 exit 0

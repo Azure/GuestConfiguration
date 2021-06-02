@@ -22,7 +22,22 @@ cd "%~dp0"
 set guestConfigRoot=%CD%
 echo extension root path ..%guestConfigRoot%...
 
-call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
+@REM  Install Chocolaty
+@REM @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+
+@REM Install pwsh7
+choco install powershell-core --pre
+
+@REM Use pwsh 7 to run build commands
+
+where.exe pwsh
+@REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
+call %SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
+echo "Finished running build command  ..."
+
+@REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
+
 
 echo "Finished running build command  ..."
 

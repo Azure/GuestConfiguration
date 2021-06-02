@@ -1,5 +1,6 @@
 Write-Output "About to run build"
-Write-Output "$PSVersionTable"
+Write-Verbose "$PSVersionTable" -Verbose
+$PSVersionTable
 Write-Verbose "About to run build" -Verbose
 
 $RootPath = [io.Path]::GetFullPath("$PSScriptRoot/..")
@@ -15,5 +16,5 @@ $destination = Join-Path $env:SystemDrive 'out'
 
 # Actually run build
 # ../build.ps1 -Tasks noop -ResolveDependency
-../build.ps1 -Tasks build
+# ../build.ps1 -Tasks build
 Write-Verbose "Exiting build script..." -Verbose

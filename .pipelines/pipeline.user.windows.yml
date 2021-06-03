@@ -41,10 +41,10 @@ build:
             - '**/*' # Does signing happen during build or after packing??
           # signing_options: # <<<<<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
             # sign_inline: true #/ <<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
+
     - !!buildcommand
       name: 'Package Guest Configuration Windows Agent'
       command: '.cdpx_scripts\package.cmd'
-      arguments: '*'
       artifacts:
         - from: 'out'
           include:

@@ -22,10 +22,10 @@ cd "%~dp0"
 set guestConfigRoot=%CD%
 echo extension root path ..%guestConfigRoot%...
 
-echo "Using powershell 7 to run build commands"
+echo "Using powershell 7 to run package commands"
 where.exe pwsh
 call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1
 
-echo "Finished running build command  ..."
+echo "Finished running package command  ..."
 
 exit 0

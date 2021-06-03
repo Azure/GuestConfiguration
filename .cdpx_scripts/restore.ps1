@@ -1,2 +1,2 @@
-../build.ps1 -Tasks noop -ResolveDependency
-../build.ps1 -Tasks build
+# Run Build Command
+../build.ps1 -Tasks build,test -ResolveDependency

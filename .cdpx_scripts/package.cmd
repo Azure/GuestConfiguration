@@ -8,7 +8,6 @@ REM     The repo relative log file path where logs will be written to.
 REM     Defaults to 'buildLogs\RestoreStorSimple.log' if not specified.
 REM
 REM NOTE
-REM Restore is the only step that can make internet calls.
 REM DO NOT ADD VSTS Build environment variables here as this script is designed to run on a CDPx local developer environment.
 REM
 REM -----------------------------------------------------------------------------------------------------------------------------
@@ -23,16 +22,9 @@ cd "%~dp0"
 set guestConfigRoot=%CD%
 echo extension root path ..%guestConfigRoot%...
 
-echo "Installing chocolaty"
-@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-@REM call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
-
-echo "Installing powershell 7"
-call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "choco install pwsh -y"
-
 echo "Using powershell 7 to run build commands"
 where.exe pwsh
-call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
+call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1
 
 echo "Finished running build command  ..."
 

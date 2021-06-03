@@ -38,9 +38,20 @@ build:
         - from: 'build'
           to: 'out'
           include:
-            - '**/*'
+            - '**/*' # Does signing happen during build or after packing??
           # signing_options: # <<<<<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
             # sign_inline: true #/ <<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
+    - !!buildcommand
+      name: 'Package Guest Configuration Windows Agent'
+      command: '.cdpx_scripts\package.cmd'
+      arguments: '*'
+      artifacts:
+        - from: 'out'
+          include:
+            - '**/*'
+      # env:
+      #   ModuleVersion: $(NuGetVersionV2)
+      #   GitHubToken: $(GitHubToken)
 
 # - script: |
 #     echo Add other tasks to build, test, and deploy your project.

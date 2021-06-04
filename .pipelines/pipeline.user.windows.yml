@@ -28,23 +28,27 @@ restore:
       command: '.cdpx_scripts\restore.cmd'
       fail_on_stderr: false
 
-build:
-  commands:
-    - !!buildcommand
-      name: 'Build Windows '
-      command: '.cdpx_scripts\build.cmd'
-      fail_on_stderr: true
-      artifacts:
-        - from: 'build'
-          to: 'out'
-          include:
-            - '**/*' # Does signing happen during build or after packing??
+# build:
+#   commands:
+#     - !!buildcommand
+#       name: 'Build Windows '
+#       command: '.cdpx_scripts\build.cmd'
+#       fail_on_stderr: true
+#       artifacts:
+#         - from: 'build'
+#           to: 'out'
+#           include:
+#             - '**/*' # Does signing happen during build or after packing??
           # signing_options: # <<<<<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
             # sign_inline: true #/ <<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
 
-    - !!buildcommand
+
+package:
+  commands:
+    - !!defaultcommand
       name: 'Package Guest Configuration Windows Agent'
       command: '.cdpx_scripts\package.cmd'
+      fail_on_stderr: false
       artifacts:
         - from: 'out'
           include:

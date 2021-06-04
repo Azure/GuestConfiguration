@@ -49,10 +49,10 @@ package:
       name: 'Package Guest Configuration Windows Agent'
       command: '.cdpx_scripts\package.cmd'
       fail_on_stderr: false
-      artifacts:
-        - from: 'out'
-          include:
-            - '**/*'
+      # artifacts:
+      #   - from: 'out'
+      #     include:
+      #       - '**/*'
       # env:
       #   ModuleVersion: $(NuGetVersionV2)
       #   GitHubToken: $(GitHubToken)

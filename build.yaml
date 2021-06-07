@@ -88,6 +88,7 @@ BuildWorkflow:
     # - Generate_Wiki_Content
 
   pack:
+    - build
     - package_module_nupkg
 
   hqrmtest:

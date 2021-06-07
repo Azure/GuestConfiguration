@@ -1,4 +1,4 @@
-# Run Build Command, Resolve Dependencies (This step needs internet)
+# Run build command, resolve dependencies (This step needs internet)
 ../build.ps1 -Tasks build -ResolveDependency
 
 # Set up environment

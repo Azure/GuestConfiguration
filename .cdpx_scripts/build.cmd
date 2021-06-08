@@ -12,7 +12,7 @@ REM DO NOT ADD VSTS Build environment variables here as this script is designed 
 REM
 REM -----------------------------------------------------------------------------------------------------------------------------
 
-echo "Running build command for Windows ..."
+echo "Running EMPTY build command for Windows ..."
 
 rem Save working directory so that we can restore it back after building everything. This will make developers happy and then
 rem switch to the folder this script resides in. Don't assume absolute paths because on the build host and on the dev host the locations may be different.
@@ -21,8 +21,6 @@ cd "%~dp0"
 
 @REM set guestConfigRoot=%CD%
 @REM echo extension root path ..%guestConfigRoot%...
-
-call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\build.ps1
 @REM echo "Finished running build command  ..."
 
 exit 0

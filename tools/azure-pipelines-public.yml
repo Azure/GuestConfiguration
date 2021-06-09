@@ -222,8 +222,8 @@ stages:
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                }
                 Uninstall-AzureRm
+                }
           - task: PowerShell@2
             name: test
             displayName: 'Run Unit Test'

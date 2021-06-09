@@ -216,12 +216,13 @@ stages:
               targetType: inline
               continueOnError: true
               script: |
-                ./build.ps1 -Tasks noop
+                pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
+                pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
+                }
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test

@@ -241,7 +241,7 @@ stages:
                 if ($IsWindows) {
                   ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
                 } elseif ($IsLinux) {
-                    sudo pwsh {
+                    sudo pwsh-preview {
                         $ProgressPreference = 'SilentlyContinue'
                         ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
                     }

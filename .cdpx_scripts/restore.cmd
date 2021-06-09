@@ -35,7 +35,7 @@ where.exe pwsh
 call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\setup.ps1
 
 echo "Using powershell 7 to run build commands. This is because we need a restart after enabling experimental features"
-call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
+call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\runbuild.ps1
 
 echo "Finished running build command  ..."
 

@@ -28,9 +28,6 @@ runas /user:administrator """%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe""
 @REM Start-Process powershell -verb runas -ArgumentList "-ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1"
 echo "Using powershell 7 to run package commands take 2"
 
-"%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -Command "& {Start-Process Powershell.exe -ArgumentList ""-ExecutionPolicy Unrestricted -NoProfile -File %guestConfigRoot%\package.ps1 -Verb runas""}"
-
-
 call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1
 
 

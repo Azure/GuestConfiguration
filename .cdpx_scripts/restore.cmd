@@ -32,7 +32,7 @@ call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -Execu
 
 echo "Using powershell 7 to run build commands"
 where.exe pwsh
-call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -Verb runAS -File %guestConfigRoot%\restore.ps1
+call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
 
 echo "Finished running build command  ..."
 

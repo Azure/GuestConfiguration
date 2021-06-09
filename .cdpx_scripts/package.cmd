@@ -23,9 +23,13 @@ set guestConfigRoot=%CD%
 echo extension root path ..%guestConfigRoot%...
 
 echo "Using powershell 7 to run package commands"
-@REM call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -Verb runAS -File %guestConfigRoot%\package.ps1
-@REM pwsh.exe -ExecutionPolicy Unrestricted -Verb runAS -File %guestConfigRoot%\package.ps1
-Start-Process powershell -verb runas -ArgumentList "-ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1"
+runas /user:administrator "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1
+@REM runas /user:administrator pwsh.exe -ExecutionPolicy Unrestricted -Verb runAS -File %guestConfigRoot%\package.ps1
+@REM Start-Process powershell -verb runas -ArgumentList "-ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1"
+echo "Using powershell 7 to run package commands take 2"
+
+"%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -Command "Start-Process Powershell.exe -ArgumentList ""-ExecutionPolicy Unrestricted -File %guestConfigRoot%\package.ps1 -Verb runas"""
+
 
 echo "Finished running package command  ..."
 

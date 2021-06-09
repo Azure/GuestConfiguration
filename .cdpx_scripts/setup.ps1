@@ -5,6 +5,7 @@ $PSVersionTable
 ../build.ps1 -Tasks build -ResolveDependency
 
 # Set up environment
+Get-ChildItem "C:\source\output\GuestConfiguration\3.2.0\bin\"
 $env:PSModulePath = "C:\source\output\" + ';' + $env:PSModulePath
 Get-Module GuestConfiguration -ListAvailable
 Import-Module GuestConfiguration -Force

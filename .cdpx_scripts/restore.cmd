@@ -30,8 +30,11 @@ echo "Installing chocolaty"
 echo "Installing powershell 7"
 call %SYSTEMDRIVE%\Windows\system32\WindowsPowershell\v1.0\Powershell.exe -ExecutionPolicy Unrestricted "choco install pwsh -y"
 
-echo "Using powershell 7 to run build commands"
+echo "Using powershell 7 to set up environment"
 where.exe pwsh
+call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\setup.ps1
+
+echo "Using powershell 7 to run build commands. This is because we need a restart after enabling experimental features"
 call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\restore.ps1
 
 echo "Finished running build command  ..."

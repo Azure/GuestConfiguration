@@ -9,9 +9,10 @@ $env:PSModulePath = "C:\source\output\" + ';' + $env:PSModulePath
 Get-Module GuestConfiguration -ListAvailable
 Import-Module GuestConfiguration -Force
 
-# Enable experimental feature
+# Enable experimental features
 Get-ExperimentalFeature
 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
 
 exit 0

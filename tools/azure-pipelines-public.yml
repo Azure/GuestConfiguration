@@ -150,21 +150,6 @@ stages:
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                # Enable-ExperimentalFeature -Name PS7DscSupport
-                $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
-                Write-Host "Testing PS Config at '$userConfig'."
-                if (Test-Path -Path $userConfig)
-                {
-                    $config = Get-Content -Raw $userConfig | ConvertFrom-Json
-                    $config.ExperimentalFeatures += 'PS7DscSupport'
-                    Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
-                    Write-Host "PS Config updated at '$userConfig'."
-                    Get-Content -Raw $userConfig | Write-Host
-                }
-                else
-                {
-                    Write-Host "PowerShell Config not found at '$userConfig'."
-                }
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test
@@ -191,7 +176,7 @@ stages:
       - job: Test_Unit_Linux
         displayName: 'Linux Unit Test'
         pool:
-          vmImage: 'ubuntu-16.04'
+          vmImage: 'ubuntu-18.04'
         timeoutInMinutes: 0
         steps:
           - task: DownloadPipelineArtifact@2
@@ -200,6 +185,27 @@ stages:
               buildType: 'current'
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+          - task: PowerShell@2
+            enabled: true
+            displayName: Install pwsh-preview
+            targetType: inline
+            continueOnError: true
+            script: |
+              # Update the list of packages
+              sudo apt-get update
+              # Install pre-requisite packages.
+              sudo apt-get install -y wget apt-transport-https software-properties-common
+              # Download the Microsoft repository GPG keys
+              wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
+              # Register the Microsoft repository GPG keys
+              sudo dpkg -i packages-microsoft-prod.deb
+              # Update the list of products
+              sudo apt-get update
+              # Enable the "universe" repositories
+              sudo add-apt-repository universe
+              # Install PowerShell
+              sudo apt-get install -y powershell-preview
+
           - task: PowerShell@2
             enabled: true
             displayName: Enable Experimental Feature
@@ -213,21 +219,7 @@ stages:
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                # Enable-ExperimentalFeature -Name PS7DscSupport
-                $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
-                Write-Host "Testing PS Config at '$userConfig'."
-                if (Test-Path -Path $userConfig)
-                {
-                    $config = Get-Content -Raw $userConfig | ConvertFrom-Json
-                    $config.ExperimentalFeatures += 'PS7DscSupport'
-                    Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
-                    Write-Host "PS Config updated at '$userConfig'."
-                    Get-Content -Raw $userConfig | Write-Host
-                }
-                else
-                {
-                    Write-Host "PowerShell Config not found at '$userConfig'."
-                }
+                pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
                 Uninstall-AzureRm
           - task: PowerShell@2
             name: test

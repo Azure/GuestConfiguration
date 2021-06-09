@@ -49,8 +49,6 @@ function Install-GuestConfigurationAgent
                 chmod @('+x', $_.FullName)
             }
         }
-
-        Install-GuestConfigurationMonkeyPatch
     }
     else
     {

@@ -107,9 +107,9 @@ function New-GuestConfigurationPackage
 
         Guest Configuration doesnt understand 'Type' name and 'AuditAndSet' value.
         Correct property name is 'configurationMode'
-        and Valid values for this property is 'MonitorOnly', 'ApplyAndAutoCorrect' & 'ApplyAndMonitor'
+        and allowed values for this property are 'MonitorOnly', 'ApplyAndAutoCorrect' & 'ApplyAndMonitor'.
 
-        Disabling the metaconfig generation for now.
+        Disabling the metaconfig file generation for now.
     #>
     # $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
     # Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()

@@ -222,7 +222,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                     version         = $ConfigurationVersion
                     contentUri      = "[parameters('contentUri')]"
                     contentHash     = "[parameters('contentHash')]"
-                    assignmentType  = "[parameters('assignmentType')]"
+                    assignmentType  = "$AssignmentType"
                     configurationParameter = $ParameterMapping
                 }
             }
@@ -239,7 +239,7 @@ function New-GuestConfigurationDeployPolicyDefinition
                     name        = "[parameters('configurationName')]"
                     contentUri  = "[parameters('contentUri')]"
                     contentHash = "[parameters('contentHash')]"
-                    assignmentType  = "[parameters('assignmentType')]"
+                    assignmentType  = "$AssignmentType"
                     version     = $ConfigurationVersion
                     configurationParameter = $ParameterMapping
                 }

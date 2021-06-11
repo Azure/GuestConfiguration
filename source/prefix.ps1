@@ -6,7 +6,7 @@ Import-Module $PSScriptRoot/Modules/DscOperations -Force
 Import-Module $PSScriptRoot/Modules/GuestConfigurationPolicy -Force
 Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
-if ($IsLinux -and (
+if (($env:OS -notmatch "Windows" -and $IsLinux) -and (
     $PSVersionTable.PSVersion.Major -lt 7 -or
     ($PSVersionTable.PSVersion.Major -eq 7 -and $PSVersionTable.PSVersion.Minor -lt 2) -or
     ($PSVersionTable.PSVersion.Major -eq 7 -and ($PSVersionTable.PSVersion.PreReleaseLabel -and ($PSVersionTable.PSVersion.PreReleaseLabel -split '\.')[1] -lt 6))

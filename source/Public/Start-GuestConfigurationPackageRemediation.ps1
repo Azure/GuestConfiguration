@@ -82,11 +82,16 @@ function Start-GuestConfigurationPackageRemediation
         }
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
+        <#
+        ##Bug##
+        'AuditAndSet' is not a valid metaconfig value. valid values are 'MonitorOnly', 'ApplyAndAutoCorrect' & 'ApplyAndMonitor'
+        Disabling this check for now.
         $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
         if ($metaConfig.Type -ne "AuditAndSet")
         {
             throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"
         }
+        #>
 
         # Update mof values
         if ($Parameter.Count -gt 0)

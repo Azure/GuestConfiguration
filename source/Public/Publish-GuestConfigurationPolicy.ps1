@@ -42,7 +42,7 @@ function Publish-GuestConfigurationPolicy
     }
 
     $policyFile = $currentFiles[0]
-    $jsonDefinition = Get-Content -Path $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
+    $jsonDefinition = Get-Content -Path $policyFile.PSPath | ConvertFrom-Json | ForEach-Object { $_ }
     $definitionContent = $jsonDefinition.Properties
 
     $newAzureRmPolicyDefinitionParameters = @{

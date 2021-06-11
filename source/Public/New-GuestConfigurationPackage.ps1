@@ -97,8 +97,22 @@ function New-GuestConfigurationPackage
     Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackageDirectory -Verbose:$verbose -Force:$Force
 
     # Modify metaconfig file
-    $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
-    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()
+    <#
+        ##Bug##
+
+        This is not a valid metaconfig data
+        {
+          "Type": "AuditAndSet"
+        }
+
+        Guest Configuration doesnt understand 'Type' name and 'AuditAndSet' value.
+        Correct property name is 'configurationMode'
+        and Valid values for this property is 'MonitorOnly', 'ApplyAndAutoCorrect' & 'ApplyAndMonitor'
+
+        Disabling the metaconfig generation for now.
+    #>
+    # $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
+    # Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

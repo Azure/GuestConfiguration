@@ -29,51 +29,50 @@
 function Test-GuestConfigurationPackage
 {
     [CmdletBinding()]
-    param (
+    param
+    (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string]
+        [Alias('Package')]
         $Path,
 
         [Parameter()]
         [Hashtable[]]
-        $Parameter = @()
+        $Parameter = @(),
+
+        [Parameter()]
+        [Switch]
+        $Force
     )
 
-    if ($env:OS -notmatch "Windows" -and $IsMacOS)
+    if ($IsMacOS)
     {
         throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    if (-not (Test-Path $Path -PathType Leaf))
-    {
-        throw 'Invalid Guest Configuration package path : $($Path)'
-    }
-
-    $verbose = $PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true)
+    # Determine if verbose is enabled to pass down to other functions
+    $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
+    $gcBinPath = Get-GuestConfigBinaryPath
+    $guestConfigurationPolicyPath = Get-GuestConfigPolicyPath
+    if ($PSBoundParameters.ContainsKey('Force') -and $PSBoundParameters['Force'])
+    {
+        $withForce = $true
+    }
+    else
+    {
+        $withForce = $false
+    }
 
     try
     {
-        # Create policy folder
-        $Path = Resolve-Path -Path $Path
-        $policyPath = Join-Path $(Get-GuestConfigPolicyPath) ([System.IO.Path]::GetFileNameWithoutExtension($Path))
-        Remove-Item $policyPath -Recurse -Force -ErrorAction SilentlyContinue
-        $null = New-Item -ItemType Directory -Force -Path $policyPath
+        # Get the installed policy path, and install if missing
+        $packagePath = Install-GuestConfigurationPackage -Package $Path -Verbose:$verbose -Force:$withForce
 
-        Write-Verbose -Message "Unzipping the policy package to '$($policyPath)'."
-        Expand-Archive -LiteralPath $Path $policyPath -Force -ErrorAction Stop
 
-        # Get policy name
-        Write-Debug -Message "Getting the policy name from the MOF:"
-        $dscDocument = Get-ChildItem -Path $policyPath -Filter *.mof
-        if (-not $dscDocument)
-        {
-            throw "Invalid policy package, failed to find dsc document in policy package."
-        }
-
-        $policyName = [System.IO.Path]::GetFileNameWithoutExtension($dscDocument)
-        Write-Debug -Message "PolicyName: '$policyName'."
+        $packageName = Get-GuestConfigurationPackageName -Path $packagePath
+        Write-Debug -Message "PackageName: '$packageName'."
 
         # update configuration parameters
         if ($Parameter.Count -gt 0)
@@ -82,52 +81,24 @@ function Test-GuestConfigurationPackage
             Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
         }
 
-        # Unzip Guest Configuration binaries
-        $gcBinPath = Get-GuestConfigBinaryPath
-        $gcBinRootPath = Get-GuestConfigBinaryRootPath
-        if (-not (Test-Path -Path $gcBinPath))
-        {
-            Write-Debug -Message "Installing the Guest Config binaries..."
-            # Clean the bin folder
-            Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
-
-            $zippedBinaryPath = Join-Path -Path $(Get-GuestConfigurationModulePath) -ChildPath 'bin'
-            if ($(Get-OSPlatform) -eq 'Windows')
-            {
-                $zippedBinaryPath = Join-Path -Path $zippedBinaryPath -ChildPath 'DSC_Windows.zip'
-            }
-            else
-            {
-                # Linux zip package contains an additional DSC folder
-                # Remove DSC folder from binary path to avoid two nested DSC folders.
-                $null = New-Item -ItemType Directory -Force -Path $gcBinPath
-                $gcBinPath = (Get-Item -Path $gcBinPath).Parent.FullName
-                $zippedBinaryPath = Join-Path $zippedBinaryPath 'DSC_Linux.zip'
-            }
-
-            Write-Debug -Message "Extracting '$zippedBinaryPath' to '$gcBinPath'."
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($zippedBinaryPath, $gcBinPath)
-        }
-
-
-        Write-Verbose -Message "Publishing policy package '$policyName' from '$policyPath'."
-        Publish-DscConfiguration -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+        Write-Verbose -Message "Publishing policy package '$packageName' from '$packagePath'."
+        Publish-DscConfiguration -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
 
         # Set LCM settings to force load powershell module.
         Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
-        $metaConfigPath = Join-Path -Path $policyPath -ChildPath "$policyName.metaconfig.json"
+        $metaConfigPath = Join-Path -Path $packagePath -ChildPath "$packageName.metaconfig.json"
         Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-        Set-DscLocalConfigurationManager -ConfigurationName $policyName -Path $policyPath -Verbose:$verbose
+        Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
 
         $inspecProfilePath = Get-InspecProfilePath
         Write-Debug -Message "Clearing Inspec profiles at '$inspecProfilePath'."
         Remove-Item -Path $inspecProfilePath -Recurse -Force -ErrorAction SilentlyContinue
 
-        Write-Verbose -Message "Testing ConfigurationName '$policyName'."
-        $testResult = Test-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose
+        Write-Verbose -Message "Testing ConfigurationName '$packageName'."
+        $testResult = Test-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose
         Write-Verbose -Message "Getting Configuration resources status."
         $getResult = @()
-        $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $policyName -Verbose:$verbose)
+        $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose)
 
         Write-Debug -Message "Processing Resources not in Desired state."
         $testResult.resources_not_in_desired_state | ForEach-Object {

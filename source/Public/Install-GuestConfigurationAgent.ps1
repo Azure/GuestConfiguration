@@ -27,7 +27,7 @@ function Install-GuestConfigurationAgent
     {
         # Clean the bin folder
         Write-Verbose -Message "Removing existing installation from '$gcBinRootPath'."
-        Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction Stop
+        Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
         $zippedBinaryPath = Join-Path -Path $(Get-GuestConfigurationModulePath) -ChildPath 'bin'
 
         if ($OsPlatform -eq 'Windows')

@@ -14,12 +14,20 @@ function Install-GuestConfigurationAgent
     $gcBinPath = Get-GuestConfigBinaryPath
     $gcBinRootPath = Get-GuestConfigBinaryRootPath
     $OsPlatform = Get-OSPlatform
+    if ($PSBoundParameters.ContainsKey('Force') -and $PSBoundParameters['Force'])
+    {
+        $withForce = $true
+    }
+    else
+    {
+        $withForce = $false
+    }
 
-    if ((-not (Test-Path -Path $gcBinPath)) -or $Force.IsPresent)
+    if ((-not (Test-Path -Path $gcBinPath)) -or $withForce)
     {
         # Clean the bin folder
         Write-Verbose -Message "Removing existing installation from '$gcBinRootPath'."
-        Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $gcBinRootPath'\*' -Recurse -Force -ErrorAction Stop
         $zippedBinaryPath = Join-Path -Path $(Get-GuestConfigurationModulePath) -ChildPath 'bin'
 
         if ($OsPlatform -eq 'Windows')

@@ -2,8 +2,8 @@
     .SYNOPSIS
         Installs a Guest Configuration policy package.
 
-    .Parameter Path
-        Full path of the zipped Guest Configuration package.
+    .Parameter Package
+        Path or Uri of the Guest Configuration package zip.
 
     .Parameter Force
         Force installing over an existing package, even if it already exists.
@@ -11,7 +11,7 @@
     .Example
         Install-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
 
-        Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip
+        Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Force
 
     .OUTPUTS
         The path to the installed Guest Configuration package.
@@ -27,8 +27,8 @@ function Install-GuestConfigurationPackage
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        [Alias('Package')]
-        $Path,
+        [Alias('Path')]
+        $Package,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [System.Management.Automation.SwitchParameter]
@@ -42,36 +42,91 @@ function Install-GuestConfigurationPackage
         throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    if (-not (Test-Path -Path $Path -PathType Leaf))
-    {
-        throw 'Invalid Guest Configuration package path : $($Path)'
-    }
 
     $verbose = $VerbosePreference -ne 'SilentlyContinue' -or ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
-
-    # Unzip Guest Configuration binaries if missing
-    Install-GuestConfigurationAgent -verbose:$verbose
+    $guestConfigurationPolicyPath = Get-GuestConfigPolicyPath
 
     try
     {
-        # Create policy folder
-        $Path = Resolve-Path -Path $Path
-        $packageName = Get-GuestConfigurationPackageNameFromZip -Path $Path
-        $packagePath = Join-Path -Path $(Get-GuestConfigPolicyPath) -ChildPath $packageName
-        $isPackageAlreadyInstalled = (Test-Path -Path $packagePath) -and (Test-Path -Path (Join-Path -Path $packagePath -ChildPath "$PackageName.mof"))
+        # Unzip Guest Configuration binaries if missing
+        Install-GuestConfigurationAgent -verbose:$verbose
 
-        if ((-not $isPackageAlreadyInstalled) -or $Force.IsPresent)
+        # Resolve the zip (to temp folder if URI)
+        if (($Package -as [uri]).Scheme -match '^http')
         {
-            Remove-Item -Path $packagePath -Recurse -Force -ErrorAction SilentlyContinue
-            $null = New-Item -ItemType Directory -Force -Path $packagePath
-            # Unzip policy package
-            Write-Verbose -Message "Unzipping the Guest Configuration Package to '$packagePath'."
-            Expand-Archive -LiteralPath $Path -DestinationPath $packagePath -ErrorAction Stop
+            # Get the package from URI to a temp folder
+            $PackageZipPath = (Get-GuestConfigurationPackageFromUri -Uri $Package -Verbose:$verbose).ToString()
+        }
+        elseif ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$')
+        {
+            $PackageZipPath = (Resolve-Path -Path $Package).ToString()
         }
         else
         {
-            Write-Verbose -Message "Package is already installed at '$packagePath', skipping install."
+            Write-Debug -Message "'$Package' is the Package Name."
+            # The $Package parameter is the PackageName, no need to version check.
+            # if package name is not installed, throw an error
+            try
+            {
+                $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve
+            }
+            catch
+            {
+                throw "The Package '$Package' is not installed. Please provide the Path to the Zip or the URL to download the package from."
+                return
+            }
+        }
+
+
+        Write-Debug -Message "Getting package name from '$PackageZipPath'."
+        $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageZipPath
+        $packageZipMetadata = Get-GuestConfigurationPackageMetadataFromZip -Path $PackageZipPath -Verbose:$verbose
+        $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $packageName
+        $isPackageAlreadyInstalled = $false
+
+        if (Test-Path -Path $installedPackagePath)
+        {
+            Write-Debug -Message "The Package '$PackageName' exists at '$installedPackagePath'. Checking version..."
+            $installedPackageMetadata = Get-GuestConfigurationPackageMetaConfig -Path $installedPackagePath -Verbose:$verbose
+
+            if
+            (   # none of the packages are versioned or the versions match, we're good
+                -not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
+                ($installedPackageMetadata.ContainsKey('Version') -ne $packageZipMetadata.Contains('Version')) -or # to avoid next statement
+                $installedPackageMetadata.Version -eq $packageZipMetadata.Version
+            )
+            {
+                $isPackageAlreadyInstalled = $true
+                Write-Debug -Message ("Package '{0}{1}' is installed." -f $PackageName,($packageZipMetadata.Contains('Version') ? "_$($packageZipMetadata['Version'])" : ''))
+            }
+            else
+            {
+                Write-Verbose -Message "Package '$packageName' was found at version '$($installedPackageMetadata.Version)' but we're expecting '$($packageZipMetadata.Version)'."
+            }
+        }
+
+        if ($PSBoundParameters.ContainsKey('Force') -and $PSBoundParameters['Force'])
+        {
+            $withForce = $true
+        }
+        else
+        {
+            $withForce = $false
+        }
+
+        if ((-not $isPackageAlreadyInstalled) -or $withForce)
+        {
+            Write-Debug -Message "Removing existing package at '$installedPackagePath'."
+            Remove-Item -Path $installedPackagePath -Recurse -Force -ErrorAction SilentlyContinue
+            $null = New-Item -ItemType Directory -Force -Path $installedPackagePath
+            # Unzip policy package
+            Write-Verbose -Message "Unzipping the Guest Configuration Package to '$installedPackagePath'."
+            Expand-Archive -LiteralPath $PackageZipPath -DestinationPath $installedPackagePath -ErrorAction Stop -Force
+        }
+        else
+        {
+            Write-Verbose -Message "Package is already installed at '$installedPackagePath', skipping install."
         }
 
         # Clear Inspec profiles
@@ -80,7 +135,14 @@ function Install-GuestConfigurationPackage
     finally
     {
         $env:PSModulePath = $systemPSModulePath
+
+        # if we downloaded the Zip file from URI to temp folder, do cleanup
+        if (($Package -as [uri]).Scheme -match '^http')
+        {
+            Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."
+            Remove-Item -Force -ErrorAction SilentlyContinue -Path $PackageZipPath
+        }
     }
 
-    return $packagePath
+    return $installedPackagePath
 }

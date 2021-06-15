@@ -43,6 +43,15 @@ function Get-GuestConfigurationPackageComplianceStatus
 
             $packageName = Get-GuestConfigurationPackageName -Path $PackagePath
 
+            # Confirm mof exists
+            $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
+            $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
+
+            if (-not $dscDocument)
+            {
+                throw "Invalid Guest Configuration package, failed to find dsc document at '$packageMof' path."
+            }
+
             # update configuration parameters
             if ($Parameter.Count -gt 0)
             {

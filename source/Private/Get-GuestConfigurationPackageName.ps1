@@ -10,7 +10,6 @@ function Get-GuestConfigurationPackageName
     )
 
     $Path = [System.IO.Path]::GetFullPath($Path) # Get Absolute path as .Net method don't like relative paths.
-    $mofFile =
     # Make sure we only get the MOF which is at the root of the package
     $mofFile = @() + (Get-ChildItem -Path (Join-Path -Path $Path -ChildPath *.mof) -File -ErrorAction Stop)
 

@@ -7,6 +7,7 @@ CopyPaths:
   - en-US
   - DscResources
 prefix: prefix.ps1
+suffix: suffix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true
 

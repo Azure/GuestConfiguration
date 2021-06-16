@@ -24,5 +24,6 @@ if (($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux'
     [System.Globalization.CultureInfo]::CurrentCulture = [System.Globalization.CultureInfo]::new('en-US')
 }
 
+$moduleSemVersion = [string]::IsNullOrEmpty($GuestConfigurationManifest.PrivateData.PSData.Prerelease) ? $GuestConfigurationManifest.ModuleVersion : "$($GuestConfigurationManifest.ModuleVersion)-$($GuestConfigurationManifest.PrivateData.PSData.Prerelease)"
 #inject version info to GuestConfigPath.psm1
-InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion
+InitReleaseVersionInfo $moduleSemVersion

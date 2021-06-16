@@ -35,9 +35,9 @@ function Show-GuestConfigurationLatestAvailableModule
         {
             # if the module is a prerelease, show newer releases.
             # if the module is a release, only show newer release (no pre)
-            $latestModuleAvailable = Find-Module -Name GuestConfiguration -AllowPrerelease:$isPrerelease -MinimumVersion $moduleSemVersion
+            $latestModuleAvailable = Find-Module -Name GuestConfiguration -AllowPrerelease:$isPrerelease
 
-            if ($latestModuleAvailable.Version -ne $moduleSemVersion)
+            if ($latestModuleAvailable.Version -ge [semver]$moduleSemVersion)
             {
                 Write-Warning -Message "A newer version of this module is available: $($latestModuleAvailable.Version). Please consider updating with 'Update-Module -Name GuestConfiguration'."
             }

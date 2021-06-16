@@ -38,8 +38,9 @@ function Start-GuestConfigurationPackageRemediation
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('Path')]
         [string]
-        $Path,
+        $Package,
 
         [Parameter()]
         [Switch]
@@ -57,21 +58,24 @@ function Start-GuestConfigurationPackageRemediation
         throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    if (-not (Test-Path -Path $Path -PathType Leaf))
-    {
-        throw 'Invalid Guest Configuration package path : $($Path)'
-    }
-
     $verbose = ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
+    if ($PSBoundParameters.ContainsKey('Force') -and $Force)
+    {
+        $withForce = $true
+    }
+    else
+    {
+        $withForce = $false
+    }
 
     try
     {
         # Install the package
-        $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$Force.IsPresent -ErrorAction 'Stop'
+        $packagePath = Install-GuestConfigurationPackage -Path $Package -Force:$withForce -ErrorAction 'Stop'
 
         # The leaf part of the Path returned by Install-GCPackage will always be the BaseName of the MOF.
-        $packageName = Split-Path -Leaf -Path $packagePath
+        $packageName = Get-GuestConfigurationPackageName -Path $packagePath
 
         # Confirm mof exists
         $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
@@ -82,7 +86,7 @@ function Start-GuestConfigurationPackageRemediation
         }
 
         # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
-        $metaConfig = Get-GuestConfigurationPackageMetaConfig -PackagePath $packagePath
+        $metaConfig = Get-GuestConfigurationPackageMetaConfig -Path $packagePath
         if ($metaConfig.Type -ne "AuditAndSet")
         {
             throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"

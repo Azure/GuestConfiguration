@@ -39,7 +39,7 @@ function Show-GuestConfigurationLatestAvailableModule
 
             if ($latestModuleAvailable.Version -ne $moduleSemVersion)
             {
-                Write-Warning -Message "A newer version of this module is available: $($latestModuleAvailable.Version) . Please consider updating with 'Update-Module -Name GuestConfiguration'."
+                Write-Warning -Message "A newer version of this module is available: $($latestModuleAvailable.Version). Please consider updating with 'Update-Module -Name GuestConfiguration'."
             }
             else
             {

@@ -7,7 +7,7 @@ Write-Verbose "Run pack command. Tests do not work in package step." -Verbose
 Write-Verbose "Move package into out directory" -Verbose
 $RootPath = [io.Path]::GetFullPath("$PSScriptRoot/..")
 # Get pipeline output directory
-$outputDir = "$RootPath\..\out"
+$outputDir = "$env:CDP_ARTIFACTS_ROOT_FOLDER_HOST_PATH\outputs"
 Write-Verbose "[OutputDir=$($outputDir)] ..." -Verbose
 # $ev2_zip_filepath = "$outputDir\ServiceGroupRoot\$($extension_info.ExtensionInfo.PipelineConfig.ExtensionZipFileName)"
 

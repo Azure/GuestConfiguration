@@ -14,7 +14,7 @@ function Get-GuestConfigurationPackageNameFromZip
     {
         $zipRead = [IO.Compression.ZipFile]::OpenRead($Path)
         # Make sure we only get the MOF which is at the root of the package
-        $mofFile = $zipRead.Entries.FullName.Where({((Split-Path -Leaf -Path $_) -eq $_) -and $_ -match '\.mof$'})
+        $mofFile = @() + $zipRead.Entries.FullName.Where({((Split-Path -Leaf -Path $_) -eq $_) -and $_ -match '\.mof$'})
     }
     finally
     {
@@ -22,14 +22,10 @@ function Get-GuestConfigurationPackageNameFromZip
         $zipRead.Dispose()
     }
 
-    if ($null -eq $mofFile )
+    if ($mofFile.count -ne 1)
     {
-        throw "Invalid policy package, failed to find dsc document in policy package downloaded from '$Uri'."
-    }
-    elseif ($mofFile.count -gt 1)
-    {
-        throw "Multiple MOF files found at the root of the package."
+        throw "Invalid policy package, failed to find unique dsc document in policy package downloaded from '$Uri'."
     }
 
-    return ([System.Io.Path]::GetFileNameWithoutExtension($mofFile))
+    return ([System.Io.Path]::GetFileNameWithoutExtension($mofFile[0]))
 }

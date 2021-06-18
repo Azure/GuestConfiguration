@@ -6,7 +6,6 @@
 CopyPaths:
   - en-US
   - DscResources
-  - MonkeyPatch
 prefix: prefix.ps1
 Encoding: UTF8
 VersionedOutputDirectory: true
@@ -71,7 +70,7 @@ BuildWorkflow:
       }
       if ( -not (Test-Path $localLinuxAgent))
       {
-          $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.11.0).assets.Where{$_.Name -match 'AzureGCService_Linux-1.26.11.0.zip'}.id
+          $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.16).assets.Where{$_.Name -match 'GC.zip'}.id
           Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $localLinuxAgent
       }
       Copy-Item -Path $localLinuxAgent -Destination $binPath

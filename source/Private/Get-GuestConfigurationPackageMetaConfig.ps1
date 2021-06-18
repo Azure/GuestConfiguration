@@ -1,23 +1,50 @@
 function Get-GuestConfigurationPackageMetaConfig
 {
     [CmdletBinding()]
-    [OutputType([PSObject])]
+    [OutputType([Hashtable])]
     param
     (
         [Parameter(Mandatory = $true)]
         [System.String]
-        $PackagePath
+        $Path
     )
 
-    $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
-    try
+    $packageName = Get-GuestConfigurationPackageName -Path $Path
+    $metadataFileName = '{0}.metaconfig.json' -f $packageName
+    $metadataFile = Join-Path -Path $Path -ChildPath $metadataFileName
+
+    if (Test-Path -Path $metadataFile)
     {
-        $metaConfigFile = Get-Item -Path (Join-Path -Path $PackagePath -ChildPath "$packageName.metaconfig.json") -ErrorAction Stop
-        return (Get-Content -Raw -Path $metaConfigFile | ConvertFrom-Json)
+        Write-Debug -Message "Loading metadata from meta config file '$metadataFile'."
+        $metadata = Get-Content -raw -Path $metadataFile | ConvertFrom-Json -AsHashtable -ErrorAction Stop
     }
-    catch
+    else
     {
-        Write-Verbose -Message "No metaconfig file found at $PackagePath. Returning empty object."
-        return {}
+        $metadata = @{}
     }
+
+    #region Extra meta file until Agent supports one unique metadata file
+    $extraMetadataFileName = 'extra.{0}' -f $metadataFileName
+    $extraMetadataFile = Join-Path -Path $Path -ChildPath $extraMetadataFileName
+
+    if (Test-Path -Path $extraMetadataFile)
+    {
+        Write-Debug -Message "Loading extra metadata from extra meta file '$extraMetadataFile'."
+        $extraMetadata = Get-Content -raw -Path $extraMetadataFile | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+
+        foreach ($extraKey in $extraMetadata.keys)
+        {
+            if (-not $metadata.ContainsKey($extraKey))
+            {
+                $metadata[$extraKey] = $extraMetadata[$extraKey]
+            }
+            else
+            {
+                Write-Verbose -Message "The metadata '$extraKey' is already defined in '$metadataFile'."
+            }
+        }
+    }
+    #endregion
+
+    return $metadata
 }

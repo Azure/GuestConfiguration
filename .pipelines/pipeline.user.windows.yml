@@ -46,8 +46,3 @@ package:
       name: 'Package Guest Configuration Windows Agent'
       command: '.cdpx_scripts\package.cmd'
       fail_on_stderr: false
-      artifacts:
-        - from: 'output'
-          to: 'signed_package'
-          include:
-            - '**'

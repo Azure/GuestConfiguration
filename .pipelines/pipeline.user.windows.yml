@@ -26,7 +26,6 @@ restore:
       fail_on_stderr: false
 
 build:
-  env: $(GitHubToken)
   commands:
     - !!buildcommand
       name: 'Build Windows '

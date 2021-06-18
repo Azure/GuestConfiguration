@@ -66,7 +66,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
 
         $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsAsset -Path $pesterMofFilePath -Force |
             New-GuestConfigurationPackage -Path $pesterPackagePath -FilesToInclude $pesterScriptsAsset -Force |
-            Test-GuestConfigurationPackage
+            Test-GuestConfigurationPackage -Force
 
         $testPackageResult.complianceStatus | Should -Be $true
         $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'

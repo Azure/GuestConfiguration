@@ -6,6 +6,9 @@
     .Parameter Name
         Guest Configuration package name.
 
+    .Parameter Version
+        Guest Configuration package Version (SemVer).
+
     .Parameter Configuration
         Compiled DSC configuration document full path.
 
@@ -44,6 +47,11 @@ function New-GuestConfigurationPackage
         [ValidateNotNullOrEmpty()]
         [System.String]
         $Configuration,
+
+        [Parameter(Position = 2, ParameterSetName = 'Configuration', ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [SemVer]
+        $Version,
 
         [Parameter(ParameterSetName = 'Configuration')]
         [ValidateNotNullOrEmpty()]
@@ -98,7 +106,12 @@ function New-GuestConfigurationPackage
 
     # Modify metaconfig file
     $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
-    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.toString()
+    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.ToString()
+
+    if ($PSBoundParameters.ContainsKey('Version'))
+    {
+        Update-GuestConfigurationPackageMetaconfig -MetaConfigPath $metaConfigPath -key 'Version' -Value $Version.ToString()
+    }
 
     if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
     {

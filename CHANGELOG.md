@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Install-GuestConfigurationPackage`.
 - Updated `New-GuestConfigurationPackage` to support PackageType.
 - Updated `New-GuestConfigurationPolicy` to support AssignmentType (Audit, ApplyAndMonitor, ApplyAndCorrect) and creation of DeployIfNotExists.json
+- Added `Get-GuestConfigurationPackageName`
+- Added `Get-GuestConfigurationPackageNameFromZip`
 
 ### Changed
 
 - Pipeline and project structure updated to match DSC Community Projects.
 - Fixed casing of default parameter in generated policy, which caused issues on manual import
-
+- Changed how meta config are written to different files, and read from both
+ 
 ## [3.2.0] - 2021-02-23
 
 ### Added

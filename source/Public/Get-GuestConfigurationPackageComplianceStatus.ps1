@@ -22,36 +22,34 @@ function Get-GuestConfigurationPackageComplianceStatus
         $gcBinPath = Get-GuestConfigBinaryPath
         $guestConfigurationPolicyPath = Get-GuestConfigPolicyPath
 
-        # Unzip Guest Configuration binaries if missing
-        if (-not (Test-Path -Path $gcBinPath))
-        {
-            Install-GuestConfigurationAgent -verbose:$verbose
-            # We may want to be a bit more clever with checking which version is installed
-        }
     }
 
     process
     {
         try
         {
-            if (($Package -as [uri]).Scheme -match '^http' -or ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$'))
+            if ($PSBoundParameters.ContainsKey('Force') -and $Force)
             {
-                $PackagePath = Install-GuestConfigurationPackage -Path $Package
+                $withForce = $true
             }
             else
             {
-                Write-Debug -Message "The Package is the Package Name. It has to exist."
-                $PackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve -ErrorAction 'Stop'
+                $withForce = $false
             }
+
+            $packagePath = Install-GuestConfigurationPackage -Path $Package -Force:$withForce
 
             Write-Debug -Message "Looking into Package '$PackagePath' for MOF document."
 
-            $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
-            $dscDocument = Get-Item -Path (Join-Path -Path $PackagePath -ChildPath ('{0}.mof' -f $packageName)) -ErrorAction 'Stop'
+            $packageName = Get-GuestConfigurationPackageName -Path $PackagePath
+
+            # Confirm mof exists
+            $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
+            $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
 
             if (-not $dscDocument)
             {
-                throw "Invalid policy package, failed to find dsc document in policy package."
+                throw "Invalid Guest Configuration package, failed to find dsc document at '$packageMof' path."
             }
 
             # update configuration parameters

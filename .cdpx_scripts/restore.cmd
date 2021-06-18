@@ -38,5 +38,3 @@ echo "Using powershell 7 to run build commands. This is because we need a restar
 call "%SYSTEMDRIVE%\Program Files\PowerShell\7\pwsh.exe" -ExecutionPolicy Unrestricted -File %guestConfigRoot%\runbuild.ps1
 
 echo "Finished running build command  ..."
-
-exit 0

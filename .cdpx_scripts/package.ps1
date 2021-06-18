@@ -8,7 +8,7 @@ Write-Verbose "Move package into out directory" -Verbose
 $RootPath = [io.Path]::GetFullPath("$PSScriptRoot/..")
 # Get pipeline output directory
 $outputDir = "$RootPath\..\out"
-$ev2_zip_filepath = "$outputDir\ServiceGroupRoot\$($extension_info.ExtensionInfo.PipelineConfig.ExtensionZipFileName)"
+$ev2_zip_filepath = "$outputDir\ServiceGroupRoot\"
 
 $outputDir = $ev2_zip_filepath
 Write-Verbose "[OutputDir=$($outputDir)] ..." -Verbose

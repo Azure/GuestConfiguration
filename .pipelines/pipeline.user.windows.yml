@@ -35,7 +35,7 @@ build:
         - from: 'build'
           to: 'out'
           include:
-            - '**/*'
+            - '**/output/**/'
           signing_options: # <<<<<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
             sign_inline: true #/ <<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
 

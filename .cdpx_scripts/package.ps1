@@ -1,10 +1,7 @@
 # Validate PS Version
 $PSVersionTable
 
-Write-Verbose "Re-run tests to verify signing process" -Verbose
-../build.ps1 -tasks test
-
-Write-Verbose "Run pack command" -Verbose
+Write-Verbose "Run pack command. Tests do not work in package step." -Verbose
 ../build.ps1 -tasks package_module_nupkg
 
 Write-Verbose "Move package into out directory" -Verbose

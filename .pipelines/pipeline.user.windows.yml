@@ -32,10 +32,10 @@ build:
       command: '.cdpx_scripts\build.cmd'
       fail_on_stderr: true
       artifacts:
-        - from: 'build'
+        - from: 'output'
           to: 'out'
           include:
-            - '**/output/**/'
+            - '*'
           signing_options: # <<<<<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
             sign_inline: true #/ <<<<<<<<<<<<<<<<<<<<<<<< New Line for Inline Signing
 

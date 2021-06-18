@@ -46,11 +46,3 @@ package:
       name: 'Package Guest Configuration Windows Agent'
       command: '.cdpx_scripts\package.cmd'
       fail_on_stderr: false
-
-    task: PublishPipelineArtifact@1
-    displayName: 'Publish Pipeline Artifact'
-    inputs:
-      targetPath: '$(buildArtifactName)/'
-      artifact: $(buildArtifactName)
-      publishLocation: 'pipeline'
-      parallel: true

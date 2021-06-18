@@ -1,8 +1,9 @@
 # Validate PS Version
 $PSVersionTable
-Write-Verbose "$env:GitHubToken" -Verbose
-Write-Verbose "$env:GITHUBTOKEN" -Verbose
+Write-Verbose "$env:CDP_GitHubToken" -Verbose
+Write-Verbose "$env:CDP_GITHUBTOKEN" -Verbose
 
+$env:GitHubToken = $env:CDP_GitHubToken
 # Run build command, resolve ependencies (This step needs internet)
 ../build.ps1 -Tasks build -ResolveDependency
 

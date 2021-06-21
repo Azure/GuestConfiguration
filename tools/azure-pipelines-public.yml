@@ -147,7 +147,7 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Set-PSRepository -Name PSGallery -SourceLocation https://www.powershellgallery.com/api/v2/ -InstallationPolicy Trusted
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
                 Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
@@ -223,7 +223,7 @@ stages:
                 pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Set-PSRepository -Name PSGallery -SourceLocation https://www.powershellgallery.com/api/v2/ -InstallationPolicy Trusted
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
                 Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration

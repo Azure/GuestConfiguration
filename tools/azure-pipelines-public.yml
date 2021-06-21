@@ -147,6 +147,7 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
+                Import-Module -Name PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
@@ -314,45 +315,45 @@ stages:
           #   displayName: 'Upload to Codecov.io'
           #   condition: succeededOrFailed()
 
-  - stage: Deploy
-    dependsOn: Test
-    condition: |
-      and(
-        succeeded(),
-        or(
-          eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-          startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-        ),
-        contains(variables['System.TeamFoundationCollectionUri'], 'guestconfiguration')
-      )
-    jobs:
-      - job: Deploy_Module
-        displayName: 'Deploy Module'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download Pipeline Artifact'
-            inputs:
-              buildType: 'current'
-              artifactName: $(buildArtifactName)
-              targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
-          - task: PowerShell@2
-            name: publishRelease
-            displayName: 'Publish Release'
-            inputs:
-              filePath: './build.ps1'
-              arguments: '-tasks publish'
-              pwsh: true
-            env:
-              GitHubToken: $(GitHubToken)
-              GalleryApiToken: $(GalleryApiToken)
-          - task: PowerShell@2
-            name: sendChangelogPR
-            displayName: 'Send Changelog PR'
-            inputs:
-              filePath: './build.ps1'
-              arguments: '-tasks Create_ChangeLog_GitHub_PR'
-              pwsh: true
-            env:
-              GitHubToken: $(GitHubToken)
+  # - stage: Deploy
+  #   dependsOn: Test
+  #   condition: |
+  #     and(
+  #       succeeded(),
+  #       or(
+  #         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+  #         startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+  #       ),
+  #       contains(variables['System.TeamFoundationCollectionUri'], 'guestconfiguration')
+  #     )
+  #   jobs:
+  #     - job: Deploy_Module
+  #       displayName: 'Deploy Module'
+  #       pool:
+  #         vmImage: 'ubuntu-latest'
+  #       steps:
+  #         - task: DownloadPipelineArtifact@2
+  #           displayName: 'Download Pipeline Artifact'
+  #           inputs:
+  #             buildType: 'current'
+  #             artifactName: $(buildArtifactName)
+  #             targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+  #         - task: PowerShell@2
+  #           name: publishRelease
+  #           displayName: 'Publish Release'
+  #           inputs:
+  #             filePath: './build.ps1'
+  #             arguments: '-tasks publish'
+  #             pwsh: true
+  #           env:
+  #             GitHubToken: $(GitHubToken)
+  #             GalleryApiToken: $(GalleryApiToken)
+  #         - task: PowerShell@2
+  #           name: sendChangelogPR
+  #           displayName: 'Send Changelog PR'
+  #           inputs:
+  #             filePath: './build.ps1'
+  #             arguments: '-tasks Create_ChangeLog_GitHub_PR'
+  #             pwsh: true
+  #           env:
+  #             GitHubToken: $(GitHubToken)

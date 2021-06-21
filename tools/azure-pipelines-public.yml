@@ -221,6 +221,8 @@ stages:
                 pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
+                Import-Module -Name PSDesiredStateConfiguration
+                Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource

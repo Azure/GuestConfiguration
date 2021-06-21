@@ -147,7 +147,7 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99
+                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
@@ -222,7 +222,7 @@ stages:
                 pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99
+                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester

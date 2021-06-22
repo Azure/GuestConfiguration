@@ -53,6 +53,10 @@ function Publish-GuestConfigurationPackage
         $StorageAccountName,
 
         [Parameter()]
+        [System.DateTime]
+        $ExpiryTime = (Get-Date).AddYears('3'),
+
+        [Parameter()]
         [System.String]
         $StorageContainerName = 'guestconfiguration',
 
@@ -84,7 +88,6 @@ function Publish-GuestConfigurationPackage
     $null = Set-AzStorageBlobContent @setAzStorageBlobContentParams
 
     # Get url with SAS token
-    # THREE YEAR EXPIRATION
     $StartTime = Get-Date
 
     $newAzStorageBlobSASTokenParams = @{
@@ -92,7 +95,7 @@ function Publish-GuestConfigurationPackage
         Container  = $StorageContainerName
         Blob       = $BlobName
         StartTime  = $StartTime
-        ExpiryTime = $StartTime.AddYears('3')
+        ExpiryTime = $ExpiryTime
         Permission = 'rl'
         FullUri    = $true
     }

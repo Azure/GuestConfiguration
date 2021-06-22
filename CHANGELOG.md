@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pipeline and project structure updated to match DSC Community Projects.
 - Fixed casing of default parameter in generated policy, which caused issues on manual import
 - Changed how meta config are written to different files, and read from both
- 
+- Added `$ExpiryTime` Parameter to `Publish-GuestConfigurationPackage`
+
 ## [3.2.0] - 2021-02-23
 
 ### Added

@@ -248,6 +248,9 @@ stages:
                   ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
                 } elseif ($IsLinux) {
                     sudo pwsh-preview {
+                      Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
+                      Import-Module -Name PSDesiredStateConfiguration -Force
+                      Get-Module PSDesiredStateConfiguration -ListAvailable
                         $ProgressPreference = 'SilentlyContinue'
                         ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
                     }

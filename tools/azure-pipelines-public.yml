@@ -224,9 +224,12 @@ stages:
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false
-                Import-Module -Name PSDesiredStateConfiguration
-                Get-Module PSDesiredStateConfiguration
+                # Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
+                $PSVersionTable
+                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
+                Import-Module -Name PSDesiredStateConfiguration -Force
+                Get-Module PSDesiredStateConfiguration -ListAvailable
+                (Get-Module PSDesiredStateConfiguration).ExportedCommands
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource

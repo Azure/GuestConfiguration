@@ -148,7 +148,7 @@ stages:
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
+                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
@@ -224,7 +224,7 @@ stages:
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
                 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-                Install-Module -Name PSDesiredStateConfiguration -Repository PSGallery -MaximumVersion 2.99 -Confirm:$false
+                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester

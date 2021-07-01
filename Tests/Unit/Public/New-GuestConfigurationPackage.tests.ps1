@@ -13,18 +13,18 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
     importedModule = $importedModule
 } -Fixture {
     BeforeAll {
-        # test Assets path
+        # Test Assets path
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
+
         # Test Config Package MOF
         $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
         $policyName = 'testPolicy'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
 
-        # test extraction
+        # Test extraction
         $unsignedPackageExtractionPath = Join-Path -Path $testOutputPath -ChildPath 'UnsignedPackage'
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
-
     }
 
     It 'creates custom Windows policy package' -skip:(-not $IsWindows) {
@@ -57,6 +57,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         # Set up type needed for package extraction
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
         { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
+        Test-Path $unsignedPackageExtractionPath | Should -BeTrue
     }
 
     It 'Verify extracted mof document exists' {
@@ -65,8 +66,6 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
     It 'has Linux-friendly line endings in InSpec install script' {
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
-        Test-Path $inspecInstallScriptPath | Should -BeTrue
-        Write-Output $(sudo find / -name install_inspec.sh)
         $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
         $fileContent -match "`r`n" | Should -BeFalse
     }

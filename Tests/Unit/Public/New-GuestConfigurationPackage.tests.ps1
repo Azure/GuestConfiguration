@@ -19,7 +19,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         # Test Config Package MOF
         $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
         $policyName = 'testPolicy'
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+        $testOutputPath = [System.IO.Path]::GetTempPath()
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
 
         # Test extraction
@@ -64,8 +64,10 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         Test-Path -Path $mofFilePath | Should -BeTrue
     }
 
-    It 'has Linux-friendly line endings in InSpec install script' {
+    It 'Has Linux-friendly line endings in InSpec install script' {
+        Test-Path $unsignedPackageExtractionPath | Should -BeTrue
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
+        Test-Path $inspecInstallScriptPath | Should -BeTrue
         $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
         $fileContent -match "`r`n" | Should -BeFalse
     }

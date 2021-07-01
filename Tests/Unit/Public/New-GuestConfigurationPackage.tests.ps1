@@ -66,6 +66,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
     It 'has Linux-friendly line endings in InSpec install script' {
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
         Test-Path $inspecInstallScriptPath | Should -BeTrue
+        Write-Output $(sudo find / -name install_inspec.sh)
         $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
         $fileContent -match "`r`n" | Should -BeFalse
     }

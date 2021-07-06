@@ -19,7 +19,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         # Test Config Package MOF
         $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
         $policyName = 'testPolicy'
-        $testOutputPath = [System.IO.Path]::GetTempPath()
+        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
 
         # Test extraction
@@ -27,13 +27,13 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
     }
 
-    It 'creates custom Windows policy package' -skip:(-not $IsWindows) {
+    It 'Creates custom Windows policy package' -skip:(-not $IsWindows) {
         $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
         Test-Path -Path $package.Path | Should -BeTrue
         $package.Name | Should -Be $policyName
     }
 
-    It 'creates custom Linux policy package' -skip:(-not $IsLinux) {
+    It 'Creates custom Linux policy package' -skip:(-not $IsLinux) {
         $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
@@ -43,11 +43,11 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         $package.Name | Should -Be $policyName
     }
 
-    It 'does not overwrite a custom policy package when -Force is not specified' {
+    It 'Does not overwrite a custom policy package when -Force is not specified' {
         { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
     }
 
-    It 'overwrites a custom policy package when -Force is specified' {
+    It 'Overwrites a custom policy package when -Force is specified' {
         { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
     }
 
@@ -64,10 +64,9 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         Test-Path -Path $mofFilePath | Should -BeTrue
     }
 
-    It 'Has Linux-friendly line endings in InSpec install script' {
-        Test-Path $unsignedPackageExtractionPath | Should -BeTrue
+    # We are not planning on supporting creating inspec packages on Linux machines
+    It 'Has Linux-friendly line endings in InSpec install script' -skip:(-not $IsLinux) {
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
-        Test-Path $inspecInstallScriptPath | Should -BeTrue
         $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
         $fileContent -match "`r`n" | Should -BeFalse
     }

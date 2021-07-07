@@ -147,6 +147,10 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false
+                Import-Module -Name PSDesiredStateConfiguration
+                Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
@@ -219,6 +223,10 @@ stages:
                 pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
                 pwsh-preview -c { ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
+                Import-Module -Name PSDesiredStateConfiguration -Force
+                Get-Module PSDesiredStateConfiguration -ListAvailable
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
@@ -309,10 +317,10 @@ stages:
               summaryFileLocation: '$(Build.SourcesDirectory)/$(buildFolderName)/$(testResultFolderName)/JaCoCo_coverage.xml'
               pathToSources: '$(Build.SourcesDirectory)/$(sourceFolderName)/'
 
-          # - script: |
-          #     bash <(curl -s https://codecov.io/bash) -f "./$(buildFolderName)/$(testResultFolderName)/JaCoCo_coverage.xml" -F unit
-          #   displayName: 'Upload to Codecov.io'
-          #   condition: succeededOrFailed()
+          - script: |
+              bash <(curl -s https://codecov.io/bash) -f "./$(buildFolderName)/$(testResultFolderName)/JaCoCo_coverage.xml" -F unit
+            displayName: 'Upload to Codecov.io'
+            condition: succeededOrFailed()
 
   - stage: Deploy
     dependsOn: Test

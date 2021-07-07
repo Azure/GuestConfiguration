@@ -9,9 +9,9 @@
         Force installing over an existing package, even if it already exists.
 
     .Example
-        Install-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
+        Install-GuestConfigurationPackage -Package ./custom_policy/WindowsTLS.zip
 
-        Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Force
+        Install-GuestConfigurationPackage -Package ./custom_policy/AuditWindowsService.zip -Force
 
     .OUTPUTS
         The path to the installed Guest Configuration package.

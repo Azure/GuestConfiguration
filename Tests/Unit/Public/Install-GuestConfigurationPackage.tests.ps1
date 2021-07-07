@@ -19,14 +19,14 @@ Describe 'Install-GuestConfigurationPackage' -ForEach @{
     }
 
     It 'Validate that unzipping package is as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
-        { Install-GuestConfigurationPackage -Path $packagePath -Force } | Should -Not -Throw
+        { Install-GuestConfigurationPackage -Package $packagePath -Force } | Should -Not -Throw
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }
     }
 
     It 'Validate that unzipping package is as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
-        { Install-GuestConfigurationPackage -Path $packagePath -Force } | Should -Not -Throw
+        { Install-GuestConfigurationPackage -Package $packagePath -Force } | Should -Not -Throw
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }

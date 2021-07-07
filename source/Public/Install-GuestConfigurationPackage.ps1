@@ -53,6 +53,7 @@ function Install-GuestConfigurationPackage
         Install-GuestConfigurationAgent -verbose:$verbose
 
         # Resolve the zip (to temp folder if URI)
+        $PackageZipPath = $null
         if (($Package -as [uri]).Scheme -match '^http')
         {
             # Get the package from URI to a temp folder

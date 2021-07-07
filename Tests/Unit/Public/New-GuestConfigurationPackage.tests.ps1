@@ -65,7 +65,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
     }
 
     # We are not planning on supporting creating inspec packages on Linux machines
-    It 'Has Linux-friendly line endings in InSpec install script' -skip:(-not $IsLinux) {
+    It 'Has Linux-friendly line endings in InSpec install script' -skip:(-not $IsWindows) {
         $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
         $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
         $fileContent -match "`r`n" | Should -BeFalse

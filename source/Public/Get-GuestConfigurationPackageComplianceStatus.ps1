@@ -37,7 +37,7 @@ function Get-GuestConfigurationPackageComplianceStatus
                 $withForce = $false
             }
 
-            $packagePath = Install-GuestConfigurationPackage -Path $Package -Force:$withForce
+            $packagePath = Install-GuestConfigurationPackage -Package $Package -Force:$withForce
 
             Write-Debug -Message "Looking into Package '$PackagePath' for MOF document."
 

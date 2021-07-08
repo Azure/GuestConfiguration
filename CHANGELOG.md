@@ -12,8 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `New-GuestConfigurationPolicy` to support AssignmentType (Audit, ApplyAndMonitor, ApplyAndCorrect) and creation of DeployIfNotExists.json
 - Added `Get-GuestConfigurationPackageName`
 - Added `Get-GuestConfigurationPackageNameFromZip`
+<<<<<<< HEAD
 - Updated `New-GuestConfigurationPolicy` to include guestconfig object in metadata for DINE policies. The included configurationParameter matches the pattern of AINEs.
 - Added more tests to `New-GuestConfigurationPolicy.Tests` to cover metadata scenario.
+=======
+- Added tests to `Install-GuestConfigurationPackage.tests` 
+>>>>>>> fc27726... Update changelog
 
 ### Changed
 

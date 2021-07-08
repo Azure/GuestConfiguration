@@ -33,7 +33,7 @@ Describe 'Install-GuestConfigurationPackage' -ForEach @{
         }
     }
 
-    It 'Validate passing package as a name, not path is working as expected' {
+    It 'Validate passing a valid package name is working as expected' {
         { Install-GuestConfigurationPackage -Path $packageName -Force } | Should -Not -Throw
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw

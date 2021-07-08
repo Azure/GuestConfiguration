@@ -82,9 +82,9 @@ function New-GuestConfigurationDeployPolicyDefinition
         $deployPolicyGuid = [Guid]::NewGuid()
     }
 
-    $ParameterMapping = @{ }
-    $ParameterDefinitions = @{ }
-    $PolicyContentHashtable = [Ordered]@{ }
+    $ParameterMapping = @()
+    $ParameterDefinitions = @{}
+    $PolicyContentHashtable = [Ordered]@{}
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }

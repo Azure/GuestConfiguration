@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Install PSDesiredStateConfiguration V3 onto Ubuntu machine
 - Remove testing inspec on Linux machines, as we will no longer be supporting that scenario
 - Fixed `New-GuestConfigurationPolicy` to create arrays for configurationParameter when no parameters are passed in
+- Install-GuestConfigurationPackage should work with having a package name passed in as -Path parameter
  
 ## [3.2.0] - 2021-02-23
 

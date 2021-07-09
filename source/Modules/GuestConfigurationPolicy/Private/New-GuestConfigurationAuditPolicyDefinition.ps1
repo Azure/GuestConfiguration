@@ -84,13 +84,12 @@ function New-GuestConfigurationAuditPolicyDefinition
         $auditPolicyGuid = [Guid]::NewGuid()
     }
 
-    $ParameterMapping = @()
+    $ParameterMapping = @{ }
     $ParameterDefinitions = @{}
     $auditPolicyContentHashtable = [Ordered]@{}
 
     if ($null -ne $ParameterInfo)
     {
-        # configurationParameter is an array of hashtables
         $ParameterMapping += Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
     }

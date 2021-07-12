@@ -32,6 +32,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $testDINEOutputPathLinux_WithOneParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/DINE_PARAM_ONE'
 
         $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
+        $contentURI_MyFile = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
+        $contentURI_AuditWindowService = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
 
         inModuleScope -ModuleName GuestConfiguration {
             Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
@@ -94,7 +96,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
 
         # AINE Parameters
         $newGCPolicyAINEParametersWindows = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            ContentUri  = $contentURI_AuditWindowService
             DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Windows service'
             Path        = $testAINEOutputPathWindows
@@ -103,7 +105,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyAINEParametersLinux = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            ContentUri  = $contentURI_AuditWindowService
             DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Linux path'
             Path        = $testAINEOutputPathLinux
@@ -112,8 +114,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyAINEParametersWindows_WithParam = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            ContentUri  = $contentURI_MyFile
+            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Windows service'
             Path        = $testAINEOutputPathWindows_WithParam
             Version     = '1.0.0.0'
@@ -122,8 +124,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyAINEParametersLinux_WithParam = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
+            ContentUri  = $contentURI_MyFile
+            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Linux path'
             Path        = $testAINEOutputPathLinux_WithParam
             Version     = '1.0.0.0'
@@ -133,7 +135,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
 
         # DINE Parameters
         $newGCPolicyDINEParametersWindows = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            ContentUri  = $contentURI_AuditWindowService
             DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Windows service'
             Path        = $testDINEOutputPathWindows
@@ -143,7 +145,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyDINEParametersLinux = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            ContentUri  = $contentURI_AuditWindowService
             DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Linux path'
             Path        = $testDINEOutputPathLinux
@@ -153,8 +155,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyDINEParametersWindows_WithParam = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
+            ContentUri  = $contentURI_MyFile
+            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Windows service'
             Path        = $testDINEOutputPathWindows_WithParam
             Version     = '1.0.0.0'
@@ -164,8 +166,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
 
         $newGCPolicyDINEParametersLinux_WithParam = @{
-            ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-            DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
+            ContentUri  = $contentURI_MyFile
+            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
             Description = 'Policy to audit a Linux path'
             Path        = $testDINEOutputPathLinux_WithParam
             Version     = '1.0.0.0'
@@ -203,7 +205,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows.properties.policyType | Should -Be 'Custom'
         $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $auditPolicyContentWindows.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentWindows.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
 
         $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -213,7 +215,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux.properties.policyType | Should -Be 'Custom'
         $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $auditPolicyContentLinux.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentLinux.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
     }
 
 
@@ -243,9 +245,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithParam.properties.description.Contains($newGCPolicyAINEParametersWindows_WithParam.Description) | Should -BeTrue
         $auditPolicyContentWindows_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $auditPolicyContentWindows_WithParam.properties.policyType | Should -Be 'Custom'
-        $auditPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $auditPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $auditPolicyContentWindows_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $auditPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
@@ -256,9 +258,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithParam.properties.description.Contains($newGCPolicyAINEParametersLinux_WithParam.Description) | Should -BeTrue
         $auditPolicyContentLinux_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $auditPolicyContentLinux_WithParam.properties.policyType | Should -Be 'Custom'
-        $auditPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $auditPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $auditPolicyContentLinux_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $auditPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
@@ -297,9 +299,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithOneParam.properties.description.Contains($newGCPolicyAINEParametersWindows_WithParam.Description) | Should -BeTrue
         $auditPolicyContentWindows_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $auditPolicyContentWindows_WithOneParam.properties.policyType | Should -Be 'Custom'
-        $auditPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $auditPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $auditPolicyContentWindows_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $auditPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $auditPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
@@ -310,9 +312,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithOneParam.properties.description.Contains($newGCPolicyAINEParametersLinux_WithParam.Description) | Should -BeTrue
         $auditPolicyContentLinux_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $auditPolicyContentLinux_WithOneParam.properties.policyType | Should -Be 'Custom'
-        $auditPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $auditPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $auditPolicyContentLinux_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $auditPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $auditPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
@@ -346,7 +348,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows.properties.policyType | Should -Be 'Custom'
         $deployPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $deployPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
 
         $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -356,7 +358,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux.properties.policyType | Should -Be 'Custom'
         $deployPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $deployPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
     }
 
     # DINE Tests - With more than one parameter
@@ -385,9 +387,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithParam.properties.description.Contains($newGCPolicyDINEParametersWindows_WithParam.Description) | Should -BeTrue
         $deployPolicyContentWindows_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $deployPolicyContentWindows_WithParam.properties.policyType | Should -Be 'Custom'
-        $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $deployPolicyContentWindows_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $deployPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
@@ -398,9 +400,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithParam.properties.description.Contains($newGCPolicyDINEParametersLinux_WithParam.Description) | Should -BeTrue
         $deployPolicyContentLinux_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $deployPolicyContentLinux_WithParam.properties.policyType | Should -Be 'Custom'
-        $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $deployPolicyContentLinux_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $deployPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
@@ -439,9 +441,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithOneParam.properties.description.Contains($newGCPolicyDINEParametersWindows_WithParam.Description) | Should -BeTrue
         $deployPolicyContentWindows_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $deployPolicyContentWindows_WithOneParam.properties.policyType | Should -Be 'Custom'
-        $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $deployPolicyContentWindows_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-        $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $deployPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $deployPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
@@ -452,9 +454,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithOneParam.properties.description.Contains($newGCPolicyDINEParametersLinux_WithOneParam.Description) | Should -BeTrue
         $deployPolicyContentLinux_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
         $deployPolicyContentLinux_WithOneParam.properties.policyType | Should -Be 'Custom'
-        $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
+        $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
         $deployPolicyContentLinux_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-        $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be "Array"
+        $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
         $deployPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $deployPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null

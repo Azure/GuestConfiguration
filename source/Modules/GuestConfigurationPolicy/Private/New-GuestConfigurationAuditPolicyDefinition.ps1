@@ -85,8 +85,8 @@ function New-GuestConfigurationAuditPolicyDefinition
     }
 
     $ParameterMapping = @{ }
-    $ParameterDefinitions = @{}
-    $auditPolicyContentHashtable = [Ordered]@{}
+    $ParameterDefinitions = @{ }
+    $auditPolicyContentHashtable = [Ordered]@{ }
 
     if ($null -ne $ParameterInfo)
     {

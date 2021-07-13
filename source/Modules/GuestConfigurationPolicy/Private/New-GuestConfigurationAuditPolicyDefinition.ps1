@@ -90,7 +90,7 @@ function New-GuestConfigurationAuditPolicyDefinition
 
     if ($null -ne $ParameterInfo)
     {
-        $ParameterMapping += Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
+        $ParameterMapping = Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
     }
 

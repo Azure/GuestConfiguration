@@ -216,7 +216,6 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
     }
 
-
     # AINE - With more than one parameter
     It 'New-GuestConfigurationPolicy should output path to generated policies' {
         $newGCPolicyResultWindows_WithParam = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows_WithParam

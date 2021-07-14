@@ -82,16 +82,16 @@ function New-GuestConfigurationDeployPolicyDefinition
         $deployPolicyGuid = [Guid]::NewGuid()
     }
 
-    $ParameterMapping = @{ }
-    $ParameterDefinitions = @{ }
-    $PolicyContentHashtable = [Ordered]@{ }
+    $ParameterMapping = @()
+    $ParameterDefinitions = @{}
+    $PolicyContentHashtable = [Ordered]@{}
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }
 
     if ($null -ne $ParameterInfo)
     {
-        $ParameterMapping = Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
+        $ParameterMapping += Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
     }
 

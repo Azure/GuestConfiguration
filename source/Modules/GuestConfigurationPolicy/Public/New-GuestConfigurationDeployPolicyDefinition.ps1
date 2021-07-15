@@ -88,19 +88,13 @@ function New-GuestConfigurationDeployPolicyDefinition
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }
-<<<<<<< HEAD
-=======
     $MetadataParameterMapping = @{}
->>>>>>> 7c19877... Metadatachanges
 
     if ($null -ne $ParameterInfo)
     {
         $ParameterMapping += Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
-<<<<<<< HEAD
-=======
         $MetadataParameterMapping = Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
->>>>>>> 7c19877... Metadatachanges
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
@@ -730,7 +724,6 @@ function New-GuestConfigurationDeployPolicyDefinition
             $currentParameterValueConcatenatedString = "'$name', '=', $value"
             $parameterValueConceatenatedStringList += $currentParameterValueConcatenatedString
         }
-<<<<<<< HEAD
 
         $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
         $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
@@ -739,16 +732,6 @@ function New-GuestConfigurationDeployPolicyDefinition
             equals = $parameterExistenceConditionEqualsValue
         })
 
-=======
-
-        $allParameterValueConcantenatedString = $parameterValueConceatenatedStringList -join ", ',', "
-        $parameterExistenceConditionEqualsValue = "[base64(concat($allParameterValueConcantenatedString))]"
-        $existenceConditionList['allOf'].Add([Ordered]@{
-            field  = 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
-            equals = $parameterExistenceConditionEqualsValue
-        })
-
->>>>>>> 7c19877... Metadatachanges
         # Adding parameters into the deploymentHashTable
         foreach ($currentParameterInfo in $parameterInfo)
         {

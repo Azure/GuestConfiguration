@@ -36,7 +36,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $contentURI_AuditWindowService = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
 
         $defaultAineFormatConfigParam_path = '[MyFile]createFoobarTestFile;path'
-        $defaultAineFormatConfigParam_path = '[MyFile]createFoobarTestFile;content'
+        $defaultAineFormatConfigParam_content = '[MyFile]createFoobarTestFile;content'
         $defaultAineFormatConfigParam_ensure = '[MyFile]createFoobarTestFile;ensure'
 
         inModuleScope -ModuleName GuestConfiguration {
@@ -251,7 +251,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultHashConfigParam_content
+        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
 
@@ -266,7 +266,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultHashConfigParam_content
+        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
     }
@@ -402,7 +402,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-        $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultHashConfigParam_content
+        $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
 
@@ -418,7 +418,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-        $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultHashConfigParam_content
+        $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
     }

@@ -35,6 +35,10 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $contentURI_MyFile = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
         $contentURI_AuditWindowService = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
 
+        $defaultAineFormatConfigParam_path = '[MyFile]createFoobarTestFile;path'
+        $defaultAineFormatConfigParam_content = '[MyFile]createFoobarTestFile;content'
+        $defaultAineFormatConfigParam_ensure = '[MyFile]createFoobarTestFile;ensure'
+
         inModuleScope -ModuleName GuestConfiguration {
             Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
         }
@@ -247,6 +251,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
+        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
+        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
 
         $auditPolicyFileLinux_WithParam = Join-Path -Path $testAINEOutputPathLinux_WithParam -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux_WithParam = Get-Content $auditPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -259,6 +266,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $auditPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
+        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
+        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
     }
 
 
@@ -299,6 +309,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $auditPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
+        $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
+        $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
 
         $auditPolicyFileLinux_WithOneParam = Join-Path -Path $testAINEOutputPathLinux_WithOneParam -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux_WithOneParam = Get-Content $auditPolicyFileLinux_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -311,6 +324,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $auditPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $auditPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
+        $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
+        $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
     }
 
     # DINE Tests - no parameters
@@ -386,6 +402,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
+        $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
+        $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
 
         $deployPolicyFileLinux_WithParam = Join-Path -Path $testDINEOutputPathLinux_WithParam -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux_WithParam = Get-Content $deployPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -399,6 +418,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
         $deployPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
+        $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
+        $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
     }
 
     # DINE Tests - With only one parameter
@@ -440,6 +462,10 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $deployPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
+        $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
+        $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+
 
         $deployPolicyFileLinux_WithOneParam = Join-Path -Path $testDINEOutputPathLinux_WithOneParam -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux_WithOneParam = Get-Content $deployPolicyFileLinux_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -453,5 +479,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
         $deployPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
         $deployPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
+        $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
+        $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
+        $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+
     }
 }

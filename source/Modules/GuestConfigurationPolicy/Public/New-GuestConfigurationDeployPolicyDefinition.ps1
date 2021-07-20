@@ -82,17 +82,19 @@ function New-GuestConfigurationDeployPolicyDefinition
         $deployPolicyGuid = [Guid]::NewGuid()
     }
 
-    $ParameterMapping = @{ }
-    $ParameterDefinitions = @{ }
-    $PolicyContentHashtable = [Ordered]@{ }
+    $ParameterMapping = @()
+    $ParameterDefinitions = @{}
+    $PolicyContentHashtable = [Ordered]@{}
     $existenceConditionList = [Ordered]@{
         allOf = [System.Collections.ArrayList]@()
     }
+    $MetadataParameterMapping = @{}
 
     if ($null -ne $ParameterInfo)
     {
-        $ParameterMapping = Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
+        $ParameterMapping += Get-ParameterMappingForDINE -ParameterInfo $ParameterInfo
         $ParameterDefinitions = Get-ParameterDefinition -ParameterInfo $ParameterInfo
+        $MetadataParameterMapping = Get-ParameterMappingForAINE -ParameterInfo $ParameterInfo
     }
 
     $ParameterDefinitions['IncludeArcMachines'] += [Ordered]@{
@@ -115,6 +117,14 @@ function New-GuestConfigurationDeployPolicyDefinition
             metadata    = [Ordered]@{
                 version = $ConfigurationVersion
                 category          = $Category
+                guestConfiguration = [Ordered]@{
+                    name                   = $ConfigurationName
+                    version                = $ConfigurationVersion
+                    contentType            = "Custom"
+                    contentUri             = $ContentUri
+                    contentHash            = $ContentHash
+                    configurationParameter = $MetadataParameterMapping
+                }
                 requiredProviders = @(
                     'Microsoft.GuestConfiguration'
                 )

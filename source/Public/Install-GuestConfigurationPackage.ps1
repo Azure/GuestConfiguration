@@ -67,10 +67,12 @@ function Install-GuestConfigurationPackage
         {
             Write-Debug -Message "'$Package' is the Package Name."
             # The $Package parameter is the PackageName, no need to version check.
-            # if package name is not installed, throw an error
+            # If package name is not installed, throw an error
             try
             {
+                $packageName = $Package
                 $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve
+                $isPackageAlreadyInstalled = $true
             }
             catch
             {
@@ -79,12 +81,18 @@ function Install-GuestConfigurationPackage
             }
         }
 
-
-        Write-Debug -Message "Getting package name from '$PackageZipPath'."
-        $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageZipPath
-        $packageZipMetadata = Get-GuestConfigurationPackageMetadataFromZip -Path $PackageZipPath -Verbose:$verbose
-        $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $packageName
-        $isPackageAlreadyInstalled = $false
+        if ($PackageZipPath)
+        {
+            Write-Debug -Message "Getting package name from '$PackageZipPath'."
+            $isPackageAlreadyInstalled = $false
+            $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageZipPath
+            $packageZipMetadata = Get-GuestConfigurationPackageMetadataFromZip -Path $PackageZipPath -Verbose:$verbose
+            $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $packageName
+        }
+        else
+        {
+            $packageZipMetadata = Get-GuestConfigurationPackageMetaConfig -Path $installedPackagePath
+        }
 
         if (Test-Path -Path $installedPackagePath)
         {
@@ -92,7 +100,7 @@ function Install-GuestConfigurationPackage
             $installedPackageMetadata = Get-GuestConfigurationPackageMetaConfig -Path $installedPackagePath -Verbose:$verbose
 
             if
-            (   # none of the packages are versioned or the versions match, we're good
+            (   # None of the packages are versioned or the versions match, we're good
                 -not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
                 ($installedPackageMetadata.ContainsKey('Version') -ne $packageZipMetadata.Contains('Version')) -or # to avoid next statement
                 $installedPackageMetadata.Version -eq $packageZipMetadata.Version
@@ -116,7 +124,8 @@ function Install-GuestConfigurationPackage
             $withForce = $false
         }
 
-        if ((-not $isPackageAlreadyInstalled) -or $withForce)
+        # Do not re-install if package name was passed with force, since we do not have access to the zip file
+        if ((-not $isPackageAlreadyInstalled) -or ($withForce -and (-not $packageName -eq $Package)))
         {
             Write-Debug -Message "Removing existing package at '$installedPackagePath'."
             Remove-Item -Path $installedPackagePath -Recurse -Force -ErrorAction SilentlyContinue
@@ -124,6 +133,10 @@ function Install-GuestConfigurationPackage
             # Unzip policy package
             Write-Verbose -Message "Unzipping the Guest Configuration Package to '$installedPackagePath'."
             Expand-Archive -LiteralPath $PackageZipPath -DestinationPath $installedPackagePath -ErrorAction Stop -Force
+        }
+        elseif ($withForce -and ($packageName -eq $Package))
+        {
+            Write-Verbose -Message "Cannot force package reinstallation with package name."
         }
         else
         {
@@ -137,7 +150,7 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
 
-        # if we downloaded the Zip file from URI to temp folder, do cleanup
+        # If we downloaded the Zip file from URI to temp folder, do cleanup
         if (($Package -as [uri]).Scheme -match '^http')
         {
             Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."

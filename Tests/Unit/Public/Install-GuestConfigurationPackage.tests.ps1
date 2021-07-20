@@ -12,10 +12,11 @@ Describe 'Install-GuestConfigurationPackage' -ForEach @{
     importedModule = $importedModule
 } {
     BeforeAll {
-        # test Assets path
+        # Test Assets path
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        # Test Config Package MOF
+        # Package information
         $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/testPolicy.zip'
+        $packageName = 'testPolicy'
     }
 
     It 'Validate that unzipping package is as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
@@ -30,5 +31,16 @@ Describe 'Install-GuestConfigurationPackage' -ForEach @{
         InModuleScope -ModuleName GuestConfiguration {
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }
+    }
+
+    It 'Validate passing a valid package name is working as expected' {
+        { Install-GuestConfigurationPackage -Path $packageName -Force } | Should -Not -Throw
+        InModuleScope -ModuleName GuestConfiguration {
+            { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
+        }
+    }
+
+    It 'Validate passing an invalid package name should throw' {
+        { Install-GuestConfigurationPackage -Path "foobar" -Force } | Should -Throw
     }
 }

@@ -56,45 +56,65 @@ stages:
 
           - pwsh: gci .
 
-          - task: PowerShell@2
-            enabled: true
-            displayName: Enable Experimental Feature
-            inputs:
-              pwsh: true
-              targetType: inline
-              continueOnError: true
-              script: |
-                ./build.ps1 -Tasks noop
-                Import-Module GuestConfiguration
-                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-                Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                # Enable-ExperimentalFeature -Name PS7DscSupport
-                $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
-                Write-Host "Testing PS Config at '$userConfig'."
-                if (Test-Path -Path $userConfig)
-                {
-                    $config = Get-Content -Raw $userConfig | ConvertFrom-Json
-                    $config.ExperimentalFeatures += 'PS7DscSupport'
-                    Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
-                    Write-Host "PS Config updated at '$userConfig'."
-                    Get-Content -Raw $userConfig | Write-Host
-                }
-                else
-                {
-                    Write-Host "PowerShell Config not found at '$userConfig'."
-                }
-                Uninstall-AzureRm
+          # - task: PowerShell@2
+          #   enabled: true
+          #   displayName: Enable Experimental Feature
+          #   inputs:
+          #     pwsh: true
+          #     targetType: inline
+          #     continueOnError: true
+          #     script: |
+          #       ./build.ps1 -Tasks noop
+          #       Import-Module GuestConfiguration
+          #       Enable-ExperimentalFeature -Name GuestConfiguration.Pester
+          #       Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
+          #       # Enable-ExperimentalFeature -Name PS7DscSupport
+          #       $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
+          #       Write-Host "Testing PS Config at '$userConfig'."
+          #       if (Test-Path -Path $userConfig)
+          #       {
+          #           $config = Get-Content -Raw $userConfig | ConvertFrom-Json
+          #           $config.ExperimentalFeatures += 'PS7DscSupport'
+          #           Set-Content -Value ($config | ConvertTo-json) -Path $userConfig -Force -Encoding utf8
+          #           Write-Host "PS Config updated at '$userConfig'."
+          #           Get-Content -Raw $userConfig | Write-Host
+          #       }
+          #       else
+          #       {
+          #           Write-Host "PowerShell Config not found at '$userConfig'."
+          #       }
+          #       Uninstall-AzureRm
 
-          - task: PowerShell@2
-            name: test
-            displayName: 'Run Integration Test'
-            env:
-              ModuleVersion: $(NuGetVersionV2)
-              GitHubToken: $(GitHubToken)
-              AzureServicePrincipalPassword: $(AZURE_SERVICEPRINCIPALPASSWORD)
-              AzureServicePincipalUsername: $(AZURE_SERVICEPRINCIPALUSERNAME)
-              AzureTenantId: $(AZURE_TENANTID)
-            inputs:
-              filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
-              pwsh: true
+          # - task: PowerShell@2
+          #   name: test
+          #   displayName: 'Run Integration Test'
+          #   env:
+          #     ModuleVersion: $(NuGetVersionV2)
+          #     GitHubToken: $(GitHubToken)
+          #     AzureServicePrincipalPassword: $(AZURE_SERVICEPRINCIPALPASSWORD)
+          #     AzureServicePincipalUsername: $(AZURE_SERVICEPRINCIPALUSERNAME)
+          #     AzureTenantId: $(AZURE_TENANTID)
+          #   inputs:
+          #     filePath: './build.ps1'
+          #     arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
+          #     pwsh: true
+
+          #Your build pipeline references an undefined variable named ‘PackageLocation’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
+
+        - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+          displayName: 'ESRP CodeSigning'
+          inputs:
+            ConnectedServiceName: 'Windows Policy Signing'
+            FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
+            Pattern: '*.asc'
+            signConfigType: inlineSignParams
+            inlineOperation: |
+            [
+              {
+                "KeyCode": "CP-450779-Pgp",
+                "OperationCode": "LinuxSign",
+                "ToolName": "sign",
+                "ToolVersion": "1.0",
+                "Parameters": {}
+              }
+            ]

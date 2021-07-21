@@ -9,9 +9,9 @@
         Force installing over an existing package, even if it already exists.
 
     .Example
-        Install-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
+        Install-GuestConfigurationPackage -Package ./custom_policy/WindowsTLS.zip
 
-        Install-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Force
+        Install-GuestConfigurationPackage -Package ./custom_policy/AuditWindowsService.zip -Force
 
     .OUTPUTS
         The path to the installed Guest Configuration package.
@@ -42,6 +42,14 @@ function Install-GuestConfigurationPackage
         throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
+    if ($PSBoundParameters.ContainsKey('Force') -and $PSBoundParameters['Force'])
+        {
+            $withForce = $true
+        }
+        else
+        {
+            $withForce = $false
+        }
 
     $verbose = $VerbosePreference -ne 'SilentlyContinue' -or ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
     $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
@@ -65,14 +73,21 @@ function Install-GuestConfigurationPackage
         }
         else
         {
-            Write-Debug -Message "'$Package' is the Package Name."
             # The $Package parameter is the PackageName, no need to version check.
-            # If package name is not installed, throw an error
+            Write-Debug -Message "'$Package' is the Package Name."
             try
             {
+                # If package name is not installed, throw an error
                 $packageName = $Package
                 $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve
                 $isPackageAlreadyInstalled = $true
+
+                # Do not re-install if package name was passed with force, since we do not have access to the zip file
+                if ($withForce)
+                {
+                    Write-Verbose -Message "Cannot force package reinstallation with package name. Skipping force."
+                    $withForce = $false
+                }
             }
             catch
             {
@@ -115,17 +130,7 @@ function Install-GuestConfigurationPackage
             }
         }
 
-        if ($PSBoundParameters.ContainsKey('Force') -and $PSBoundParameters['Force'])
-        {
-            $withForce = $true
-        }
-        else
-        {
-            $withForce = $false
-        }
-
-        # Do not re-install if package name was passed with force, since we do not have access to the zip file
-        if ((-not $isPackageAlreadyInstalled) -or ($withForce -and (-not $packageName -eq $Package)))
+        if ((-not $isPackageAlreadyInstalled) -or $withForce)
         {
             Write-Debug -Message "Removing existing package at '$installedPackagePath'."
             Remove-Item -Path $installedPackagePath -Recurse -Force -ErrorAction SilentlyContinue
@@ -133,10 +138,6 @@ function Install-GuestConfigurationPackage
             # Unzip policy package
             Write-Verbose -Message "Unzipping the Guest Configuration Package to '$installedPackagePath'."
             Expand-Archive -LiteralPath $PackageZipPath -DestinationPath $installedPackagePath -ErrorAction Stop -Force
-        }
-        elseif ($withForce -and ($packageName -eq $Package))
-        {
-            Write-Verbose -Message "Cannot force package reinstallation with package name."
         }
         else
         {

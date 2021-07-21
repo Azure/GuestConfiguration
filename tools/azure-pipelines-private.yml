@@ -98,22 +98,3 @@ stages:
               filePath: './build.ps1'
               arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
               pwsh: true
-          #Your build pipeline references an undefined variable named ‘PackageLocation’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-
-          - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-            displayName: 'ESRP CodeSigning'
-            inputs:
-              ConnectedServiceName: 'Windows Policy Signing'
-              FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-              Pattern: '*.asc'
-              signConfigType: inlineSignParams
-              inlineOperation: |
-              [
-                {
-                  "KeyCode": "CP-450779-Pgp",
-                  "OperationCode": "LinuxSign",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                }
-              ]

@@ -56,8 +56,6 @@ stages:
 
           - pwsh: gci .
 
-
-
           - task: PowerShell@2
             enabled: true
             displayName: Enable Experimental Feature
@@ -87,19 +85,19 @@ stages:
                 }
                 Uninstall-AzureRm
 
-          # - task: PowerShell@2
-          #   name: test
-          #   displayName: 'Run Integration Test'
-          #   env:
-          #     ModuleVersion: $(NuGetVersionV2)
-          #     GitHubToken: $(GitHubToken)
-          #     AzureServicePrincipalPassword: $(AZURE_SERVICEPRINCIPALPASSWORD)
-          #     AzureServicePincipalUsername: $(AZURE_SERVICEPRINCIPALUSERNAME)
-          #     AzureTenantId: $(AZURE_TENANTID)
-          #   inputs:
-          #     filePath: './build.ps1'
-          #     arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
-          #     pwsh: true
+          - task: PowerShell@2
+            name: test
+            displayName: 'Run Integration Test'
+            env:
+              ModuleVersion: $(NuGetVersionV2)
+              GitHubToken: $(GitHubToken)
+              AzureServicePrincipalPassword: $(AZURE_SERVICEPRINCIPALPASSWORD)
+              AzureServicePincipalUsername: $(AZURE_SERVICEPRINCIPALUSERNAME)
+              AzureTenantId: $(AZURE_TENANTID)
+            inputs:
+              filePath: './build.ps1'
+              arguments: "-Tasks test -PesterScript 'Tests/GuestConfigurationModule.Tests.ps1'"
+              pwsh: true
           #Your build pipeline references an undefined variable named ‘PackageLocation’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
 
           - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1

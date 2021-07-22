@@ -53,21 +53,21 @@ stages:
               buildType: 'current'
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
-
           - task: EsrpCodeSigning@1
-            displayName: 'ESRP CodeSigning'
+            displayName: ESRP CodeSigning
             inputs:
-              ConnectedServiceName: 'Windows Policy Signing'
-              FolderPath: '$(PackageLocation)'
+              ConnectedServiceName: e0624a17-df22-45d7-8e38-c9a3bb0dfba5
+              FolderPath: $(PackageLocation)
               Pattern: '*.asc'
               signConfigType: inlineSignParams
-              inlineOperation: |
-              [
-                {
-                  "KeyCode": "CP-450779-Pgp",
-                  "OperationCode": "LinuxSign",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                }
-              ]
+              CertificateId: CP-450779-Pgp
+              inlineOperation: >-
+                [
+                  {
+                    "KeyCode": "CP-450779-Pgp",
+                    "OperationCode": "LinuxSign",
+                    "ToolName": "sign",
+                    "ToolVersion": "1.0",
+                    "Parameters": {}
+                  }
+                ]

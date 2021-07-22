@@ -53,11 +53,12 @@ stages:
               buildType: 'current'
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+
           - task: EsrpCodeSigning@1
             displayName: ESRP CodeSigning
             inputs:
               ConnectedServiceName: e0624a17-df22-45d7-8e38-c9a3bb0dfba5
-              FolderPath: $(PackageLocation)
+              FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
               Pattern: '*.asc'
               signConfigType: inlineSignParams
               CertificateId: CP-450779-Pgp

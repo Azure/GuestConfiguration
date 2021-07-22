@@ -61,18 +61,6 @@
             # ReleaseNotes of this module
             ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
 
-            # Experimental features
-            ExperimentalFeatures = @(
-                @{
-                    Name        = "GuestConfiguration.Pester"
-                    Description = "Audit content in Pester format"
-                },
-                @{
-                    Name  = "GuestConfiguration.SetScenario"
-                    Description = "Enable Remedetiation of non-compliant Guest Configuration Policies."
-                }
-            )
-
         } # End of PSData hashtable
 
     } # End of PrivateData hashtable

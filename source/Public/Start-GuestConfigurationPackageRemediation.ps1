@@ -32,7 +32,6 @@
 function Start-GuestConfigurationPackageRemediation
 {
     [CmdletBinding()]
-    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType()]
     param
     (
@@ -66,7 +65,7 @@ function Start-GuestConfigurationPackageRemediation
     else
     {
         $withForce = $false
-    }
+    get-
 
     try
     {

@@ -33,7 +33,6 @@
 function New-GuestConfigurationFile
 {
     [CmdletBinding()]
-    [Experimental("GuestConfiguration.Pester", "Show")]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     param
     (

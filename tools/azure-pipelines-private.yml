@@ -54,7 +54,7 @@ stages:
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
 
-          - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+          - task: EsrpCodeSigning@1
             displayName: 'ESRP CodeSigning'
             inputs:
               ConnectedServiceName: 'Windows Policy Signing'

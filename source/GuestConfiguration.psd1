@@ -61,8 +61,12 @@
             # ReleaseNotes of this module
             ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
 
+            ExperimentalFeatures = @(
+                @{
+                    Name        = "GuestConfiguration.Pester"
+                    Description = "Audit content in Pester format"
+                }
+            )
         } # End of PSData hashtable
-
     } # End of PrivateData hashtable
-
 }

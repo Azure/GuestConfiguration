@@ -89,12 +89,10 @@ function Install-GuestConfigurationPackage
             Write-Debug -Message "The Package '$PackageName' exists at '$installedPackagePath'. Checking version..."
             $installedPackageMetadata = Get-GuestConfigurationPackageMetaConfig -Path $installedPackagePath -Verbose:$verbose
 
-            if
-            (   # none of the packages are versioned or the versions match, we're good
-                -not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
+            # None of the packages are versioned or the versions match, we're good
+            if (-not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
                 ($installedPackageMetadata.ContainsKey('Version') -ne $packageZipMetadata.Contains('Version')) -or # to avoid next statement
-                $installedPackageMetadata.Version -eq $packageZipMetadata.Version
-            )
+                $installedPackageMetadata.Version -eq $packageZipMetadata.Version)
             {
                 $isPackageAlreadyInstalled = $true
                 Write-Debug -Message ("Package '{0}{1}' is installed." -f $PackageName,($packageZipMetadata.Contains('Version') ? "_$($packageZipMetadata['Version'])" : ''))

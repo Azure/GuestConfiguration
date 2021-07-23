@@ -25,16 +25,9 @@ function Set-DscLocalConfigurationManager
         $Path
     )
 
-    $job_id = [guid]::NewGuid().Guid
-    $gcBinPath = Get-GuestConfigBinaryPath
-    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+    Remove-Item (Get-GuestConfigLogPath) -ErrorAction SilentlyContinue -Force
 
-    if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
-    {
-        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
-        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
-    }
-
-    $dscOperation = [GuestConfig.DscOperations]::New()
-    $result = $dscOperation.SetDscLocalConfigurationManager($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $Path)
+    $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
+    Start-Process $gcWorkerPath -ArgumentList  "-o set_agent_settings -a  $ConfigurationName -p $Path" -Wait -NoNewWindow
+    Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 }

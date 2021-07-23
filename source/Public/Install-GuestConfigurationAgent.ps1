@@ -57,6 +57,9 @@ function Install-GuestConfigurationAgent
                 chmod @('+x', $_.FullName)
             }
         }
+
+        $gcConfigPath = Join-Path $gcBinPath 'gc.config'
+        '{ "SaveLogsInJsonFormat": true, "DoNotSendReport": true}' | Out-File -Path $gcConfigPath -Encoding ascii -Force
     }
     else
     {

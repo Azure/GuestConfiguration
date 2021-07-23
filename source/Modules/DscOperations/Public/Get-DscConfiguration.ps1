@@ -20,18 +20,13 @@ function Get-DscConfiguration
         $ConfigurationName
     )
 
-    $job_id = [guid]::NewGuid().Guid
-    $gcBinPath = Get-GuestConfigBinaryPath
-    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+    Remove-Item (Get-GuestConfigLogPath) -ErrorAction SilentlyContinue -Force
+    Remove-Item (Get-GuestConfigAssignmentReportFolderPath -ConfigurationName $ConfigurationName) -ErrorAction SilentlyContinue -Force -Recurse
 
-    if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
-    {
-        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
-        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
-    }
+    $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
+    Start-Process $gcWorkerPath -ArgumentList  "-o run_consistency -a  $ConfigurationName -r -c Pending" -Wait -NoNewWindow
+    Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 
-    $dscOperation = [GuestConfig.DscOperations]::New()
-    $result = $dscOperation.GettDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath)
-
-    return ConvertFrom-Json $result
+    $reportPath = Get-GuestConfigAssignmentReportFilePath -ConfigurationName $ConfigurationName
+    return ConvertFrom-Json (Get-Content $reportPath -Raw)
 }

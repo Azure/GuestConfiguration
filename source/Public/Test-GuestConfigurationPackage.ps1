@@ -34,7 +34,6 @@ function Test-GuestConfigurationPackage
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string]
-        [Alias('Package')]
         $Path,
 
         [Parameter()]

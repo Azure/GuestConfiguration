@@ -27,8 +27,7 @@ function Install-GuestConfigurationPackage
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        [Alias('Path')]
-        $Package,
+        $Path,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [System.Management.Automation.SwitchParameter]

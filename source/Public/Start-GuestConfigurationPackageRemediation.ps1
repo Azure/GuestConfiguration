@@ -65,7 +65,7 @@ function Start-GuestConfigurationPackageRemediation
     else
     {
         $withForce = $false
-    get-
+    }
 
     try
     {

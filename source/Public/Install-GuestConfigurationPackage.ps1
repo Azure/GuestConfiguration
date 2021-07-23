@@ -133,7 +133,7 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
 
-        # if we downloaded the Zip file from URI to temp folder, do cleanup
+        # If we downloaded the Zip file from URI to temp folder, do cleanup
         if (($Path -as [uri]).Scheme -match '^http')
         {
             Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."

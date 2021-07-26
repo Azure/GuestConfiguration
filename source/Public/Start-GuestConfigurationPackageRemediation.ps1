@@ -38,7 +38,6 @@ function Start-GuestConfigurationPackageRemediation
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [Alias('Path')]
         [string]
         $Path,
 

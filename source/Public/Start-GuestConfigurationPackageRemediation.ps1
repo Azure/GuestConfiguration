@@ -38,9 +38,8 @@ function Start-GuestConfigurationPackageRemediation
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [Alias('Path')]
         [string]
-        $Package,
+        $Path,
 
         [Parameter()]
         [Switch]
@@ -72,7 +71,7 @@ function Start-GuestConfigurationPackageRemediation
     try
     {
         # Install the package
-        $packagePath = Install-GuestConfigurationPackage -Path $Package -Force:$withForce -ErrorAction 'Stop'
+        $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$withForce -ErrorAction 'Stop'
 
         # The leaf part of the Path returned by Install-GCPackage will always be the BaseName of the MOF.
         $packageName = Get-GuestConfigurationPackageName -Path $packagePath

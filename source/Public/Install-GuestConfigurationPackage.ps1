@@ -72,7 +72,7 @@ function Install-GuestConfigurationPackage
             }
             catch
             {
-                throw "The Package '$Path' is not installed. Please provide the Path to the Zip or the URL to download the package from."
+                throw "The Package '$Package' is not installed. Please provide the Path to the Zip or the URL to download the package from."
                 return
             }
         }
@@ -136,7 +136,7 @@ function Install-GuestConfigurationPackage
         $env:PSModulePath = $systemPSModulePath
 
         # if we downloaded the Zip file from URI to temp folder, do cleanup
-        if (($Package -as [uri]).Scheme -match '^http')
+        if (($Path -as [uri]).Scheme -match '^http')
         {
             Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."
             Remove-Item -Force -ErrorAction SilentlyContinue -Path $PackageZipPath

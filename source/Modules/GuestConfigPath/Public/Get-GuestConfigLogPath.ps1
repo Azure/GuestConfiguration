@@ -8,5 +8,5 @@ function Get-GuestConfigLogPath
     $logFolder = Join-Path -Path (Get-GuestConfigPath) -ChildPath 'gc_agent_logs'
     $logPath = Join-Path -Path $logFolder -ChildPath 'gc_agent.json'
 
-    $logPath
+    return $logPath
 }

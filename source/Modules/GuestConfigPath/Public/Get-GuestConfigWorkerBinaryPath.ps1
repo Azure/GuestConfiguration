@@ -13,5 +13,5 @@ function Get-GuestConfigWorkerBinaryPath
         $gcWorkerPath = Join-Path $gcBinPath 'gc_worker'
     }
 
-    $gcWorkerPath
+    return $gcWorkerPath
 }

@@ -73,7 +73,7 @@ function Get-GuestConfigurationPackageComplianceStatus
 
             $getResult = @()
             $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose)
-            $getResult
+            return $getResult
         }
         finally
         {

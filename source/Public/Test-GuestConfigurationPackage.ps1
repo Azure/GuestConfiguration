@@ -103,7 +103,7 @@ function Test-GuestConfigurationPackage
         Write-Verbose -Message "Getting Configuration resources status."
         $getResult = @()
         $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose)
-        $getResult
+        return $getResult
     }
     finally
     {

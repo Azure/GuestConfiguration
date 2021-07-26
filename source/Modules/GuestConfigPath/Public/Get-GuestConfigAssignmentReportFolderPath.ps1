@@ -13,5 +13,5 @@ function Get-GuestConfigAssignmentReportFolderPath
     $binRootFolder = Get-GuestConfigBinaryRootPath
     $releaseVersionfolder = Join-Path -Path $binRootFolder -ChildPath $global:ReleaseVersion
     $guestConfigReportFolderPath = Join-Path -Path $releaseVersionfolder -ChildPath 'reports'
-    $guestConfigReportFolderPath
+    return $guestConfigReportFolderPath
 }

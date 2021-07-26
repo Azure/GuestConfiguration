@@ -34,7 +34,6 @@ function Test-GuestConfigurationPackage
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string]
-        [Alias('Package')]
         $Path,
 
         [Parameter()]
@@ -68,7 +67,7 @@ function Test-GuestConfigurationPackage
     try
     {
         # Get the installed policy path, and install if missing
-        $packagePath = Install-GuestConfigurationPackage -Package $Path -Verbose:$verbose -Force:$withForce
+        $packagePath = Install-GuestConfigurationPackage -Path $Path -Verbose:$verbose -Force:$withForce
 
 
         $packageName = Get-GuestConfigurationPackageName -Path $packagePath

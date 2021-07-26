@@ -27,8 +27,7 @@ function Install-GuestConfigurationPackage
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        [Alias('Path')]
-        $Package,
+        $Path,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [System.Management.Automation.SwitchParameter]
@@ -53,23 +52,23 @@ function Install-GuestConfigurationPackage
         Install-GuestConfigurationAgent -verbose:$verbose
 
         # Resolve the zip (to temp folder if URI)
-        if (($Package -as [uri]).Scheme -match '^http')
+        if (($Path -as [uri]).Scheme -match '^http')
         {
             # Get the package from URI to a temp folder
-            $PackageZipPath = (Get-GuestConfigurationPackageFromUri -Uri $Package -Verbose:$verbose).ToString()
+            $PackageZipPath = (Get-GuestConfigurationPackageFromUri -Uri $Path -Verbose:$verbose).ToString()
         }
-        elseif ((Test-Path -PathType 'Leaf' -Path $Package) -and $Package -match '\.zip$')
+        elseif ((Test-Path -PathType 'Leaf' -Path $Path) -and $Path -match '\.zip$')
         {
-            $PackageZipPath = (Resolve-Path -Path $Package).ToString()
+            $PackageZipPath = (Resolve-Path -Path $Path).ToString()
         }
         else
         {
-            Write-Debug -Message "'$Package' is the Package Name."
-            # The $Package parameter is the PackageName, no need to version check.
+            Write-Debug -Message "'$Path' is the Package Name."
+            # The $Path parameter is the PackageName, no need to version check.
             # if package name is not installed, throw an error
             try
             {
-                $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Package -Resolve
+                $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Path -Resolve
             }
             catch
             {
@@ -137,7 +136,7 @@ function Install-GuestConfigurationPackage
         $env:PSModulePath = $systemPSModulePath
 
         # if we downloaded the Zip file from URI to temp folder, do cleanup
-        if (($Package -as [uri]).Scheme -match '^http')
+        if (($Path -as [uri]).Scheme -match '^http')
         {
             Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."
             Remove-Item -Force -ErrorAction SilentlyContinue -Path $PackageZipPath

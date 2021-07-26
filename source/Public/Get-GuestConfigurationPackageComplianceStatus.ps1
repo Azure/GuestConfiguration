@@ -7,7 +7,7 @@ function Get-GuestConfigurationPackageComplianceStatus
     (
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [System.String]
-        $Package,
+        $Path,
 
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [Hashtable[]]
@@ -37,7 +37,7 @@ function Get-GuestConfigurationPackageComplianceStatus
                 $withForce = $false
             }
 
-            $packagePath = Install-GuestConfigurationPackage -Path $Package -Force:$withForce
+            $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$withForce
 
             Write-Debug -Message "Looking into Package '$PackagePath' for MOF document."
 

@@ -37,7 +37,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         Test-Path -Path $tempDefaultFile | Should -Be $False
 
         # Run start, validate it does not throw
-        { Start-GuestConfigurationPackageRemediation -Package $packagePath -Force } | Should -Not -Throw
+        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force } | Should -Not -Throw
 
         # Validate temp file exists
         Test-Path -Path $tempDefaultFile | Should -Be $True
@@ -71,7 +71,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
                 ResourcePropertyName = 'content'
                 ResourcePropertyValue = $tempWithParameterContents
             })
-        { Start-GuestConfigurationPackageRemediation -Package $packagePath -Parameter $Parameter -Force } | Should -Not -Throw
+        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Parameter $Parameter -Force } | Should -Not -Throw
 
         # Validate temp file exists
         Test-Path -Path $tempWithParameterFile | Should -Be $True

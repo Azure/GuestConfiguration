@@ -23,6 +23,6 @@ function Start-DscConfiguration
 
     $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
     Start-Process $gcWorkerPath -ArgumentList  "-o run_consistency -a  $ConfigurationName -r -s inguest_apply_and_monitor -c Pending" -Wait -NoNewWindow
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Seconds 1
     Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 }

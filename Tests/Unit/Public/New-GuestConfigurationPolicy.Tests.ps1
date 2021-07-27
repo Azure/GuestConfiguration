@@ -39,7 +39,9 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $defaultAineFormatConfigParam_content = '[MyFile]createFoobarTestFile;content'
         $defaultAineFormatConfigParam_ensure = '[MyFile]createFoobarTestFile;ensure'
 
-        $policyID = $deployPolicyGuid = [Guid]::NewGuid()
+        $policyID_Windows = [Guid]::NewGuid()
+        $policyID_Linux = [Guid]::NewGuid()
+        $foo_policyId = "foobar"
 
         inModuleScope -ModuleName GuestConfiguration {
             Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
@@ -108,7 +110,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Windows
         }
 
         $newGCPolicyAINEParametersLinux = @{
@@ -118,7 +120,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Linux
         }
 
         $newGCPolicyAINEParametersWindows_WithParam = @{
@@ -128,7 +130,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathWindows_WithParam
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Windows
             Parameter   = $policyParameterInfo
         }
 
@@ -139,7 +141,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathLinux_WithParam
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Linux
             Parameter   = $policyParameterInfo
         }
 
@@ -151,7 +153,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Windows
             Mode        = 'ApplyAndMonitor'
         }
 
@@ -162,7 +164,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Linux
             Mode        = 'ApplyAndMonitor'
         }
 
@@ -174,7 +176,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Version     = '1.0.0.0'
             Platform    = 'Windows'
             Mode        = 'ApplyAndMonitor'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Windows
             Parameter   = $policyParameterInfo
         }
 
@@ -186,7 +188,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Version     = '1.0.0.0'
             Platform    = 'Linux'
             Mode        = 'ApplyAndMonitor'
-            PolicyId    = $policyID
+            PolicyId    = $policyID_Linux
             Parameter   = $policyParameterInfo
         }
     }
@@ -219,6 +221,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows.properties.policyType | Should -Be 'Custom'
         $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
+        $auditPolicyContentWindows.name | Should -Be $policyID_Windows
 
         $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -228,6 +231,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux.properties.policyType | Should -Be 'Custom'
         $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
+        $auditPolicyContentLinux.name | Should -Be $policyID_Linux
     }
 
     # AINE - With more than one parameter
@@ -264,6 +268,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
+        $auditPolicyContentWindows_WithParam.name | Should -Be $policyID_Windows
 
         $auditPolicyFileLinux_WithParam = Join-Path -Path $testAINEOutputPathLinux_WithParam -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux_WithParam = Get-Content $auditPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -279,6 +284,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
+        $auditPolicyContentLinux_WithParam.name | Should -Be $policyID_Linux
     }
 
 
@@ -322,6 +328,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
         $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+        $auditPolicyContentWindows_WithOneParam.name | Should -Be $policyID_Windows
 
         $auditPolicyFileLinux_WithOneParam = Join-Path -Path $testAINEOutputPathLinux_WithOneParam -ChildPath 'AuditIfNotExists.json'
         $auditPolicyContentLinux_WithOneParam = Get-Content $auditPolicyFileLinux_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -337,6 +344,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
         $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+        $auditPolicyContentLinux_WithOneParam.name | Should -Be $policyID_Linux
     }
 
     # DINE Tests - no parameters
@@ -368,6 +376,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $deployPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
         $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
+        $deployPolicyContentWindows.name | Should -Be $policyID_Windows
 
         $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
@@ -378,6 +387,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
         $deployPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
         $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
+        $deployPolicyContentLinux.name | Should -Be $policyID_Linux
     }
 
     # DINE Tests - With more than one parameter
@@ -415,6 +425,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
+        $deployPolicyContentWindows_WithParam.name | Should -Be $policyID_Windows
 
         $deployPolicyFileLinux_WithParam = Join-Path -Path $testDINEOutputPathLinux_WithParam -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux_WithParam = Get-Content $deployPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
@@ -431,6 +442,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
         $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
+        $deployPolicyContentLinux_WithParam.name | Should -Be $policyID_Linux
     }
 
     # DINE Tests - With only one parameter
@@ -475,6 +487,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
         $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+        $deployPolicyContentWindows_WithOneParam.name | Should -Be $policyID_Windows
 
 
         $deployPolicyFileLinux_WithOneParam = Join-Path -Path $testDINEOutputPathLinux_WithOneParam -ChildPath 'DeployIfNotExists.json'
@@ -492,6 +505,48 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
         $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
         $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
+        $deployPolicyContentLinux_WithOneParam.name | Should -Be $policyID_Linux
+    }
+
+
+    # PolicyID Tests
+    It 'New-GuestConfigurationPolicy with random policyID should still generate - AINE' {
+        $newGCPolicyAINEParametersWindows.PolicyId = $foo_policyId
+        $newGCPolicyAINEParametersLinux.PolicyId = $foo_policyId
+
+        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows
+        $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
+        Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
+        $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
+        $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
+        $auditPolicyContentWindows.name | Should -Be $foo_policyId
+
+        $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyAINEParametersLinux
+        $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
+        Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
+        $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
+        $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
+        $auditPolicyContentLinux.name | Should -Be $foo_policyId
+    }
+
+    It 'New-GuestConfigurationPolicy with random policyID should still generate - DINE' {
+        $newGCPolicyDINEParametersWindows.PolicyId = $foo_policyId
+        $newGCPolicyDINEParametersLinux.PolicyId = $foo_policyId
+
+        $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows
+        $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
+        Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
+        $deployPolicyFileWindows = Join-Path -Path $testDINEOutputPathWindows -ChildPath 'DeployIfNotExists.json'
+        $deployPolicyContentWindows = Get-Content $deployPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
+        $deployPolicyContentWindows.name | Should -Be $foo_policyId
+
+
+        $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyDINEParametersLinux
+        $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
+        Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
+        $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
+        $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
+        $deployPolicyContentLinux.name | Should -Be $foo_policyId
 
     }
 }

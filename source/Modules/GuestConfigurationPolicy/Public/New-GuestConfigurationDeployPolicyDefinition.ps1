@@ -73,13 +73,13 @@ function New-GuestConfigurationDeployPolicyDefinition
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     Write-Verbose -Message "Creating Guest Configuration Deploy Policy Definition to '$filePath'."
 
-    if (-not [String]::IsNullOrEmpty($Guid))
+    if ([String]::IsNullOrEmpty($Guid))
     {
-        $deployPolicyGuid = $Guid
+        throw "Missing policy ID parameter."
     }
     else
     {
-        $deployPolicyGuid = [Guid]::NewGuid()
+        $deployPolicyGuid = $Guid
     }
 
     $ParameterMapping = @()

@@ -39,6 +39,8 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $defaultAineFormatConfigParam_content = '[MyFile]createFoobarTestFile;content'
         $defaultAineFormatConfigParam_ensure = '[MyFile]createFoobarTestFile;ensure'
 
+        $policyID = $deployPolicyGuid = [Guid]::NewGuid()
+
         inModuleScope -ModuleName GuestConfiguration {
             Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
         }
@@ -106,6 +108,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
+            PolicyId    = $policyID
         }
 
         $newGCPolicyAINEParametersLinux = @{
@@ -115,6 +118,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
+            PolicyId    = $policyID
         }
 
         $newGCPolicyAINEParametersWindows_WithParam = @{
@@ -124,6 +128,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathWindows_WithParam
             Version     = '1.0.0.0'
             Platform    = 'Windows'
+            PolicyId    = $policyID
             Parameter   = $policyParameterInfo
         }
 
@@ -134,6 +139,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testAINEOutputPathLinux_WithParam
             Version     = '1.0.0.0'
             Platform    = 'Linux'
+            PolicyId    = $policyID
             Parameter   = $policyParameterInfo
         }
 
@@ -145,6 +151,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
+            PolicyId    = $policyID
             Mode        = 'ApplyAndMonitor'
         }
 
@@ -155,6 +162,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Path        = $testDINEOutputPathLinux
             Version     = '1.0.0.0'
             Platform    = 'Linux'
+            PolicyId    = $policyID
             Mode        = 'ApplyAndMonitor'
         }
 
@@ -166,6 +174,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Version     = '1.0.0.0'
             Platform    = 'Windows'
             Mode        = 'ApplyAndMonitor'
+            PolicyId    = $policyID
             Parameter   = $policyParameterInfo
         }
 
@@ -177,6 +186,7 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             Version     = '1.0.0.0'
             Platform    = 'Linux'
             Mode        = 'ApplyAndMonitor'
+            PolicyId    = $policyID
             Parameter   = $policyParameterInfo
         }
     }

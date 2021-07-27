@@ -75,13 +75,13 @@ function New-GuestConfigurationAuditPolicyDefinition
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     Write-Verbose -Message "Creating Guest Configuration Audit Policy Definition to '$filePath'."
 
-    if (-not [String]::IsNullOrEmpty($Guid))
+    if ([String]::IsNullOrEmpty($Guid))
     {
-        $auditPolicyGuid = $Guid
+        throw "Missing policy ID parameter."
     }
     else
     {
-        $auditPolicyGuid = [Guid]::NewGuid()
+        $auditPolicyGuid = $Guid
     }
 
     $ParameterMapping = @{ }

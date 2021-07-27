@@ -106,7 +106,7 @@ function New-GuestConfigurationPolicy
         [AssignmentType]
         $Mode = 'Audit',
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [System.String]
         $PolicyId,
 
@@ -183,6 +183,7 @@ function New-GuestConfigurationPolicy
             ParameterInfo            = $ParameterInfo
             UseCertificateValidation = $packageIsSigned
             Category                 = $Category
+            Guid                     = $PolicyId
             Tag                      = $Tag
         }
 

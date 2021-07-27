@@ -58,9 +58,16 @@ function Install-GuestConfigurationAgent
             }
         }
 
-        $gcConfigPath = Join-Path $gcBinPath 'gc.config'
-        '{ "SaveLogsInJsonFormat": true, "DoNotSendReport": true}' | Out-File -Path $gcConfigPath -Encoding ascii -Force
+	# Save config file
+    $gcConfigPath = Join-Path (Get-GuestConfigBinaryPath) 'gc.config'
+    '{ "SaveLogsInJsonFormat": true, "DoNotSendReport": true}' | Out-File -Path $gcConfigPath -Encoding ascii -Force
+
+    if ($OsPlatform -ne 'Windows')
+    {
+        # Give root user permission to execute gc_worker
+        chmod 700 (Get-GuestConfigWorkerBinaryPath)
     }
+}
     else
     {
         Write-Verbose -Message "Guest Configuration Agent binaries already installed at '$gcBinPath', skipping."

@@ -547,6 +547,5 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
         $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
         $deployPolicyContentLinux.name | Should -Be $foo_policyId
-
     }
 }

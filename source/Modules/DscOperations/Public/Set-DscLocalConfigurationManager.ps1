@@ -29,5 +29,6 @@ function Set-DscLocalConfigurationManager
 
     $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
     Start-Process $gcWorkerPath -ArgumentList  "-o set_agent_settings -a  $ConfigurationName -p $Path" -Wait -NoNewWindow
+    Start-Sleep -Milliseconds 500
     Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 }

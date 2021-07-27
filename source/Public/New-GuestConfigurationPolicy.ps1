@@ -107,6 +107,10 @@ function New-GuestConfigurationPolicy
         $Mode = 'Audit',
 
         [Parameter()]
+        [System.String]
+        $PolicyId,
+
+        [Parameter()]
         [System.Collections.Hashtable[]]
         $Tag
     )

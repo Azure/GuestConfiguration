@@ -28,7 +28,7 @@ Describe 'Publish-GuestConfigurationPolicy' -ForEach @{
             $currentWindowsOSString = 'Non-Windows'
         }
 
-        $policyID = $deployPolicyGuid = [Guid]::NewGuid()
+        $policyID = [Guid]::NewGuid()
         $newGCPolicyParametersWindows = @{
             ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
             DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"

@@ -102,8 +102,8 @@ BuildWorkflow:
     #- Merge_CodeCoverage_Files
 
   publish:
-    - publish_module_to_gallery
-    - Publish_Release_To_GitHub
+    # - publish_module_to_gallery
+    # - Publish_Release_To_GitHub
     - Create_ChangeLog_GitHub_PR
 
 

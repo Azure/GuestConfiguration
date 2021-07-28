@@ -36,6 +36,5 @@ function Publish-DscConfiguration
 
     $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
     Start-Process $gcWorkerPath -ArgumentList  "-o publish_assignment -a  $ConfigurationName -p $Path" -Wait -NoNewWindow
-    Start-Sleep -Seconds 1
     Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 }

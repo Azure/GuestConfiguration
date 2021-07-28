@@ -28,6 +28,7 @@ Describe 'Publish-GuestConfigurationPolicy' -ForEach @{
             $currentWindowsOSString = 'Non-Windows'
         }
 
+        $policyID = [Guid]::NewGuid()
         $newGCPolicyParametersWindows = @{
             ContentUri  = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
             DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
@@ -35,6 +36,7 @@ Describe 'Publish-GuestConfigurationPolicy' -ForEach @{
             Path        = $testOutputPathWindows
             Version     = '1.0.0.0'
             Platform    = 'Windows'
+            PolicyId    = $policyID
         }
 
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -ModuleName GuestConfiguration -Verifiable

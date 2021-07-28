@@ -17,15 +17,14 @@ function New-CustomGuestConfigPolicy
 
     $existingPolicies = Get-AzPolicyDefinition
 
+    # policy.name is actually the policy id
     $existingAuditPolicy = $existingPolicies | Where-Object -FilterScript {
-        ($_.Properties.PSObject.Properties.Name -contains 'displayName') -and
-        ($_.Properties.displayName -eq $PolicyInfo.DisplayName)
+        ($_.name -eq $PolicyInfo.guid)
     }
 
     if ($null -ne $existingAuditPolicy)
     {
-        Write-Verbose -Message "Found policy with name '$($existingAuditPolicy.Properties.displayName)' and guid '$($existingAuditPolicy.Name)'..."
-        $PolicyInfo['Guid'] = $existingAuditPolicy.Name
+        Write-Verbose -Message "Policy with specified guid '$($existingAuditPolicy.Name)' already exists. Overwriting: '$($existingAuditPolicy.Properties.displayName)' ..."
     }
 
     New-GuestConfigurationPolicyDefinition @PSBoundParameters

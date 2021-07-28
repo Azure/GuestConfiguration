@@ -63,20 +63,9 @@ function Install-GuestConfigurationPackage
         }
         else
         {
-            Write-Debug -Message "'$Path' is the Package Name."
-            # The $Path parameter is the PackageName, no need to version check.
-            # if package name is not installed, throw an error
-            try
-            {
-                $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Path -Resolve
-            }
-            catch
-            {
-                throw "The Package '$Package' is not installed. Please provide the Path to the Zip or the URL to download the package from."
-                return
-            }
+            # The $Path parameter is not a valid path or URL
+            throw "'$Path' is not a valid path to the package. Please provide the path to the Zip or the URL to download the package from."
         }
-
 
         Write-Debug -Message "Getting package name from '$PackageZipPath'."
         $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageZipPath

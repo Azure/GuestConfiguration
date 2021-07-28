@@ -107,6 +107,7 @@ function New-GuestConfigurationPolicy
         $Mode = 'Audit',
 
         [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $PolicyId,
 

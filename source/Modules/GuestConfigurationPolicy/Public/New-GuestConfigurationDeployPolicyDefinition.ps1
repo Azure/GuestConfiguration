@@ -47,7 +47,8 @@ function New-GuestConfigurationDeployPolicyDefinition
         [Hashtable[]]
         $ParameterInfo,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
         [String]
         $Guid,
 
@@ -73,15 +74,7 @@ function New-GuestConfigurationDeployPolicyDefinition
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     Write-Verbose -Message "Creating Guest Configuration Deploy Policy Definition to '$filePath'."
 
-    if ([String]::IsNullOrEmpty($Guid))
-    {
-        throw "Missing policy ID parameter."
-    }
-    else
-    {
-        $deployPolicyGuid = $Guid
-    }
-
+    $deployPolicyGuid = $Guid
     $ParameterMapping = @()
     $ParameterDefinitions = @{}
     $PolicyContentHashtable = [Ordered]@{}

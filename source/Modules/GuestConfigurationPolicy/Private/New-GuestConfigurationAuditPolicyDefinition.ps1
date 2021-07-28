@@ -58,6 +58,8 @@ function New-GuestConfigurationAuditPolicyDefinition
         [String]
         $Category = 'Guest Configuration',
 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNull()]
         [Parameter()]
         [String]
         $Guid,
@@ -75,15 +77,7 @@ function New-GuestConfigurationAuditPolicyDefinition
     $filePath = Join-Path -Path $FolderPath -ChildPath $FileName
     Write-Verbose -Message "Creating Guest Configuration Audit Policy Definition to '$filePath'."
 
-    if ([String]::IsNullOrEmpty($Guid))
-    {
-        throw "Missing policy ID parameter."
-    }
-    else
-    {
-        $auditPolicyGuid = $Guid
-    }
-
+    $auditPolicyGuid = $Guid
     $ParameterMapping = @{ }
     $ParameterDefinitions = @{ }
     $auditPolicyContentHashtable = [Ordered]@{ }

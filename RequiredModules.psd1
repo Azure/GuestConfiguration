@@ -23,7 +23,7 @@
     'Sampler.GitHubTasks'         = 'latest'
     'DscResource.Test'            = 'latest'
     'DscResource.AnalyzerRules'   = 'latest'
-    xDscResourceDesigner          = 'latest'
+    'xDscResourceDesigner'        = 'latest'
     'DscResource.DocGenerator'    = 'latest'
     'Az.Accounts'                 = 'latest'
     'Az.Resources'                = 'latest'

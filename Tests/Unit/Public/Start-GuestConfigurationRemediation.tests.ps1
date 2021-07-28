@@ -71,7 +71,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
                 ResourcePropertyName = 'content'
                 ResourcePropertyValue = $tempWithParameterContents
             })
-        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Parameter $Parameter -Force } | Should -Not -Throw
+        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Parameter $Parameter -Force -Verbose } | Should -Not -Throw
 
         # Validate temp file exists
         Test-Path -Path $tempWithParameterFile | Should -Be $True

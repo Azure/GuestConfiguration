@@ -12,10 +12,14 @@ function Write-GCOperationConsoleMessages
     do
     {
         if(Test-Path $logPath -ErrorAction SilentlyContinue) {
+            # do not check  in this
+            Write-Warning "found the log file at $logPath"
             break;
         }
 
         Start-Sleep -Seconds 1
+        # do not check  in this
+        Write-Warning "the log file is not found at $logPath"
     } until (([DateTime]::Now - $startTime).Seconds -gt 10)
 
     $logs = ConvertFrom-Json (Get-Content $logPath -Raw)

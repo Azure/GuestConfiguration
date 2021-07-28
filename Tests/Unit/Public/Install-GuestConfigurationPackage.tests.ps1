@@ -31,4 +31,8 @@ Describe 'Install-GuestConfigurationPackage' -ForEach @{
             { Get-Item -Path (Get-GuestConfigBinaryPath) } | Should -Not -Throw
         }
     }
+
+    It 'Validate passing an invalid path name should throw' {
+        { Install-GuestConfigurationPackage -Path "foobar" -Force } | Should -Throw
+    }
 }

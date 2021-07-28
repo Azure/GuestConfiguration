@@ -100,65 +100,10 @@ function Test-GuestConfigurationPackage
         Write-Debug -Message "Clearing Inspec profiles at '$inspecProfilePath'."
         Remove-Item -Path $inspecProfilePath -Recurse -Force -ErrorAction SilentlyContinue
 
-        Write-Verbose -Message "Testing ConfigurationName '$packageName'."
-        $testResult = Test-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose
         Write-Verbose -Message "Getting Configuration resources status."
         $getResult = @()
         $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose)
-
-        Write-Debug -Message "Processing Resources not in Desired state."
-        $testResult.resources_not_in_desired_state | ForEach-Object {
-            $resourceId = $_;
-            if ($getResult.count -gt 1)
-            {
-                for ($i = 0; $i -lt $getResult.Count; $i++)
-                {
-                    if ($getResult[$i].ResourceId -ieq $resourceId)
-                    {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{
-                            n = 'complianceStatus'
-                            e = { $false }
-                        }
-                    }
-                }
-            }
-            elseif ($getResult.ResourceId -ieq $resourceId)
-            {
-                $getResult = $getResult | Select-Object *, @{
-                    n = 'complianceStatus'
-                    e = { $false }
-                }
-            }
-        }
-
-        $testResult.resources_in_desired_state | ForEach-Object {
-            $resourceId = $_
-            if ($getResult.count -gt 1)
-            {
-                for ($i = 0; $i -lt $getResult.Count; $i++)
-                {
-                    if ($getResult[$i].ResourceId -ieq $resourceId)
-                    {
-                        $getResult[$i] = $getResult[$i] | Select-Object *, @{
-                            n = 'complianceStatus'
-                            e = { $true }
-                        }
-                    }
-                }
-            }
-            elseif ($getResult.ResourceId -ieq $resourceId)
-            {
-                $getResult = $getResult | Select-Object *, @{
-                    n = 'complianceStatus'
-                    e = { $true }
-                }
-            }
-        }
-
-        [PSCustomObject]@{
-            complianceStatus = $testResult.compliance_state
-            resources        = $getResult
-        }
+        return $getResult
     }
     finally
     {

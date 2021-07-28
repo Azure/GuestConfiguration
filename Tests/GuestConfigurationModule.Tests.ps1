@@ -517,19 +517,19 @@ describe 'Test Environment' {
             $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $false
-            $testPackageResult.resources[0].ModuleName | Should -Be 'ComputerManagementDsc'
+            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'ComputerManagementDsc'
             $testPackageResult.resources[0].complianceStatus | Should -Be $false
-            $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
-            $testPackageResult.resources[0].IsSingleInstance | Should -Be 'Yes'
+            $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
+            $testPackageResult.resources[0].properties.IsSingleInstance | Should -Be 'Yes'
         }
 
         It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) {
             $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
             $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
             $testPackageResult.complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ConfigurationName | Should -Be 'DSCConfig'
+            $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
         }
 
         It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
@@ -539,10 +539,10 @@ describe 'Test Environment' {
                 Test-GuestConfigurationPackage
 
             $testPackageResult.complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ModuleName | Should -Be 'GuestConfiguration'
+            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].ConfigurationName | Should -Be 'testPolicy'
-            $testPackageResult.resources[0].PesterFileName | Should -Be 'EnvironmentVariables'
+            $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'testPolicy'
+            $testPackageResult.resources[0].properties.PesterFileName | Should -Be 'EnvironmentVariables'
         }
     }
     Context 'Protect-GuestConfigurationPackage' {

@@ -18,16 +18,11 @@ function Start-DscConfiguration
         $ConfigurationName
     )
 
-    $job_id = [guid]::NewGuid().Guid
-    $gcBinPath = Get-GuestConfigBinaryPath
-    $dsclibPath = $(Get-DscLibPath) -replace  '[""\\]','\$&'
+    Remove-Item (Get-GuestConfigLogPath) -ErrorAction SilentlyContinue -Force
+    Remove-Item (Get-GuestConfigAssignmentReportFolderPath -ConfigurationName $ConfigurationName) -ErrorAction SilentlyContinue -Force -Recurse
 
-    if (-not ([System.Management.Automation.PSTypeName]'GuestConfig.DscOperations').Type)
-    {
-        $addTypeScript = $ExecuteDscOperationsScript -f $dsclibPath
-        Add-Type -TypeDefinition $addTypeScript -ReferencedAssemblies 'System.Management.Automation','System.Console','System.Collections'
-    }
-
-    $dscOperation = [GuestConfig.DscOperations]::New()
-    $dscOperation.StartDscConfiguration($PSCmdlet, $job_id, $ConfigurationName, $gcBinPath, $True, $True)
+    $gcWorkerPath = Get-GuestConfigWorkerBinaryPath
+    Start-Process $gcWorkerPath -ArgumentList  "-o run_consistency -a  $ConfigurationName -r -s inguest_apply_and_monitor -c Pending" -Wait -NoNewWindow
+    Start-Sleep -Seconds 1
+    Write-GCOperationConsoleMessages -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent)
 }

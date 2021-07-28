@@ -60,7 +60,6 @@ function New-GuestConfigurationAuditPolicyDefinition
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [Parameter()]
         [String]
         $Guid,
 

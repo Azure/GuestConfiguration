@@ -39,6 +39,14 @@ stages:
             displayName: Calculate ModuleVersion (GitVersion)
             name: gitVersion
 
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Pipeline Artifact'
+            inputs:
+              targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
+              artifact: $(buildArtifactName)
+              publishLocation: 'pipeline'
+              parallel: true
+
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Pipeline Artifact'
             inputs:
@@ -50,7 +58,7 @@ stages:
             displayName: ESRP CodeSigning
             inputs:
               ConnectedServiceName: "GuestConfigModuleSigning"
-              FolderPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+              FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
               Pattern: '*.psm1, *.ps1, *.exe, *.dll'
               signConfigType: inlineSignParams
               CertificateId: CP-450779-Pgp
@@ -77,8 +85,7 @@ stages:
                     "ToolVersion": "1.0"
                   }
                 ]
-
-           - task: PublishPipelineArtifact@1
+          - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'
             inputs:
               targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'

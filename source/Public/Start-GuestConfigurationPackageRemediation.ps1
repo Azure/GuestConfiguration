@@ -32,7 +32,6 @@
 function Start-GuestConfigurationPackageRemediation
 {
     [CmdletBinding()]
-    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType()]
     param
     (

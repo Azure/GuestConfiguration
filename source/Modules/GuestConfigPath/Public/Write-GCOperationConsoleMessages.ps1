@@ -9,6 +9,8 @@ function Write-GCOperationConsoleMessages
     # Sometimes OS doesn't flush the logs into file, even after the gc_worker process is exited.
     # wait for the log file to be created for 10 seconds.
     $startTime = [DateTime]::Now
+    Get-Content 'C:\programdata\GuestConfig\gc_agent_logs\gc_worker.log' | Write-Warning
+    ls 'C:\programdata\GuestConfig\gc_agent_logs'
     do
     {
         if(Test-Path $logPath -ErrorAction SilentlyContinue) {

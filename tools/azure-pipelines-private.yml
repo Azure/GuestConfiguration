@@ -85,6 +85,7 @@ stages:
                     "ToolVersion": "1.0"
                   }
                 ]
+
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'
             inputs:

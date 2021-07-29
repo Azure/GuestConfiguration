@@ -74,7 +74,7 @@ stages:
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Pipeline Artifact'
             inputs:
-              targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
+              targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
               artifact: $(buildArtifactName)
               publishLocation: 'pipeline'
               parallel: true

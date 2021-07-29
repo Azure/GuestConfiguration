@@ -39,21 +39,6 @@ stages:
             displayName: Calculate ModuleVersion (GitVersion)
             name: gitVersion
 
-          - task: PublishPipelineArtifact@1
-            displayName: 'Publish Pipeline Artifact'
-            inputs:
-              targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-              artifact: $(buildArtifactName)
-              publishLocation: 'pipeline'
-              parallel: true
-
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download Pipeline Artifact'
-            inputs:
-              buildType: 'current'
-              artifactName: $(buildArtifactName)
-              targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
-
           - task: EsrpCodeSigning@1
             displayName: ESRP CodeSigning
             inputs:

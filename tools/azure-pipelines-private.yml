@@ -75,6 +75,6 @@ stages:
             displayName: 'Publish Pipeline Artifact'
             inputs:
               targetPath: '$(Build.ArtifactStagingDirectory)\GuestConfiguration'
-              artifact: $(buildArtifactName)
+              artifact: 'GuestConfiguration'
               publishLocation: 'pipeline'
               parallel: true

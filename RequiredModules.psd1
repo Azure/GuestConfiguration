@@ -19,16 +19,16 @@
             AllowPrerelease = $true
         }
     }
-    MarkdownLinkCheck           = 'latest'
-    # 'DscResource.Common'        = 'latest'
-    'Sampler.GitHubTasks'       = 'latest'
-    'DscResource.Test'          = 'latest'
-    'DscResource.AnalyzerRules' = 'latest'
-    xDscResourceDesigner        = 'latest'
-    'DscResource.DocGenerator'  = 'latest'
-    'Az.Accounts'               = 'latest'
-    'Az.Resources'              = 'latest'
-    'Az.Storage'                = 'latest'
+    MarkdownLinkCheck             = 'latest'
+    'Sampler.GitHubTasks'         = 'latest'
+    'DscResource.Test'            = 'latest'
+    'DscResource.AnalyzerRules'   = 'latest'
+    'xDscResourceDesigner'        = 'latest'
+    'DscResource.DocGenerator'    = 'latest'
+    'Az.Accounts'                 = 'latest'
+    'Az.Resources'                = 'latest'
+    'Az.Storage'                  = 'latest'
+    'PSDesiredStateConfiguration' = 'latest'
 
-    ComputerManagementDsc       = '8.2.0' # this is what the test MOF requires.
+    ComputerManagementDsc         = '8.2.0' # this is what the test MOF requires.
 }

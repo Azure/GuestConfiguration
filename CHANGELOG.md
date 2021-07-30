@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Get-GuestConfigurationPackageNameFromZip`
 - Updated `New-GuestConfigurationPolicy` to include guestconfig object in metadata for DINE policies. The included configurationParameter matches the pattern of AINEs.
 - Added more tests to `New-GuestConfigurationPolicy.Tests` to cover metadata scenario.
+- Added dependency on PSDesiredStateConfiguration. 
 
 ### Changed
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed `New-GuestConfigurationPolicy` to create arrays for configurationParameter when no parameters are passed in
 - No longer using -Package as a valid parameter for any commands
 - Require policyId parameter for `New-GuestConfigurationPolicy`
+- Removed ability to pass in package name for `Install-GuestConfigurationPackage`
  
 ## [3.2.0] - 2021-02-23
 

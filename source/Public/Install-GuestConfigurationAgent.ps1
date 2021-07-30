@@ -1,7 +1,6 @@
 function Install-GuestConfigurationAgent
 {
     [CmdletBinding()]
-    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType([void])]
     param
     (

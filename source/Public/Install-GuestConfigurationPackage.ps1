@@ -20,7 +20,6 @@
 function Install-GuestConfigurationPackage
 {
     [CmdletBinding()]
-    [Experimental('GuestConfiguration.SetScenario', 'Show')]
     [OutputType([System.String])]
     param
     (
@@ -63,20 +62,9 @@ function Install-GuestConfigurationPackage
         }
         else
         {
-            Write-Debug -Message "'$Path' is the Package Name."
-            # The $Path parameter is the PackageName, no need to version check.
-            # if package name is not installed, throw an error
-            try
-            {
-                $installedPackagePath = Join-Path -Path $guestConfigurationPolicyPath -ChildPath $Path -Resolve
-            }
-            catch
-            {
-                throw "The Package '$Package' is not installed. Please provide the Path to the Zip or the URL to download the package from."
-                return
-            }
+            # The $Path parameter is not a valid path or URL
+            throw "'$Path' is not a valid path to the package. Please provide the path to the Zip or the URL to download the package from."
         }
-
 
         Write-Debug -Message "Getting package name from '$PackageZipPath'."
         $packageName = Get-GuestConfigurationPackageNameFromZip -Path $PackageZipPath
@@ -89,12 +77,10 @@ function Install-GuestConfigurationPackage
             Write-Debug -Message "The Package '$PackageName' exists at '$installedPackagePath'. Checking version..."
             $installedPackageMetadata = Get-GuestConfigurationPackageMetaConfig -Path $installedPackagePath -Verbose:$verbose
 
-            if
-            (   # none of the packages are versioned or the versions match, we're good
-                -not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
+            # None of the packages are versioned or the versions match, we're good
+            if (-not ($installedPackageMetadata.ContainsKey('Version') -or $packageZipMetadata.Contains('Version')) -or
                 ($installedPackageMetadata.ContainsKey('Version') -ne $packageZipMetadata.Contains('Version')) -or # to avoid next statement
-                $installedPackageMetadata.Version -eq $packageZipMetadata.Version
-            )
+                $installedPackageMetadata.Version -eq $packageZipMetadata.Version)
             {
                 $isPackageAlreadyInstalled = $true
                 Write-Debug -Message ("Package '{0}{1}' is installed." -f $PackageName,($packageZipMetadata.Contains('Version') ? "_$($packageZipMetadata['Version'])" : ''))
@@ -135,7 +121,7 @@ function Install-GuestConfigurationPackage
     {
         $env:PSModulePath = $systemPSModulePath
 
-        # if we downloaded the Zip file from URI to temp folder, do cleanup
+        # If we downloaded the Zip file from URI to temp folder, do cleanup
         if (($Path -as [uri]).Scheme -match '^http')
         {
             Write-Debug -Message "Removing the Package zip at '$PackageZipPath' that was downloaded from URI."

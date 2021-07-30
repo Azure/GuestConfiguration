@@ -152,7 +152,6 @@ stages:
                 Import-Module -Name PSDesiredStateConfiguration
                 Get-Module PSDesiredStateConfiguration
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 Uninstall-AzureRm
           - task: PowerShell@2
@@ -228,7 +227,6 @@ stages:
                 Import-Module -Name PSDesiredStateConfiguration -Force
                 Get-Module PSDesiredStateConfiguration -ListAvailable
                 Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-                Enable-ExperimentalFeature -Name GuestConfiguration.SetScenario
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 Uninstall-AzureRm
                 }

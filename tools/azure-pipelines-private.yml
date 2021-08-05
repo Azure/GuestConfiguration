@@ -44,7 +44,7 @@ stages:
             inputs:
               ConnectedServiceName: "GuestConfigModuleSigning"
               FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-              Pattern: '*.psm1, *.ps1, *.exe, *.dll'
+              Pattern: '*.psm1, *.ps1, *.psd1, *.exe, *.dll'
               signConfigType: inlineSignParams
               CertificateId: CP-450779-Pgp
               inlineOperation: >-

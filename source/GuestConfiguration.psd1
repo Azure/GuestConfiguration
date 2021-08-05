@@ -10,19 +10,19 @@
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
 
     # Author of this module
-    Author = 'Azure Guest Configuration'
+    Author = 'guest configuration'
 
     # Company or vendor of this module
-    CompanyName = 'MicrosoftCorporation'
+    CompanyName = 'Microsoft Corporation'
 
     # Copyright statement for this module
     Copyright = '(c) 2021 Microsoft Corporation. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
+    Description = 'The guest configuration module is an experimental tool to assist content authoring for the guest configuration feature of Azure Policy. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '6.2.0'
+    PowerShellVersion = '7.1.3'
 
     # Modules that must be imported into the global environment prior to importing this module
     RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage', 'PSDesiredStateConfiguration')
@@ -47,7 +47,7 @@
             Prerelease = 'prerelease'
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = 'GuestConfiguration', 'Azure', 'DSC'
+            Tags = 'guestconfiguration', 'Azure', 'DSC'
 
             # A URL to the license for this module.
             LicenseUri = 'https://github.com/PowerShell/GuestConfiguration/blob/master/LICENSE'

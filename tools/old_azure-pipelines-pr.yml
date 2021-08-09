@@ -21,6 +21,7 @@ pr:
         - .gitignore
         - .github/*
 
+
 jobs:
   - job: Test
     strategy:

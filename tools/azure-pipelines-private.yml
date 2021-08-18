@@ -54,8 +54,8 @@ stages:
             displayName: ESRP CodeSigning
             inputs:
               ConnectedServiceName: "GuestConfigModuleSigning"
-              FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-              Pattern: '*.psm1, *.ps1, *.psd1, *.exe, *.dll'
+              FolderPath: '$(buildFolderName)/GuestConfiguration'
+              Pattern: '*.psm1, *.ps1, *.exe, *.dll, *.psd1'
               signConfigType: inlineSignParams
               CertificateId: CP-450779-Pgp
               inlineOperation: >-

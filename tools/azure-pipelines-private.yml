@@ -81,23 +81,6 @@ stages:
                     "ToolVersion": "1.0"
                   }
                 ]
-          # - task: PkgESCodeSign@10
-          #   displayName: 'CodeSign'
-          #   env:
-          #     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-          #   inputs:
-          #     signConfigXml: '$(buildFolderName)\tools\SignConfig.xml'
-          #     inPathRoot: '$(buildFolderName)\GuestConfiguration'
-          #     outPathRoot: '$(buildFolderName)\GuestConfiguration' # can we sign in-place?
-          #   condition: |
-          #     and(
-          #       succeeded(),
-          #       or(
-          #         eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-          #         startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-          #       ),
-          #       contains(variables['System.TeamFoundationCollectionUri'], 'GuestConfiguration')
-          #     )
           - task: PowerShell@2
             enabled: true
             displayName: Move CodeSignSummary File
@@ -280,148 +263,14 @@ stages:
               buildType: 'current'
               artifactName: $(buildArtifactName)
               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
-          - task: PowerShell@2
-            name: publishRelease
-            displayName: 'Publish Release'
-            inputs:
-              filePath: './build.ps1'
-              arguments: '-tasks publish -ResolveDependency'
-              pwsh: true
-            env:
-              GitHubToken: $(GitHubToken)
-              GalleryApiToken: $(GalleryApiToken)
-              PublishModuleWhatIf: $True
           # - task: PowerShell@2
-          #   name: sendChangelogPR
-          #   displayName: 'Send Changelog PR'
+          #   name: publishRelease
+          #   displayName: 'Publish Release'
           #   inputs:
           #     filePath: './build.ps1'
-          #     arguments: '-tasks Create_ChangeLog_GitHub_PR'
+          #     arguments: '-tasks publish -ResolveDependency'
           #     pwsh: true
           #   env:
           #     GitHubToken: $(GitHubToken)
-          #     SkipPubilsh: $True
-
-
- #         - task: DownloadPipelineArtifact@2
-  #             displayName: 'Download Pipeline Artifact for Pubilshing'
-  #             inputs:
-  #               buildType: 'current'
-  #               artifactName: $(buildArtifactName)
-  #               targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
-
-          # - pwsh: |
-          #     dotnet tool install --global GitVersion.Tool
-          #     $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
-          #     $gitVersionObject.psobject.properties.Foreach{
-          #         Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
-          #         Write-Host -Object "##vso[task.setvariable variable=$($_.Name);]$($_.Value)"
-          #     }
-          #     Write-Host -Object "##vso[build.updatebuildnumber]$($gitVersionObject.FullSemVer)"
-          #   displayName: Calculate ModuleVersion (GitVersion)
-          #   name: gitVersion
-
-          # - task: EsrpCodeSigning@1
-          #   displayName: ESRP CodeSigning
-          #   inputs:
-          #     ConnectedServiceName: "GuestConfigModuleSigning"
-          #     FolderPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-          #     Pattern: '*.psm1, *.ps1, *.exe, *.dll, *.psd1'
-          #     signConfigType: inlineSignParams
-          #     CertificateId: CP-450779-Pgp
-          #     inlineOperation: >-
-          #       [
-          #         {
-          #           "KeyCode": "CP-230012",
-          #           "OperationCode": "SigntoolSign",
-          #           "Parameters": {
-          #             "OpusName": "Microsoft",
-          #             "OpusInfo": "http://www.microsoft.com",
-          #             "FileDigest": "/fd \"SHA256\"",
-          #             "PageHash": "/NPH",
-          #             "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          #           },
-          #           "ToolName": "sign",
-          #           "ToolVersion": "1.0"
-          #         },
-          #         {
-          #           "KeyCode": "CP-230012",
-          #           "OperationCode": "SigntoolVerify",
-          #           "Parameters": {},
-          #           "ToolName": "sign",
-          #           "ToolVersion": "1.0"
-          #         }
-          #       ]
-
-          # - task: PublishPipelineArtifact@1
-          #   displayName: 'Publish Pipeline Artifact'
-          #   inputs:
-          #     targetPath: '$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/'
-          #     artifact: '$(signedArtifactName)'
-          #     publishLocation: 'pipeline'
-          #     parallel: true
-
-          # - task: PowerShell@2
-          #   enabled: true
-          #   displayName: Install pwsh-preview
-          #   inputs:
-          #     pwsh: true
-          #     targetType: inline
-          #     continueOnError: true
-          #     script: |
-          #       # Update the list of packages
-          #       sudo apt-get update
-          #       # Install pre-requisite packages.
-          #       sudo apt-get install -y wget apt-transport-https software-properties-common
-          #       # Download the Microsoft repository GPG keys
-          #       wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
-          #       # Register the Microsoft repository GPG keys
-          #       sudo dpkg -i packages-microsoft-prod.deb
-          #       # Update the list of products
-          #       sudo apt-get update
-          #       # Enable the "universe" repositories
-          #       sudo add-apt-repository universe
-          #       # Install PowerShell
-          #       sudo apt-get install -y powershell-preview
-          # - task: PowerShell@2
-            # enabled: true
-            # displayName: Import Module
-            # inputs:
-            #   pwsh: true
-            #   targetType: inline
-            #   continueOnError: true
-            #   script: |
-            #     pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
-            #     pwsh-preview -c { ./build.ps1 -Tasks noop -ResolveDependency
-            #     Set-ExecutionPolicy -ExecutionPolicy Unrestricted
-            #     Write-Verbose "ls the path" -Verbose
-            #     ls $(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/
-            #     ls $(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/GuestConfiguration
-
-            #     Write-Verbose "Update env" -Verbose
-            #     $env:PSModulePath = "$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/" + ';' + "$(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/GuestConfiguration" + ';' + $env:PSModulePath
-            #     Write-Verbose $($env:PSModulePath -split ';') -Verbose
-
-            #     Write-Verbose "Get-Module" -Verbose
-            #     Get-Module GuestConfiguration -ListAvailable
-
-            #     Write-Verbose "Import-Module" -Verbose
-            #     Import-Module GuestConfiguration -Force
-
-            #     Write-Verbose "Try to copy into current directory"
-            #     # Copy-Item $(Pipeline.Workspace)/PublicPipeline/$(buildFolderName)/ $($PWD.Path) -Recurse
-            #     $env:PSModulePath = "$($PWD.Path)\" + ';' + $env:PSModulePath
-            #     Get-Module GuestConfiguration -ListAvailable
-            #     Install-Module -Name Az -Force -Confirm:$false
-            #     Import-Module GuestConfiguration -Force
-
-
-            #     Get-Module GuestConfiguration -ListAvailable
-            #     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-            #     Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
-            #     Import-Module -Name PSDesiredStateConfiguration -Force
-            #     Get-Module PSDesiredStateConfiguration -ListAvailable
-            #     Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-            #     Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-            #     Uninstall-AzureRm
-                # }
+          #     GalleryApiToken: $(GalleryApiToken)
+          #     PublishModuleWhatIf: $True

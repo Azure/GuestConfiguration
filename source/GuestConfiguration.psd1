@@ -4,7 +4,7 @@
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    moduleVersion = '3.3.0'
+    moduleVersion = '3.4.3'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -44,7 +44,7 @@
 
         PSData = @{
 
-            Prerelease = 'prerelease'
+            # Prerelease = 'prerelease'
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = 'GuestConfiguration', 'Azure', 'DSC'

@@ -5,6 +5,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Resolved issue where PowerShell version prerelease label is sorted as string
+rather than integer
+- Update ReadMe
+
+## [3.4.2] - 2021-08-09
+
+### Added
+
+- Code signing changes to builds
+
+## [3.3.1] - 2021-07-30
+
 ### Added
 
 - Added `Install-GuestConfigurationPackage`.

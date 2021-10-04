@@ -9,7 +9,7 @@ Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.p
 if ($IsLinux -and (
     $PSVersionTable.PSVersion.Major -lt 7 -or
     ($PSVersionTable.PSVersion.Major -eq 7 -and $PSVersionTable.PSVersion.Minor -lt 2) -or
-    ($PSVersionTable.PSVersion.Major -eq 7 -and ($PSVersionTable.PSVersion.PreReleaseLabel -and ($PSVersionTable.PSVersion.PreReleaseLabel -split '\.')[1] -lt 6))
+    ($PSVersionTable.PSVersion.Major -eq 7 -and ($PSVersionTable.PSVersion.PreReleaseLabel -and [int](($PSVersionTable.PSVersion.PreReleaseLabel -split '\.')[1]) -lt 6))
     ))
 {
     throw 'The Linux agent requires at least PowerShell v7.2.preview.6 to support the DSC subsystem.'

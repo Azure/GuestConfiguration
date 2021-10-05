@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - source/*
+    tags:
+      - "v*"
+    tags-ignore:
+      - "*-*"
+
+  workflow_dispatch:
+
+jobs:
+  Package_Module:
+    name: 'Package Module'
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+     
+     # Runs a set of commands using the runners shell
+      - name: Calculate ModuleVersion (GitVersion)
+        run: 
+          dotnet tool install --global GitVersion.Tool
+          $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
+          $gitVersionObject.psobject.properties.Foreach{
+              Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
+              Write-Host -Object "##vso[task.setvariable variable=$($_.Name);]$($_.Value)"
+          }
+          Write-Host -Object "##vso[build.updatebuildnumber]$($gitVersionObject.FullSemVer)"

@@ -11,3 +11,4 @@
 *.pfx binary
 *.zip binary
 *.dll binary
+*.so binary

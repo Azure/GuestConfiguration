@@ -5,6 +5,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.3]
+
+### Removed
+
+- Do not check PATCH version in semver format when determining PowerShell 7.2 release
+
+## [3.5.2] - 2021-10-15
+
 ### Changed
 
 - Resolved issue where PowerShell version prerelease label is sorted as string

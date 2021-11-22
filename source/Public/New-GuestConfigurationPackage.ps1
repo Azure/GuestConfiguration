@@ -1,35 +1,42 @@
 
 <#
     .SYNOPSIS
-        Creates a Guest Configuration policy package.
+        Creates a package to run code on machines for use through Azure Guest Configuration.
 
-    .Parameter Name
-        Guest Configuration package name.
+    .PARAMETER Name
+        The name of the Guest Configuration package.
 
-    .Parameter Version
-        Guest Configuration package Version (SemVer).
+    .PARAMETER Version
+        The semantic version of the Guest Configuration package.
+        This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
 
-    .Parameter Configuration
-        Compiled DSC configuration document full path.
+    .PARAMETER Configuration
+        The path to the compiled DSC configuration file (.mof) to base the package on.
 
-    .Parameter Path
-        Output folder path.
-        This is an optional parameter. If not specified, the package will be created in the current directory.
+    .PARAMETER Path
+        The path to a folder to output the package under.
+        By default the package will be created under the current directory.
 
-    .Parameter ChefInspecProfilePath
-        Chef profile path, supported only on Linux.
+    .PARAMETER ChefInspecProfilePath
+        The path to a folder containing Chef InSpec profiles to include with the package.
+        The compiled DSC configuration (.mof) provided should include a reference to the native Chef InSpec resource
+        with the reference name of the resources matching the name of the profile folder to use.
 
-    .Parameter Type
-        Specifies whether or not package will support AuditAndSet or only Audit. Set to Audit by default.
+    .PARAMETER Type
+        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
+        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
+        AuditAndSet indicates that the package may be used for setting the state of the machine.
+        Audit indicates that the package will not set the state of the machine and may only monitor settings.
+        By default this tag is set to Audit.
 
-    .Parameter Force
-        Overwrite the package files if already present.
+    .PARAMETER Force
+        If present, this function will overwrite any existing package files.
 
-    .Example
+    .EXAMPLE
         New-GuestConfigurationPackage -Name WindowsTLS -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
 
     .OUTPUTS
-        Return name and path of the new Guest Configuration Policy package.
+        Returns a PSCustomObject with the name and path of the new Guest Configuration package.
 #>
 function New-GuestConfigurationPackage
 {
@@ -127,6 +134,19 @@ function New-GuestConfigurationPackage
     }
 
     Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name)"
+
+    $duplicateModules = @( $moduleDependencies | Group-Object -Property 'Name' | Where-Object { $_.Count -gt 1 } )
+
+    foreach ($duplicateModule in $duplicateModules)
+    {
+        $uniqueVersions = @( $duplicateModule.Group.Version | Get-Unique )
+
+        if ($uniqueVersions.Count -gt 1)
+        {
+            $moduleName = $duplicateModule.Group[0].Name
+            throw "Cannot include more than one version of a module in one package. Detected versions $uniqueVersions of the module '$moduleName' are needed for this package."
+        }
+    }
 
     $inSpecProfileSourcePaths = @()
 
@@ -229,7 +249,7 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
-        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..."
+        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..." -Verbose
         $null = Remove-Item -Path $packageRootPath -Recurse -Force
     }
 
@@ -238,7 +258,7 @@ function New-GuestConfigurationPackage
     # Clear the package destination
     if (Test-Path -Path $packageDestinationPath)
     {
-        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..."
+        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..." -Verbose
         $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
     }
 
@@ -256,7 +276,7 @@ function New-GuestConfigurationPackage
     }
 
     $metaconfigJson = $metaconfig | ConvertTo-Json
-    $null = Set-Content -Path $metaConfigPath -Value $metaconfigJson -Encoding 'ascii'
+    $null = Set-Content -Path $metaconfigFilePath -Value $metaconfigJson -Encoding 'ascii'
 
     # Copy the mof into the package
     $mofFileName = "$Name.mof"
@@ -267,7 +287,10 @@ function New-GuestConfigurationPackage
     # Copy resource dependencies
     foreach ($moduleDependency in $moduleDependencies)
     {
-        $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $modulesFolderPath -Container -Recurse -Force
+        $moduleDestinationPath = Join-Path -Path $modulesFolderPath -ChildPath $moduleDependency['Name']
+
+        Write-Verbose -Message "Copying module from '$moduleDependency['SourcePath']' to '$moduleDestinationPath'" -Verbose
+        $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $moduleDestinationPath -Container -Recurse -Force
     }
 
     # Copy native Chef InSpec resource if needed
@@ -318,129 +341,4 @@ function New-GuestConfigurationPackage
         Name = $Name
         Path = $packageDestinationPath
     }
-}
-
-function Get-ResouceDependenciesFromMof
-{
-    [CmdletBinding()]
-    [OutputType([Hashtable[]])]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $MofFilePath
-    )
-
-    $resourceDependencies = @()
-    $reservedResourceNames = @('OMI_ConfigurationDocument')
-    $mofInstances = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4)
-
-    foreach ($mofInstance in $mofInstances)
-    {
-        if ($reservedResourceNames -inotcontains $mofInstance.CimClass.CimClassName -and $mofInstance.CimInstanceProperties.Name -icontains 'ModuleName')
-        {
-            Write-Verbose -Message "Found resource dependency in mof with name '$($mofInstance.CimClass.CimClassName)' from module '$($mofInstance.ModuleName)' with version '$($mofInstance.ModuleVersion)'."
-            $resourceDependencies += @{
-                ResourceInstanceName = $mofInstance.CimInstanceProperties['Name'].Value
-                ResourceName = $mofInstance.CimClass.CimClassName
-                ModuleName = $mofInstance.ModuleName
-                ModuleVersion = $mofInstance.ModuleVersion
-            }
-        }
-    }
-
-    return $resourceDependencies
-}
-
-function Get-ModuleDependencies
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $ModuleName,
-
-        [Parameter()]
-        [String]
-        $ModuleVersion
-    )
-
-    $moduleDependencies = @()
-
-    if ($ModuleName -ieq 'PSDesiredStateConfiguration')
-    {
-        throw "Found a dependency on the PSDesiredStateConfiguration module, but we cannot copy these resources into the Guest Configuration package. Please switch these resources to using the PSDscResources module instead."
-    }
-
-    $getModuleParameters = @{
-        ListAvailable = $true
-    }
-
-    if ([String]::IsNullOrWhiteSpace($ModuleVersion))
-    {
-        Write-Verbose -Message "Searching for a module with the name '$ModuleName'..."
-        $getModuleParameters['Name'] = $ModuleName
-    }
-    else
-    {
-        Write-Verbose -Message "Searching for a module with the name '$ModuleName' and version '$ModuleVersion'..."
-        $getModuleParameters['FullyQualifiedName'] = @{
-            ModuleName = $ModuleName
-            ModuleVersion = $ModuleVersion
-        }
-    }
-
-    $sourceModule = Get-Module @getModuleParameters
-
-    if ($null -eq $sourceModule)
-    {
-        throw "Failed to find a module with the name '$ModuleName' and the version '$ModuleVersion'. Please check that the module is installed and available in your PSModulePath."
-    }
-    elseif ('Count' -in $sourceModule.PSObject.Properties.Name -and $sourceModule.Count -gt 1)
-    {
-        $sourceModule = ($sourceModule | Sort-Object -Property 'Version' -Descending)[0]
-        Write-Warning -Message "Found more than one module with the name '$ModuleName'. Using the version '$($sourceModule.Version)'."
-    }
-
-    $moduleDependency = @{
-        Name = $resourceDependency['ModuleName']
-        Version = $resourceDependency['ModuleVersion']
-        SourcePath = $sourceModule.ModuleBase
-    }
-
-    $moduleDependencies += $moduleDependency
-
-    # Add any modules required by this module to the package
-    if ('RequiredModules' -in $sourceModule.PSObject.Properties.Name -and $null -ne $sourceModule.RequiredModules -and $sourceModule.RequiredModules.Count -gt 0)
-    {
-        foreach ($requiredModule in $sourceModule.RequiredModules)
-        {
-            Write-Verbose -Message "The module '$ModuleName' requires the module '$($requiredModule.Name)'. Attempting to copy the required module..."
-
-            $getModuleDependenciesParameters = @{
-                ModuleName = $requiredModule.Name
-                ModuleVersion = $requiredModule.Version
-            }
-
-            $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters
-        }
-    }
-
-    # Add any modules marked as external module dependencies by this module to the package
-    if ('ExternalModuleDependencies' -in $sourceModule.PSObject.Properties.Name -and $null -ne $sourceModule.ExternalModuleDependencies -and $sourceModule.ExternalModuleDependencies.Count -gt 0)
-    {
-        foreach ($externalModuleDependency in $sourceModule.ExternalModuleDependencies)
-        {
-            Write-Verbose -Message "The module '$ModuleName' requires the module '$externalModuleDependency'. Attempting to copy the required module..."
-
-            $getModuleDependenciesParameters = @{
-                ModuleName = $requiredModule.Name
-            }
-
-            $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters
-        }
-    }
-
-    return $moduleDependencies
 }

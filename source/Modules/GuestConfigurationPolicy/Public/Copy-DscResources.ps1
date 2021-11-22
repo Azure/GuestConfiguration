@@ -1,4 +1,3 @@
-
 function Copy-DscResources
 {
     [CmdletBinding()]
@@ -13,170 +12,197 @@ function Copy-DscResources
         $Destination,
 
         [Parameter()]
-        [switch]
+        [Switch]
         $Force
     )
 
-    $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($MofDocumentPath, 4)
+    Write-Verbose -Message 'Copying DSC resource modules required by the given configuration...'
 
-    Write-Verbose 'Copy DSC resources ...'
-    $modulePath = New-Item -ItemType Directory -Force -Path (Join-Path $Destination 'Modules')
-    $guestConfigModulePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'GuestConfiguration')
+    $modulesFolderPath = Join-Path -Path $Destination -ChildPath 'Modules'
+    Write-Verbose -Message "Creating the package Modules folder at the path '$modulesFolderPath'"
+    $null = New-Item -Path $modulesFolderPath -ItemType 'Directory' -Force
 
-    try
+    Write-Verbose -Message "Retrieving resource dependencies from the mof file..."
+    $resourceDependencies = @(Get-ResouceDependenciesFromMof -MofFilePath $MofDocumentPath)
+    Write-Verbose -Message "Found $($resourceDependencies.Count) resource dependencies from the mof file."
+
+    # Copy resource dependencies into the Modules folder
+    foreach ($resourceDependency in $resourceDependencies)
     {
-        $latestModule = @()
-        $latestModule += Get-Module GuestConfiguration
-        $latestModule += Get-Module GuestConfiguration -ListAvailable
-        $latestModule = ($latestModule | Sort-Object Version -Descending)[0]
-    }
-    catch
-    {
-        write-error 'unable to find the GuestConfiguration module either as an imported module or in $env:PSModulePath'
-    }
-
-    Copy-Item "$($latestModule.ModuleBase)/DscResources/" "$guestConfigModulePath/DscResources/" -Recurse -Force
-    Copy-Item "$($latestModule.ModuleBase)/Modules/" "$guestConfigModulePath/Modules/" -Recurse -Force
-    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psd1" "$guestConfigModulePath/GuestConfiguration.psd1" -Force
-    Copy-Item "$($latestModule.ModuleBase)/GuestConfiguration.psm1" "$guestConfigModulePath/GuestConfiguration.psm1" -Force
-
-    # Copies DSC resource modules
-    $modulesToCopy = @{ }
-    $IncludePesterModule = $false
-    $resourcesInMofDocument.Where{
-        $_.CimInstanceProperties.Name -contains 'ModuleName' -and $_.CimInstanceProperties.Name -contains 'ModuleVersion'
-    }.Foreach{
-        $modulesToCopy[$_.CimClass.CimClassName] = @{
-            ModuleName = $_.ModuleName
-            ModuleVersion = $_.ModuleVersion
+        if ($resourceDependency['ModuleName'] -ieq 'PSDesiredStateConfiguration')
+        {
+            throw "Found a dependency on the resources in the PSDesiredStateConfiguration module. Please"
         }
 
-        if ($_.ResourceID -match 'PesterResource')
+        if ($resourceDependency['ResourceName'] -ieq 'MSFT_ChefInspecResource')
         {
-            $IncludePesterModule = $true
-        }
-    }
+            # Attempt to find the resource dependency from a native resource
+            $dependencyFound = Copy-NativeResourceDependencyToGuestConfigurationPolicyPackage -PolicyPackagePath $policyPackagePath -NativeResourceName $resourceDependency['ResourceName']
 
-    # PowerShell modules required by DSC resource module
-    $powershellModulesToCopy = @{ }
-    $modulesToCopy.Values.ForEach{
-        if ($_.ModuleName -ne 'GuestConfiguration')
-        {
-            $requiredModule = Get-Module -FullyQualifiedName @{
-                ModuleName = $_.ModuleName
-                RequiredVersion = $_.ModuleVersion
-            } -ListAvailable | Select-Object -First 1
-
-            if (-not $requiredModule)
+            if ($null -eq $FoldersToInclude -or $FoldersToInclude.Count -lt 1)
             {
-                throw "The module '$($_.ModuleName)' with version '$($_.ModuleVersion)' could not be found."
+                Write-Warning -Message "The MSFT_ChefInSpecResource resource is required but no InSpec control folder was included in the package. Please include the control folder via the FoldersToInclude parameter."
+                $dependencyFound = $false
             }
+        }
+        else
+        {
+            $dependencyFound = Copy-ModuleDependencyToGuestConfigurationPolicyPackage -PolicyPackagePath $Destination -ModuleName $resourceDependency['ModuleName'] -RequiredModuleVersion $resourceDependency['ModuleVersion']
+        }
 
-            if ($requiredModule.PSObject.Properties.Name -contains 'RequiredModules')
+        if (-not $dependencyFound)
+        {
+            throw "Failed to find a module or native resource to satisfy the resource dependency with resource name '$($resourceDependency['ResourceName'])', module name '$($resourceDependency['ModuleName'])', and module version '$($resourceDependency['ModuleVersion'])'."
+        }
+    }
+}
+
+function Get-ResouceDependenciesFromMof
+{
+    [CmdletBinding()]
+    [OutputType([Hashtable[]])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $MofFilePath
+    )
+
+    $resourceDependencies = @()
+    $reservedResourceNames = @('OMI_ConfigurationDocument')
+    $mofInstances = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4)
+
+    foreach ($mofInstance in $mofInstances)
+    {
+        if ($reservedResourceNames -inotcontains $mofInstance.CimClass.CimClassName -and $mofInstance.CimInstanceProperties.Name -icontains 'ModuleName')
+        {
+            Write-Verbose -Message "Found resource dependency in mof with name '$($mofInstance.CimClass.CimClassName)' from module '$($mofInstance.ModuleName)' with version '$($mofInstance.ModuleVersion)'."
+            $resourceDependencies += @{
+                ResourceName = $mofInstance.CimClass.CimClassName
+                ModuleName = $mofInstance.ModuleName
+                ModuleVersion = $mofInstance.ModuleVersion
+            }
+        }
+    }
+
+    return $resourceDependencies
+}
+
+<#
+    .SYNOPSIS
+        Copies the module with the specified name and version from the module source path or PSModulePath to the policy package at the specified path.
+    .PARAMETER PolicyPackagePath
+        The path of the policy package to which to add the module.
+    .PARAMETER ModuleName
+        The name of the module to add to the policy package.
+    .PARAMETER ModuleVersion
+        The version of the module to add to the policy package.
+        Specifies a minimum acceptable version of the module.
+    .PARAMETER RequiredModuleVersion
+        The version of the module to add to the policy package.
+        Specifies an exact, required version of the module.
+    .EXAMPLE
+        Copy-ModuleDependencyToGuestConfigurationPolicyPackage -PolicyPackagePath $policyPackagePath -ModuleName 'PSDscResources' -RequiredModuleVersion '2.6.0.0'
+#>
+function Copy-ModuleDependencyToGuestConfigurationPolicyPackage
+{
+    [CmdletBinding()]
+    [OutputType([Boolean])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [String]
+        $PolicyPackagePath,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ModuleName,
+
+        [Parameter()]
+        [String]
+        $ModuleVersion
+    )
+
+    if ($ModuleName -ieq 'PSDesiredStateConfiguration')
+    {
+        throw 'Cannot copy resources from the PSDesiredStateConfiguration module. Please use PSDscResources in your configurations for Guest Configuraiton instead.'
+    }
+
+    $moduleCopied = $false
+    $dependenciesCopied = $true
+
+    $modulesFolderPath = Join-Path -Path $PolicyPackagePath -ChildPath 'Modules'
+
+    $getModuleParameters = @{
+        ListAvailable = $true
+    }
+
+    if ([String]::IsNullOrWhiteSpace($ModuleVersion))
+    {
+        Write-Verbose -Message "Searching for a module with the name '$ModuleName'..."
+        $getModuleParameters['Name'] = $ModuleName
+    }
+    else
+    {
+        Write-Verbose -Message "Searching for a module with the name '$ModuleName' and version '$ModuleVersion'..."
+        $getModuleParameters['FullyQualifiedName'] = @{
+            ModuleName = $ModuleName
+            ModuleVersion = $ModuleVersion
+        }
+    }
+
+    $sourceModule = Get-Module @getModuleParameters
+
+    if ($null -ne $sourceModule)
+    {
+        if ('Count' -in $sourceModule.PSObject.Properties.Name -and $sourceModule.Count -gt 1)
+        {
+            throw "Found more than one module with the name '$ModuleName'. Please provide a more specific version or remove one of these modules from your PSModulePath."
+        }
+
+        $moduleSourcePath = $sourceModule.ModuleBase
+
+        Write-Verbose -Message "Copying the module '$ModuleName' with version '$ModuleVersion' from the path '$moduleSourcePath' into the policy package..."
+        $null = Copy-Item -Path $moduleSourcePath -Destination $modulesFolderPath -Container -Recurse -Force
+        $moduleCopied = $true
+
+        # Add any modules required by this module to the package
+        if ('RequiredModules' -in $sourceModule.PSObject.Properties.Name -and $null -ne $sourceModule.RequiredModules -and $sourceModule.RequiredModules.Count -gt 0)
+        {
+            foreach ($requiredModule in $sourceModule.RequiredModules)
             {
-                $requiredModule.RequiredModules | ForEach-Object {
-                    if ($null -ne $_.Version)
-                    {
-                        $powershellModulesToCopy[$_.Name] = @{
-                            ModuleName = $_.Name
-                            ModuleVersion = $_.Version
-                        }
+                Write-Verbose -Message "The module '$ModuleName' requires the module '$($requiredModule.Name)'. Attempting to copy the required module..."
 
-                        Write-Verbose "$($_.Name) is a required PowerShell module"
-                    }
-                    else
-                    {
-                        Write-Error "Unable to add required PowerShell module $($_.Name).  No version was specified in the module manifest RequiredModules property.  Please use module specification '@{ModuleName=;ModuleVersion=}'."
-                    }
+                $copyModuleParameters = @{
+                    PolicyPackagePath = $PolicyPackagePath
+                    ModuleName = $requiredModule.Name
+                    RequiredModuleVersion = $requiredModule.Version
                 }
+
+                $dependenciesCopied = $dependenciesCopied -and (Copy-ModuleDependencyToGuestConfigurationPolicyPackage @copyModuleParameters)
             }
         }
-    }
 
-    if ($true -eq $IncludePesterModule)
-    {
-        $latestInstalledVersionofPester = (Get-Module -Name 'Pester' -ListAvailable | Sort-Object Version -Descending)[0]
-        $powershellModulesToCopy['Pester'] = @{
-            ModuleName = $latestInstalledVersionofPester.Name
-            ModuleVersion = $latestInstalledVersionofPester.Version
-        }
-
-        Write-Verbose "Pester is a required PowerShell module (using Pester v$($latestInstalledVersionofPester.Version))."
-    }
-
-    $modulesToCopy += $powershellModulesToCopy
-
-    $modulesToCopy.Values | ForEach-Object {
-        if (@('Pester', 'GuestConfiguration') -notcontains $_.ModuleName)
+        # Add any modules marked as external module dependencies by this module to the package
+        if ('ExternalModuleDependencies' -in $sourceModule.PSObject.Properties.Name -and $null -ne $sourceModule.ExternalModuleDependencies -and $sourceModule.ExternalModuleDependencies.Count -gt 0)
         {
-            $moduleToCopy = Get-Module -FullyQualifiedName @{
-                ModuleName = $_.ModuleName
-                RequiredVersion = $_.ModuleVersion
-            } -ListAvailable | Select-Object -First 1
-
-            if ($null -ne $moduleToCopy)
+            foreach ($externalModuleDependency in $sourceModule.ExternalModuleDependencies)
             {
-                if ($_.ModuleName -eq 'PSDesiredStateConfiguration')
-                {
-                    Write-Error 'The configuration includes DSC resources from the Windows PowerShell 5.1 module "PSDesiredStateConfiguration" that are not available in PowerShell Core. Switch to the "PSDSCResources" module available from the PowerShell Gallery. Note that the File and Package resources are not yet available in "PSDSCResources".'
+                Write-Verbose -Message "The module '$ModuleName' requires the module '$externalModuleDependency'. Attempting to copy the required module..."
+
+                $copyModuleParameters = @{
+                    PolicyPackagePath = $PolicyPackagePath
+                    ModuleName = $externalModuleDependency
                 }
 
-                $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-                Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force
-            }
-            else
-            {
-                Write-Error "Module $($_.ModuleName) version $($_.ModuleVersion) could not be found in `$env:PSModulePath"
-            }
-
-            $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-            Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force:$Force
-        }
-        elseif ($_.ModuleName -eq 'Pester')
-        {
-            $moduleToCopy = $latestInstalledVersionofPester
-            if ($null -ne $moduleToCopy)
-            {
-                $moduleToCopyPath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath $_.ModuleName)
-                Copy-Item -Path "$($moduleToCopy.ModuleBase)/*" -Destination $moduleToCopyPath -Recurse -Force
-            }
-            else
-            {
-                Write-Error "The configuration includes PesterResource. This resource requires Pester version 5.0.0 or later, which could not be found in `$env:PSModulePath"
+                $dependenciesCopied = $dependenciesCopied -and (Copy-ModuleDependencyToGuestConfigurationPolicyPackage @copyModuleParameters)
             }
         }
     }
-
-    try
+    else
     {
-        # Add latest module to module path
-        $latestModulePSModulePath = [IO.Path]::PathSeparator + $latestModule.ModuleBase
-        $Env:PSModulePath += $latestModulePSModulePath
-
-        # Copy binary resources.
-        $nativeResourcePath = New-Item -ItemType Directory -Force -Path (Join-Path $modulePath 'DscNativeResources')
-        $resources = Get-DscResource -Module @{
-            ModuleName    = 'GuestConfiguration'
-            ModuleVersion = $latestModule.Version.ToString()
-        }
-
-        $resources | ForEach-Object {
-            if ($_.ImplementedAs -eq 'Binary')
-            {
-                $binaryResourcePath = Join-Path -Path (Join-Path -Path $latestModule.ModuleBase -ChildPath 'DscResources') -ChildPath $_.ResourceType
-                Get-ChildItem -Path $binaryResourcePath/* -Include *.sh -Recurse | ForEach-Object { Convert-FileToUnixLineEndings -FilePath $_ }
-                Copy-Item -Path $binaryResourcePath/* -Include *.sh -Destination $modulePath -Recurse -Force
-                Copy-Item -Path $binaryResourcePath -Destination $nativeResourcePath -Recurse -Force
-            }
-        }
-
-        # Remove DSC binaries from package (just a safeguard).
-        $binaryPath = Join-Path -Path $guestConfigModulePath -ChildPath 'bin'
-        $null = Remove-Item -Path $binaryPath -Force -Recurse -ErrorAction 'SilentlyContinue'
+        throw "Failed to find a module with the name '$ModuleName' and the version '$ModuleVersion'. Please check that the module is installed and available in your PSModulePath."
     }
-    finally
-    {
-        # Remove addition to module path
-        $Env:PSModulePath = $Env:PSModulePath.replace($latestModulePSModulePath, '')
-    }
+
+    return $moduleCopied -and $dependenciesCopied
 }

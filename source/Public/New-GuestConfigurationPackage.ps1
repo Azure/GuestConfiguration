@@ -58,7 +58,7 @@ function New-GuestConfigurationPackage
         [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [SemVer]
-        $Version = "0.0.0.0",
+        $Version = 0.0.0,
 
         [Parameter()]
         [System.String]

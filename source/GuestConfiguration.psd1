@@ -4,7 +4,7 @@
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    moduleVersion = '3.4.3'
+    moduleVersion = '4.0.0'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -37,14 +37,14 @@
     AliasesToExport = @()
 
     # DSC resources to export from this module
-    DscResourcesToExport = @( 'ChefInSpecResource','PesterResource' )
+    DscResourcesToExport = @( 'ChefInSpecResource' )
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
 
         PSData = @{
 
-            # Prerelease = 'prerelease'
+            Prerelease = 'prerelease'
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = 'GuestConfiguration', 'Azure', 'DSC'
@@ -61,12 +61,7 @@
             # ReleaseNotes of this module
             ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
 
-            ExperimentalFeatures = @(
-                @{
-                    Name        = "GuestConfiguration.Pester"
-                    Description = "Audit content in Pester format"
-                }
-            )
+            ExperimentalFeatures = @()
         } # End of PSData hashtable
     } # End of PrivateData hashtable
 }

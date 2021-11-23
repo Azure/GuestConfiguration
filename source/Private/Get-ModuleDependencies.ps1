@@ -46,6 +46,8 @@ function Get-ModuleDependencies
     }
     elseif ('Count' -in $sourceModule.PSObject.Properties.Name -and $sourceModule.Count -gt 1)
     {
+        Write-Verbose -Message "Found $($sourceModule.Count) modules with the name '$ModuleName'..."
+
         $sourceModule = ($sourceModule | Sort-Object -Property 'Version' -Descending)[0]
         Write-Warning -Message "Found more than one module with the name '$ModuleName'. Using the version '$($sourceModule.Version)'."
     }

@@ -17,9 +17,16 @@ function Get-ResouceDependenciesFromMof
     {
         if ($reservedResourceNames -inotcontains $mofInstance.CimClass.CimClassName -and $mofInstance.CimInstanceProperties.Name -icontains 'ModuleName')
         {
-            Write-Verbose -Message "Found resource dependency in mof with name '$($mofInstance.CimClass.CimClassName)' from module '$($mofInstance.ModuleName)' with version '$($mofInstance.ModuleVersion)'."
+            $instanceName = ""
+
+            if ($mofInstance.CimInstanceProperties.Name -icontains 'Name')
+            {
+                $instanceName = $mofInstance.CimInstanceProperties['Name'].Value
+            }
+
+            Write-Verbose -Message "Found resource dependency in mof with instance name '$instanceName' and resource name '$($mofInstance.CimClass.CimClassName)' from module '$($mofInstance.ModuleName)' with version '$($mofInstance.ModuleVersion)'."
             $resourceDependencies += @{
-                ResourceInstanceName = $mofInstance.CimInstanceProperties['Name'].Value
+                ResourceInstanceName = $instanceName
                 ResourceName = $mofInstance.CimClass.CimClassName
                 ModuleName = $mofInstance.ModuleName
                 ModuleVersion = $mofInstance.ModuleVersion

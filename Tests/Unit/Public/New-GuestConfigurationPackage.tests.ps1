@@ -1,6 +1,8 @@
 BeforeDiscovery {
+    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
 
-    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
@@ -11,165 +13,289 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
     ProjectPath    = $projectPath
     projectName    = $projectName
     importedModule = $importedModule
-} -Fixture {
+} {
     BeforeAll {
-        # Test Assets path
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
+        Set-StrictMode -Version 'latest'
 
-        # Test Config Package MOF
-        $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
-        $policyName = 'testPolicy'
+        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
-
-        # Test extraction
-        $unsignedPackageExtractionPath = Join-Path -Path $testOutputPath -ChildPath 'UnsignedPackage'
-        $mofFilePath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath "$policyName.mof"
     }
 
-    It 'Creates custom Windows policy package' -skip:(-not $IsWindows) {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        Test-Path -Path $package.Path | Should -BeTrue
-        $package.Name | Should -Be $policyName
-    }
-
-    It 'Creates custom Linux policy package' -skip:(-not $IsLinux) {
-        $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
-        $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
-        $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
-
-        $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        Test-Path -Path $package.Path | Should -BeTrue
-        $package.Name | Should -Be $policyName
-    }
-
-    It 'Does not overwrite a custom policy package when -Force is not specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -ErrorAction Stop } | Should -Throw
-    }
-
-    It 'Overwrites a custom policy package when -Force is specified' {
-        { New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force -ErrorAction Stop } | Should -Not -Throw
-    }
-
-    It 'Verify the package can be extracted' {
-        $package = Get-Item "$testPackagePath/$policyName/$policyName.zip"
-
-        # Set up type needed for package extraction
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $unsignedPackageExtractionPath) } | Should -Not -Throw
-        Test-Path $unsignedPackageExtractionPath | Should -BeTrue
-    }
-
-    It 'Verify extracted mof document exists' {
-        Test-Path -Path $mofFilePath | Should -BeTrue
-    }
-
-    # We are not planning on supporting creating inspec packages on Linux machines
-    It 'Has Linux-friendly line endings in InSpec install script' -skip:(-not $IsWindows) {
-        $inspecInstallScriptPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules/install_inspec.sh'
-        $fileContent = Get-Content -Path $inspecInstallScriptPath -Raw
-        $fileContent -match "`r`n" | Should -BeFalse
-    }
-
-    It 'Verify all required modules are included in the package' {
-        $extractedModulesPath = Join-Path -Path $unsignedPackageExtractionPath -ChildPath 'Modules'
-        $resourcesInMofDocument = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($mofFilePath, 4)
-        for ($numResources = 0; $numResources -lt $resourcesInMofDocument.Count; $numResources++)
-        {
-            if ($resourcesInMofDocument[$numResources].CimInstanceProperties.Name -contains 'ModuleName')
-            {
-                $resourceModuleName = $resourcesInMofDocument[$numResources].ModuleName
-                $resourceModulePath = Join-Path -Path $extractedModulesPath -ChildPath $resourceModuleName
-                Test-Path -Path $resourceModulePath | Should -BeTrue
+    Context 'Windows package with community PowerShell TimeZone resource' -skip:(-not $IsWindows) {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testWindowsTimeZone'
+                Configuration = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Force = $true
             }
+
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+
+            $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
+            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
+
+            $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
+
+            $extraDirectorySourcePath = Join-Path -Path $testAssetsPath -ChildPath 'FilesToInclude'
+        }
+
+        It 'Should be able to create a custom Windows package with the expected output object' {
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $package | Should -Not -BeNull
+            $package.Name | Should -Be $newGuestConfigurationPackageParameters.Name
+            $package.Path | Should -Be $compressedPackagePath
+        }
+
+        It 'Compressed package should exist at expected output path' {
+            Test-Path -Path $compressedPackagePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Should be able to expand the new package' {
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Mof file should exist in expanded package' {
+            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
+            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
+            Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
+
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
+
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be 'Audit'
+            $metaconfigJson.Version | Should -Be '0.0.0'
+        }
+
+        It 'Expanded package should include the ComputerManagementDsc module dependency' {
+            $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'ComputerManagementDsc'
+            Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Should include extra directory when FilesToInclude parameter is specified' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters + @{
+                FilesToInclude = $extraDirectorySourcePath
+            }
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-DirectoryIncluded"
+
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
+            $expectedExtraDirectoryPath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'FilesToInclude'
+            Test-Path -Path $expectedExtraDirectoryPath -PathType 'Container' | Should -BeTrue
+
+            $expectedExtraFilePath = Join-Path -Path $expectedExtraDirectoryPath -ChildPath 'file.txt'
+            Test-Path -Path $expectedExtraFilePath | Should -BeTrue
+
+            $expandedExtraFileContent = Get-Content -Path $expectedExtraFilePath
+            $expandedExtraFileContent | Should -Be 'test'
+        }
+
+        It 'Should include extra file when FilesToInclude parameter is specified' {
+            $extraFileSourcePath = Join-Path -Path $extraDirectorySourcePath -ChildPath 'file.txt'
+
+            $itSpecificParameters = $newGuestConfigurationPackageParameters + @{
+                FilesToInclude = $extraFileSourcePath
+            }
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-FileIncluded"
+
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
+            $expectedExtraFilePath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'file.txt'
+            Test-Path -Path $expectedExtraFilePath | Should -BeTrue
+
+            $expandedExtraFileContent = Get-Content -Path $expectedExtraFilePath
+            $expandedExtraFileContent | Should -Be 'test'
+        }
+
+        It 'Should not include any extra files after updating package without FilesToInclude parameter' {
+            $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-NoFileIncluded"
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
+
+            $expectedExtraDirectoryPath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'FilesToInclude'
+            Test-Path -Path $expectedExtraDirectoryPath | Should -BeFalse
+
+            $expectedExtraFilePath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'file.txt'
+            Test-Path -Path $expectedExtraFilePath | Should -BeFalse
+        }
+
+        It 'Should set Type as AuditAndSet and Version as given value in package metaconig when parameters specified' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters + @{
+                Type = 'AuditAndSet'
+                Version = '3.4.0'
+            }
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
+
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
+
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be $itSpecificParameters.Type
+            $metaconfigJson.Version | Should -Be $itSpecificParameters.Version
+        }
+
+        It 'Should set Type as Audit and Version as given value in package metaconig when parameters specified' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters + @{
+                Type = 'Audit'
+                Version = '9.23.41'
+            }
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
+
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
+
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be $itSpecificParameters.Type
+            $metaconfigJson.Version | Should -Be $itSpecificParameters.Version
         }
     }
 
-    It 'Should not include -FilesToInclude by default' {
-        $filesToIncludeExtractionPath = Join-Path $testOutputPath -ChildPath 'FilesToIncludeUnsignedPackage'
-        $extractedFilesToIncludePath = Join-Path -Path (Join-Path -Path $filesToIncludeExtractionPath -ChildPath 'Modules') -ChildPath 'FilesToInclude'
+    Context 'Linux package with native InSpec resource' {
+        BeforeAll {
+            $inSpecTestAssetsPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
 
-        Test-Path -Path $extractedFilesToIncludePath | Should -BeFalse
-    }
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testLinuxNativeInSpec'
+                Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                ChefInspecProfilePath = $inSpecTestAssetsPath
+                Force = $true
+            }
 
-    It 'Implements -FilesToInclude parameter' {
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
 
-        $FilesToIncludeFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'FilesToInclude'
+            $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
+            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
 
-        if (Test-Path $testPackagePath)
-        {
-            Remove-Item -Path $testPackagePath -Force -Recurse
+            $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
+            $expandedPackageNativeResourcesPath = Join-Path $expandedPackageModulesPath -ChildPath 'DscNativeResources'
+            $expectedInSpecResourceFolderPath = Join-Path -Path $expandedPackageNativeResourcesPath -ChildPath 'MSFT_ChefInspecResource'
+
+            $expectedInSpecResourceLibraryPath = Join-Path -Path $expectedInSpecResourceFolderPath -ChildPath 'libMSFT_ChefInSpecResource.so'
+            $expectedInSpecResourceSchemaPath = Join-Path -Path $expectedInSpecResourceFolderPath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+            $expectedInSpecInstallScriptPath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'install_inspec.sh'
+
+            $inspecProfileName = 'linux-path'
         }
 
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -FilesToInclude $FilesToIncludeFolderPath -Force
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $testPackagePath) } | Should -Not -Throw
-        $includedFilesFolder = Join-Path -Path $testPackagePath -ChildPath (Join-Path -Path 'Modules' -ChildPath 'FilesToInclude')
-        Test-Path -Path $includedFilesFolder | Should -BeTrue
-        $extractedFile = Join-Path -Path $includedFilesFolder -ChildPath 'file.txt'
-        Test-Path -Path $extractedFile | Should -BeTrue
-        Get-Content -Path $extractedFile | Should -Be 'test'
-    }
+        It 'Should be able to create a custom Linux package with the expected output object' {
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $package | Should -Not -BeNull
+            $package.Name | Should -Be $newGuestConfigurationPackageParameters.Name
+            $package.Path | Should -Be $compressedPackagePath
+        }
 
-    It 'Implements -ChefInspecProfilePath parameter' {
-        $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
-        $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
-        $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
-        $inspecExtractionPath = Join-Path $testOutputPath -ChildPath 'InspecUnsignedPackage'
-        $inspecProfileName = 'linux-path'
-        $extractedInSpecPath = Join-Path -Path $inspecExtractionPath -ChildPath (Join-Path 'Modules' $inspecProfileName)
+        It 'Compressed package should exist at expected output path' {
+            Test-Path -Path $compressedPackagePath -PathType 'Leaf' | Should -BeTrue
+        }
 
-        $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $inspecExtractionPath) } | Should -Not -Throw
-        $extractedInspecPath | Should -Exist
-        $inspecYmlExtractedFile = Join-Path $extractedInspecPath 'inspec.yml'
-        $inspecYmlExtractedFile | Should -Exist
-        $inspecControlsExtractedFile = Join-Path $extractedInspecPath 'controls'
-        $inspecControlsExtractedFile | Should -Exist
-        $inspecRbExtractedFile = Join-Path $inspecControlsExtractedFile 'linux-path.rb'
-        $inspecRbExtractedFile | Should -Exist
-    }
+        It 'Should be able to expand the new package' {
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
 
-    It 'Verify default value from -Type is Audit in meta file' -skip:(-not $IsWindows) {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        $packageName = $package.Name
+        It 'Mof file should exist in expanded package' {
+            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
+            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
+            Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
+        }
 
-        # Extract package to read metaconfig file
-        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'defaultType'
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
 
-        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "extra.$packageName.metaconfig.json"
-        Test-Path -Path $metaConfigPath | Should -BeTrue
-        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"Audit"}'
-    }
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
 
-    It 'Verify passing in -Type AuditAndSet modifies metaconfig to AuditAndSet' {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Type 'AuditAndSet' -Force
-        $packageName = $package.Name
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be 'Audit'
+            $metaconfigJson.Version | Should -Be '0.0.0'
+        }
 
-        # Extract package to read metaconfig file
-        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'AuditAndSet'
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+        It 'Expanded package should include the native InSpec resource folder' {
+            Test-Path -Path $expectedInSpecResourceFolderPath -PathType 'Container' | Should -BeTrue
+        }
 
-        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "extra.$packageName.metaconfig.json"
-        Test-Path -Path $metaConfigPath | Should -BeTrue
-        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"AuditAndSet"}'
-    }
+        It 'Expanded package should include the native InSpec resource library' {
+            Test-Path -Path $expectedInSpecResourceLibraryPath -PathType 'Leaf' | Should -BeTrue
+        }
 
-    It 'Verify passing in -Type Audit modifies metaconfig to Audit' {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Type 'Audit' -Force
-        $packageName = $package.Name
+        It 'Expanded package should include the native InSpec resource schema' {
+            Test-Path -Path $expectedInSpecResourceSchemaPath -PathType 'Leaf' | Should -BeTrue
+        }
 
-        # Extract package to read metaconfig file
-        $extractionPath = Join-Path -Path $testOutputPath -ChildPath 'Audit'
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.Path, $extractionPath) } | Should -Not -Throw
+        It 'Expanded package should include the InSpec install script' {
+            Test-Path -Path $expectedInSpecInstallScriptPath -PathType 'Leaf' | Should -BeTrue
+        }
 
-        $metaConfigPath = Join-Path -Path $extractionPath -ChildPath "extra.$packageName.metaconfig.json"
-        Test-Path -Path $metaConfigPath | Should -BeTrue
-        (Get-Content -Path $metaConfigPath -Raw) -replace '\s+','' | Should -Match '{"Type":"Audit"}'
+        It 'Included InSpec install script should have Linux line endings' {
+            $inspecInstallScriptContent = Get-Content -Path $expectedInSpecInstallScriptPath -Raw
+            $inspecInstallScriptContent -match "`r`n" | Should -BeFalse
+        }
+
+        It 'Expanded package should include expected InSpec profile' {
+            $expectedInSpecProfilePath = Join-Path -Path $expandedPackageModulesPath -ChildPath $inspecProfileName
+            Test-Path -Path $expectedInSpecProfilePath -PathType 'Container' | Should -BeTrue
+
+            $inspecYmlExpectedPath = Join-Path -Path $expectedInSpecProfilePath -ChildPath 'inspec.yml'
+            Test-Path -Path $inspecYmlExpectedPath -PathType 'Leaf' | Should -BeTrue
+
+            $inspecControlsExpectedPath = Join-Path -Path $expectedInSpecProfilePath -ChildPath 'controls'
+            Test-Path -Path $inspecControlsExpectedPath -PathType 'Container' | Should -BeTrue
+
+            $inspecControlsRbExpectedPath = Join-Path -Path $inspecControlsExpectedPath -ChildPath 'linux-path.rb'
+            Test-Path -Path $inspecControlsRbExpectedPath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Should not overwrite a custom policy package when -Force is not specified' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+            $itSpecificParameters['Force'] = $false
+
+            { $null = New-GuestConfigurationPackage @itSpecificParameters } | Should -Throw
+        }
+
+        It 'Should overwrite a custom policy package when -Force is specified' {
+            { $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+        }
     }
 }

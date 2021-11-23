@@ -57,8 +57,8 @@ function New-GuestConfigurationPackage
 
         [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [SemVer]
-        $Version = 0.0.0,
+        [System.String]
+        $Version = '0.0.0',
 
         [Parameter()]
         [System.String]
@@ -83,6 +83,8 @@ function New-GuestConfigurationPackage
         [Switch]
         $Force
     )
+
+    Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
 
     #-----VALIDATION-----
 
@@ -133,7 +135,10 @@ function New-GuestConfigurationPackage
         $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters
     }
 
-    Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name)"
+    if ($moduleDependencies.Count -gt 0)
+    {
+        Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name)"
+    }
 
     $duplicateModules = @( $moduleDependencies | Group-Object -Property 'Name' | Where-Object { $_.Count -gt 1 } )
 
@@ -234,7 +239,7 @@ function New-GuestConfigurationPackage
     }
 
     # Check destination
-    $packageDestinationPath = '{0}.zip' -f $packageRootPath
+    $packageDestinationPath = "$packageRootPath.zip"
 
     if (Test-Path -Path $packageDestinationPath)
     {
@@ -249,16 +254,16 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
-        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..." -Verbose
+        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..."
         $null = Remove-Item -Path $packageRootPath -Recurse -Force
     }
 
-    $null = New-Item -Path $packageRootPath -ItemType 'Directory'
+    $null = New-Item -Path $packageRootPath -ItemType 'Directory' -Force
 
     # Clear the package destination
     if (Test-Path -Path $packageDestinationPath)
     {
-        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..." -Verbose
+        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..."
         $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
     }
 
@@ -289,7 +294,7 @@ function New-GuestConfigurationPackage
     {
         $moduleDestinationPath = Join-Path -Path $modulesFolderPath -ChildPath $moduleDependency['Name']
 
-        Write-Verbose -Message "Copying module from '$moduleDependency['SourcePath']' to '$moduleDestinationPath'" -Verbose
+        Write-Verbose -Message "Copying module from '$($moduleDependency['SourcePath'])' to '$moduleDestinationPath'"
         $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $moduleDestinationPath -Container -Recurse -Force
     }
 
@@ -329,12 +334,13 @@ function New-GuestConfigurationPackage
         }
         else
         {
-            $null = Copy-Item -Path $FilesToIncludePath -Destination $modulesFolderPath -Container -Recurse
+            $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath -Container -Recurse
         }
     }
 
     # Zip the package
-    $null = Compress-Archive -Path $packageRootPath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
+    $compressSourcePath = Join-Path -Path $packageRootPath -ChildPath '*'
+    $null = Compress-Archive -Path $compressSourcePath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
 
     return [PSCustomObject]@{
         PSTypeName = 'GuestConfiguration.Package'

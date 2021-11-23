@@ -5,6 +5,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Remove experimental Pester resource
+- Rewrite of New-GuestConfigurationPackage
+  - Remove extra folder level created under Path
+  - Remove any existing working folder before updating package
+  - Change Version parameter to a String
+  - Change Type parameter to a String
+  - Remove extra.metaconfig.json file. Properties are now consolidated in metaconfig.json instead.
+  - Do not add GuestConfiguration module to new packages
+  - Do not add native InSpec resource files to packages that are not using it
+  - Validate module dependencies
+  - Add nested module dependencies to package
+  - Update tests
+
 ## [3.5.3]
 
 ### Removed

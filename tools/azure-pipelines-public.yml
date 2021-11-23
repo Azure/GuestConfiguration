@@ -226,7 +226,6 @@ stages:
                 Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
                 Import-Module -Name PSDesiredStateConfiguration -Force
                 Get-Module PSDesiredStateConfiguration -ListAvailable
-                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
                 Uninstall-AzureRm
                 }

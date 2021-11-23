@@ -57,21 +57,4 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         $testPackageResult.resources[0].complianceStatus | Should -Be $true
         $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
     }
-
-    It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-        # folder with the test pester file
-        $pesterScriptsAsset = Join-Path -Path $testAssetsPath -ChildPath 'pesterScripts'
-        $pesterMofFilePath = Join-Path -Path $testOutputPath -ChildPath "PesterConfig.mof"
-        $pesterPackagePath = Join-Path -Path $testOutputPath -ChildPath 'PesterPackage'
-
-        $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsAsset -Path $pesterMofFilePath -Force |
-            New-GuestConfigurationPackage -Path $pesterPackagePath -FilesToInclude $pesterScriptsAsset -Force |
-            Test-GuestConfigurationPackage -Force
-
-        $testPackageResult.complianceStatus | Should -Be $true
-        $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
-        $testPackageResult.resources[0].complianceStatus | Should -Be $true
-        $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'testPolicy'
-        $testPackageResult.resources[0].properties.PesterFileName | Should -Be 'EnvironmentVariables.tests'
-    }
 }

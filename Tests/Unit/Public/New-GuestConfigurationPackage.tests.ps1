@@ -55,7 +55,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Should be able to expand the new package' {
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
             Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
         }
 
@@ -92,7 +92,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-DirectoryIncluded"
 
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
             $expectedExtraDirectoryPath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'FilesToInclude'
@@ -116,7 +116,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-FileIncluded"
 
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
             $expectedExtraFilePath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'file.txt'
@@ -130,7 +130,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-NoFileIncluded"
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
 
@@ -150,7 +150,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @itSpecificParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
@@ -173,7 +173,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @itSpecificParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
@@ -229,7 +229,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Should be able to expand the new package' {
-            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
             Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
         }
 

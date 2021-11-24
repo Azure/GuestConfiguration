@@ -115,7 +115,7 @@ function New-GuestConfigurationPackage
 
     foreach ($resourceDependency in $resourceDependencies)
     {
-        if ($resourceDependency['ResourceName'] -ieq 'MSFT_ChefInspecResource')
+        if ($resourceDependency['ResourceName'] -ieq 'MSFT_ChefInSpecResource')
         {
             $usingInSpecResource = $true
             $inSpecProfileNames += $resourceDependency['ResourceInstanceName']

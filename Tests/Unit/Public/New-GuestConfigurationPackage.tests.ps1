@@ -216,7 +216,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
             $expandedPackageNativeResourcesPath = Join-Path $expandedPackageModulesPath -ChildPath 'DscNativeResources'
-            $expectedInSpecResourceFolderPath = Join-Path -Path $expandedPackageNativeResourcesPath -ChildPath 'MSFT_ChefInspecResource'
+            $expectedInSpecResourceFolderPath = Join-Path -Path $expandedPackageNativeResourcesPath -ChildPath 'MSFT_ChefInSpecResource'
 
             $expectedInSpecResourceLibraryPath = Join-Path -Path $expectedInSpecResourceFolderPath -ChildPath 'libMSFT_ChefInSpecResource.so'
             $expectedInSpecResourceSchemaPath = Join-Path -Path $expectedInSpecResourceFolderPath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'

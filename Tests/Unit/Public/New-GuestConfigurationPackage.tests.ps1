@@ -252,11 +252,11 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $mofInstances = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($expandedPackageMofFilePath, 4)
 
             $chefInSpecMofInstance = $mofInstances | Where-Object { $_.CimClass.CimClassName -ieq 'MSFT_ChefInSpecResource'}
-            $chefInSpecMofInstance | Should -Not -BeNullOrEmpty
+            $chefInSpecMofInstance | Should -Not -Be $null
             @( $chefInSpecMofInstance ).Count | Should -Be 1
 
             $gitHubPath = $chefInSpecMofInstance.CimInstanceProperties.Item('GithubPath')
-            $gitHubPath | Should -Not -BeNullOrEmpty
+            $gitHubPath | Should -Not -Be $null
 
             $gitHubPath.Value | Should -Be "$($newGuestConfigurationPackageParameters.Name)/Modules/$inspecProfileName/"
         }

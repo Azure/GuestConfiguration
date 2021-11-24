@@ -18,6 +18,14 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         Set-StrictMode -Version 'latest'
 
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testsFolder = Split-Path -Path $unitTestsFolderPath -Parent
+        $rootFolder = Split-Path -Path $testsFolder -Parent
+        $sourceFolder = Join-Path -Path $rootFolder -ChildPath 'source'
+        $privateFolder = Join-Path -Path $sourceFolder -ChildPath 'Private'
+
+        $expandArchiveCmdletPath = Join-Path -Path $privateFolder -ChildPath 'Expand-ArchiveWithPermissions.ps1'
+        $null = Import-Module -Name $expandArchiveCmdletPath -Force
+
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'

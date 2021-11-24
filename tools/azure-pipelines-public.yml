@@ -231,6 +231,8 @@ stages:
                 } elseif ($IsLinux) {
                     sudo pwsh-preview {
                         $ProgressPreference = 'SilentlyContinue'
+                        $VerbosePreference = 'Continue'
+                        $PesterPreference.Output.Verbosity = 'Diagnostic'
                         ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
                     }
                 }

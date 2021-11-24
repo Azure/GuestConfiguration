@@ -122,11 +122,6 @@ function New-GuestConfigurationPackage
             continue
         }
 
-        if ($resourceDependency['ModuleName'] -ieq 'PSDscResources' -and @('MSFT_WindowsFeature', 'MSFT_WindowsOptionalFeature') -icontains $resourceDependency['ResourceName'])
-        {
-            throw "Found a dependency on the resource '$($resourceDependency['ResourceName'])' from the PSDscResources module. This resource currently relies on DISM which will not work with Guest Configuration."
-        }
-
         $getModuleDependenciesParameters = @{
             ModuleName = $resourceDependency['ModuleName']
             ModuleVersion = $resourceDependency['ModuleVersion']

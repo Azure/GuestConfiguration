@@ -34,5 +34,6 @@ function Get-ResouceDependenciesFromMof
         }
     }
 
+    Write-Verbose -Message "Found $($resourceDependencies.Count) resource dependencies in the mof."
     return $resourceDependencies
 }

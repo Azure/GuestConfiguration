@@ -214,6 +214,9 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
             $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
 
+            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
+            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
+
             $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
             $expandedPackageNativeResourcesPath = Join-Path $expandedPackageModulesPath -ChildPath 'DscNativeResources'
             $expectedInSpecResourceFolderPath = Join-Path -Path $expandedPackageNativeResourcesPath -ChildPath 'MSFT_ChefInSpecResource'
@@ -242,9 +245,20 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Mof file should exist in expanded package' {
-            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
-            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
             Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Mof file should contain an InSpec resource with the expected profile in the GitHubPath property' {
+            $mofInstances = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($expandedPackageMofFilePath, 4)
+
+            $chefInSpecMofInstance = $mofInstances | Where-Object { $_.CimClass.CimClassName -ieq 'MSFT_ChefInSpecResource'}
+            $chefInSpecMofInstance | Should -Not -BeNullOrEmpty
+            @( $chefInSpecMofInstance ).Count | Should -Be 1
+
+            $gitHubPath = $chefInSpecMofInstance.CimInstanceProperties.Item('GithubPath')
+            $gitHubPath | Should -Not -BeNullOrEmpty
+
+            $gitHubPath.Value | Should -Be "$($newGuestConfigurationPackageParameters.Name)/Modules/$inspecProfileName/"
         }
 
         It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {

@@ -284,6 +284,12 @@ function New-GuestConfigurationPackage
 
     $null = Copy-Item -Path $Configuration -Destination $mofFilePath
 
+    # Edit the native Chef InSpec resource parameters in the mof if needed
+    if ($usingInSpecResource)
+    {
+        Edit-ChefInSpecMofContent -PackageName $Name -MofPath $mofFilePath
+    }
+
     # Copy resource dependencies
     foreach ($moduleDependency in $moduleDependencies)
     {

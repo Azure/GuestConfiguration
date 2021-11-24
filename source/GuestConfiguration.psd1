@@ -44,6 +44,7 @@
 
         PSData = @{
 
+            # Specifies that module should be a prerelease
             Prerelease = 'prerelease'
 
             # Tags applied to this module. These help with module discovery in online galleries.

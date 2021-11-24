@@ -65,17 +65,6 @@ stages:
       #         artifactName: $(buildArtifactName)
       #         targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
       #     - task: PowerShell@2
-      #       enabled: true
-      #       displayName: Enable Experimental Feature
-      #       inputs:
-      #         pwsh: true
-      #         targetType: inline
-      #         continueOnError: true
-      #         script: |
-      #           ./build.ps1 -Tasks noop
-      #           Import-Module GuestConfiguration
-      #           Enable-ExperimentalFeature -Name GuestConfiguration.Pester
-      #     - task: PowerShell@2
       #       name: test
       #       displayName: 'Run HQRM Test'
       #       inputs:
@@ -112,7 +101,6 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Enable-ExperimentalFeature -Name GuestConfiguration.Pester
                 # Enable-ExperimentalFeature -Name PS7DscSupport
                 $userConfig =  Join-Path -Path (split-path -parent $PROFILE.CurrentUserCurrentHost) -ChildPath 'powershell.config.json'
                 if (Test-Path -Path $userConfig)

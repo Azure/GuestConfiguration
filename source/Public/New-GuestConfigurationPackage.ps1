@@ -1,40 +1,47 @@
 
 <#
     .SYNOPSIS
-        Creates a Guest Configuration policy package.
+        Creates a package to run code on machines for use through Azure Guest Configuration.
 
-    .Parameter Name
-        Guest Configuration package name.
+    .PARAMETER Name
+        The name of the Guest Configuration package.
 
-    .Parameter Version
-        Guest Configuration package Version (SemVer).
+    .PARAMETER Version
+        The semantic version of the Guest Configuration package.
+        This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
 
-    .Parameter Configuration
-        Compiled DSC configuration document full path.
+    .PARAMETER Configuration
+        The path to the compiled DSC configuration file (.mof) to base the package on.
 
-    .Parameter Path
-        Output folder path.
-        This is an optional parameter. If not specified, the package will be created in the current directory.
+    .PARAMETER Path
+        The path to a folder to output the package under.
+        By default the package will be created under the current directory.
 
-    .Parameter ChefInspecProfilePath
-        Chef profile path, supported only on Linux.
+    .PARAMETER ChefInspecProfilePath
+        The path to a folder containing Chef InSpec profiles to include with the package.
+        The compiled DSC configuration (.mof) provided should include a reference to the native Chef InSpec resource
+        with the reference name of the resources matching the name of the profile folder to use.
 
-    .Parameter Type
-        Specifies whether or not package will support AuditAndSet or only Audit. Set to Audit by default.
+    .PARAMETER Type
+        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
+        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
+        AuditAndSet indicates that the package may be used for setting the state of the machine.
+        Audit indicates that the package will not set the state of the machine and may only monitor settings.
+        By default this tag is set to Audit.
 
-    .Parameter Force
-        Overwrite the package files if already present.
+    .PARAMETER Force
+        If present, this function will overwrite any existing package files.
 
-    .Example
+    .EXAMPLE
         New-GuestConfigurationPackage -Name WindowsTLS -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
 
     .OUTPUTS
-        Return name and path of the new Guest Configuration Policy package.
+        Returns a PSCustomObject with the name and path of the new Guest Configuration package.
 #>
-
 function New-GuestConfigurationPackage
 {
     [CmdletBinding()]
+    [OutputType([PSCustomObject])]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '')]
     param
     (
@@ -43,113 +50,301 @@ function New-GuestConfigurationPackage
         [System.String]
         $Name,
 
-        [Parameter(Position = 1, Mandatory = $true, ParameterSetName = 'Configuration', ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
         $Configuration,
 
-        [Parameter(Position = 2, ParameterSetName = 'Configuration', ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [SemVer]
-        $Version,
+        [System.String]
+        $Version = '0.0.0',
 
-        [Parameter(ParameterSetName = 'Configuration')]
-        [ValidateNotNullOrEmpty()]
+        [Parameter()]
         [System.String]
         $ChefInspecProfilePath,
 
-        [Parameter(ParameterSetName = 'Configuration')]
-        [ValidateNotNullOrEmpty()]
+        [Parameter()]
         [System.String]
         $FilesToInclude,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.String]
         $Path = '.',
 
         [Parameter()]
-        [PackageType]
+        [ValidateSet('Audit', 'AuditAndSet')]
+        [ValidateNotNullOrEmpty()]
+        [String]
         $Type = 'Audit',
 
         [Parameter()]
-        [System.Management.Automation.SwitchParameter]
+        [Switch]
         $Force
     )
 
-    if (-not (Get-Variable -Name Type -ErrorAction SilentlyContinue))
+    Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
+
+    #-----VALIDATION-----
+
+    # Validate mof
+    if (-not (Test-Path -Path $Configuration -PathType 'Leaf'))
     {
-        $Type = 'Audit'
+        throw "No file found at the path '$Configuration'. Please specify the file path to a compiled DSC configuration (.mof) with the Configuration parameter."
     }
 
-    $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-    $stagingPackagePath = Join-Path -Path (Join-Path -Path $Path -ChildPath $Name) -ChildPath 'unzippedPackage'
-    $unzippedPackageDirectory = New-Item -ItemType Directory -Force -Path $stagingPackagePath
-    $Configuration = Resolve-Path -Path $Configuration
+    $sourceMofFile = Get-Item -Path $Configuration
 
-    if (-not (Test-Path -Path $Configuration -PathType Leaf))
+    if ($sourceMofFile.Extension -ine '.mof')
     {
-        throw "Invalid mof file path, please specify full file path for dsc configuration in -Configuration parameter."
+        throw "The file found at the path '$Configuration' is not a .mof file. It has extension '$($sourceMofFile.Extension)'. Please specify the file path to a compiled DSC configuration (.mof) with the Configuration parameter."
     }
 
-    Write-Verbose -Message "Creating Guest Configuration package in temporary directory '$unzippedPackageDirectory'"
+    # Validate dependencies
+    $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $Configuration )
 
-    # Verify that only supported resources are used in DSC configuration.
-    Test-GuestConfigurationMofResourceDependencies -Path $Configuration -Verbose:$verbose
-
-    # Save DSC configuration to the temporary package path.
-    $configMOFPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.mof"
-    Save-GuestConfigurationMofDocument -Name $Name -SourcePath $Configuration -DestinationPath $configMOFPath -Verbose:$verbose
-
-    # Copy DSC resources
-    Copy-DscResources -MofDocumentPath $Configuration -Destination $unzippedPackageDirectory -Verbose:$verbose -Force:$Force
-
-    # Modify metaconfig file
-    $metaConfigPath = Join-Path -Path $unzippedPackageDirectory -ChildPath "$Name.metaconfig.json"
-    Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'Type' -Value $Type.ToString()
-
-    if ($PSBoundParameters.ContainsKey('Version'))
+    if ($resourceDependencies.Count -le 0)
     {
-        Update-GuestConfigurationPackageMetaconfig -MetaConfigPath $metaConfigPath -key 'Version' -Value $Version.ToString()
+        throw "Failed to determine resource dependencies from the mof at the path '$Configuration'. Please specify the file path to a compiled DSC configuration (.mof) with the Configuration parameter."
     }
 
-    if (-not [string]::IsNullOrEmpty($ChefInspecProfilePath))
-    {
-        # Copy Chef resource and profiles.
-        Copy-ChefInspecDependencies -PackagePath $unzippedPackageDirectory -Configuration $Configuration -ChefInspecProfilePath $ChefInspecProfilePath
-    }
+    $usingInSpecResource = $false
+    $moduleDependencies = @()
+    $inSpecProfileNames = @()
 
-    # Copy FilesToInclude
-    if (-not [string]::IsNullOrEmpty($FilesToInclude))
+    foreach ($resourceDependency in $resourceDependencies)
     {
-        $modulePath = Join-Path $unzippedPackageDirectory 'Modules'
-        if (Test-Path $FilesToInclude -PathType Leaf)
+        if ($resourceDependency['ResourceName'] -ieq 'MSFT_ChefInSpecResource')
         {
-            Copy-Item -Path $FilesToInclude -Destination $modulePath  -Force:$Force
+            $usingInSpecResource = $true
+            $inSpecProfileNames += $resourceDependency['ResourceInstanceName']
+            continue
+        }
+
+        $getModuleDependenciesParameters = @{
+            ModuleName = $resourceDependency['ModuleName']
+            ModuleVersion = $resourceDependency['ModuleVersion']
+        }
+
+        $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters
+    }
+
+    if ($moduleDependencies.Count -gt 0)
+    {
+        Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name)"
+    }
+
+    $duplicateModules = @( $moduleDependencies | Group-Object -Property 'Name' | Where-Object { $_.Count -gt 1 } )
+
+    foreach ($duplicateModule in $duplicateModules)
+    {
+        $uniqueVersions = @( $duplicateModule.Group.Version | Get-Unique )
+
+        if ($uniqueVersions.Count -gt 1)
+        {
+            $moduleName = $duplicateModule.Group[0].Name
+            throw "Cannot include more than one version of a module in one package. Detected versions $uniqueVersions of the module '$moduleName' are needed for this package."
+        }
+    }
+
+    $inSpecProfileSourcePaths = @()
+
+    if ($usingInSpecResource)
+    {
+        Write-Verbose -Message "Expecting the InSpec profiles: $($inSpecProfileNames)"
+
+        if ($Type -ieq 'AuditAndSet')
+        {
+            throw "The type of this package was specified as 'AuditAndSet', but native InSpec resource was detected in the provided .mof file. This resource does not currently support the set scenario and can only be used for 'Audit' packages."
+        }
+
+        if ([String]::IsNullOrEmpty($ChefInspecProfilePath))
+        {
+            throw "The native InSpec resource was detected in the provided .mof file, but no InSpec profiles folder path was provided. Please provide the path to an InSpec profiles folder via the ChefInspecProfilePath parameter."
         }
         else
         {
-            $filesToIncludeFolderName = Get-Item -Path $FilesToInclude
-            $FilesToIncludePath = Join-Path -Path $modulePath -ChildPath $filesToIncludeFolderName.Name
-            Copy-Item -Path $FilesToInclude -Destination $FilesToIncludePath -Recurse -Force:$Force
+            $inSpecProfileFolder = Get-Item -Path $ChefInspecProfilePath -ErrorAction 'SilentlyContinue'
+
+            if ($null -eq $inSpecProfileFolder)
+            {
+                throw "The native InSpec resource was detected in the provided .mof file, but the specified path to the InSpec profiles folder does not exist. Please provide the path to an InSpec profiles folder via the ChefInspecProfilePath parameter."
+            }
+            elseif ($inSpecProfileFolder -isnot [System.IO.DirectoryInfo])
+            {
+                throw "The native InSpec resource was detected in the provided .mof file, but the specified path to the InSpec profiles folder is not a directory. Please provide the path to an InSpec profiles folder via the ChefInspecProfilePath parameter."
+            }
+            else
+            {
+                foreach ($expectedInSpecProfileName in $inSpecProfileNames)
+                {
+                    $inSpecProfilePath = Join-Path -Path $ChefInspecProfilePath -ChildPath $expectedInSpecProfileName
+                    $inSpecProfile = Get-Item -Path $inSpecProfilePath -ErrorAction 'SilentlyContinue'
+
+                    if ($null -eq $inSpecProfile)
+                    {
+                        throw "Expected to find an InSpec profile at the path '$inSpecProfilePath', but there is no item at this path."
+                    }
+                    elseif ($inSpecProfile -isnot [System.IO.DirectoryInfo])
+                    {
+                        throw "Expected to find an InSpec profile at the path '$inSpecProfilePath', but the item at this path is not a directory."
+                    }
+                    else
+                    {
+                        $inSpecProfileYmlFileName = 'inspec.yml'
+                        $inSpecProfileYmlFilePath = Join-Path -Path $inSpecProfilePath -ChildPath $inSpecProfileYmlFileName
+
+                        if (Test-Path -Path $inSpecProfileYmlFilePath -PathType 'Leaf')
+                        {
+                            $inSpecProfileSourcePaths += $inSpecProfilePath
+                        }
+                        else
+                        {
+                            throw "Expected to find an InSpec profile at the path '$inSpecProfilePath', but there file named '$inSpecProfileYmlFileName' under this path."
+                        }
+                    }
+                }
+            }
+        }
+    }
+    elseif (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
+    {
+        throw "A Chef InSpec profile path was provided, but the native InSpec resource was not detected in the provided .mof file. Please provide a compiled DSC configuration (.mof) that references the native InSpec resource or remove the reference to the ChefInspecProfilePath parameter."
+    }
+
+    # Check extra files if needed
+    if (-not [string]::IsNullOrEmpty($FilesToInclude))
+    {
+        if (-not (Test-Path -Path $FilesToInclude))
+        {
+            throw "The item to include from the path '$FilesToInclude' does not exist. Please update or remove the FilesToInclude parameter."
         }
     }
 
-    # Create Guest Configuration Package.
-    $packagePath = Join-Path -Path $Path -ChildPath $Name
-    $null = New-Item -ItemType Directory -Force -Path $packagePath
-    $packagePath = Resolve-Path -Path $packagePath
-    $packageFilePath = join-path -Path $packagePath -ChildPath "$Name.zip"
-    if (Test-Path -Path $packageFilePath)
+    # Check set-up folder
+    $packageRootPath = Join-Path -Path $Path -ChildPath $Name
+
+    if (Test-Path -Path $packageRootPath)
     {
-        Remove-Item -Path $packageFilePath -Force -ErrorAction SilentlyContinue
+        if (-not $Force)
+        {
+            throw "An item already exists at the package path '$packageRootPath'. Please remove it or use the Force parameter."
+        }
     }
 
-    Write-Verbose -Message "Creating Guest Configuration package : $packageFilePath."
-    Compress-ArchiveByDirectory -Path $unzippedPackageDirectory -DestinationPath $packageFilePath -Force:$Force
+    # Check destination
+    $packageDestinationPath = "$packageRootPath.zip"
 
-    [pscustomobject]@{
+    if (Test-Path -Path $packageDestinationPath)
+    {
+        if (-not $Force)
+        {
+            throw "An item already exists at the package destination path '$packageDestinationPath'. Please remove it or use the Force parameter."
+        }
+    }
+
+    #-----PACKAGE CREATION-----
+
+    # Clear the root package folder
+    if (Test-Path -Path $packageRootPath)
+    {
+        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..."
+        $null = Remove-Item -Path $packageRootPath -Recurse -Force
+    }
+
+    $null = New-Item -Path $packageRootPath -ItemType 'Directory' -Force
+
+    # Clear the package destination
+    if (Test-Path -Path $packageDestinationPath)
+    {
+        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..."
+        $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
+    }
+
+    # Create the package structure
+    $modulesFolderPath = Join-Path -Path $packageRootPath -ChildPath 'Modules'
+    $null = New-Item -Path $modulesFolderPath -ItemType 'Directory'
+
+    # Create the metaconfig file
+    $metaconfigFileName = "$Name.metaconfig.json"
+    $metaconfigFilePath = Join-Path -Path $packageRootPath -ChildPath $metaconfigFileName
+
+    $metaconfig = @{
+        Type = $Type
+        Version = $Version
+    }
+
+    $metaconfigJson = $metaconfig | ConvertTo-Json
+    $null = Set-Content -Path $metaconfigFilePath -Value $metaconfigJson -Encoding 'ascii'
+
+    # Copy the mof into the package
+    $mofFileName = "$Name.mof"
+    $mofFilePath = Join-Path -Path $packageRootPath -ChildPath $mofFileName
+
+    $null = Copy-Item -Path $Configuration -Destination $mofFilePath
+
+    # Edit the native Chef InSpec resource parameters in the mof if needed
+    if ($usingInSpecResource)
+    {
+        Edit-ChefInSpecMofContent -PackageName $Name -MofPath $mofFilePath
+    }
+
+    # Copy resource dependencies
+    foreach ($moduleDependency in $moduleDependencies)
+    {
+        $moduleDestinationPath = Join-Path -Path $modulesFolderPath -ChildPath $moduleDependency['Name']
+
+        Write-Verbose -Message "Copying module from '$($moduleDependency['SourcePath'])' to '$moduleDestinationPath'"
+        $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $moduleDestinationPath -Container -Recurse -Force
+    }
+
+    # Copy native Chef InSpec resource if needed
+    if ($usingInSpecResource)
+    {
+        $nativeResourcesFolder = Join-Path -Path $modulesFolderPath -ChildPath 'DscNativeResources'
+        $null = New-Item -Path $nativeResourcesFolder -ItemType 'Directory'
+
+        $inSpecResourceFolder = Join-Path -Path $nativeResourcesFolder -ChildPath 'MSFT_ChefInSpecResource'
+        $null = New-Item -Path $inSpecResourceFolder -ItemType 'Directory'
+
+        $dscResourcesFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'DscResources'
+        $inSpecResourceSourcePath = Join-Path -Path $dscResourcesFolderPath -ChildPath 'MSFT_ChefInSpecResource'
+
+        $installInSpecScriptSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'install_inspec.sh'
+        $null = Copy-Item -Path $installInSpecScriptSourcePath -Destination $modulesFolderPath
+
+        $inSpecResourceLibrarySourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'
+        $null = Copy-Item -Path $inSpecResourceLibrarySourcePath -Destination $inSpecResourceFolder
+
+        $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+        $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceFolder
+
+        foreach ($inSpecProfileSourcePath in $inSpecProfileSourcePaths)
+        {
+            $null = Copy-Item -Path $inSpecProfileSourcePath -Destination $modulesFolderPath -Container -Recurse
+        }
+    }
+
+    # Copy extra files
+    if (-not [string]::IsNullOrEmpty($FilesToInclude))
+    {
+        if (Test-Path $FilesToInclude -PathType 'Leaf')
+        {
+            $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath
+        }
+        else
+        {
+            $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath -Container -Recurse
+        }
+    }
+
+    # Zip the package
+    $null = Compress-ArchiveWithPermissions -Path $packageRootPath -DestinationPath $packageDestinationPath
+
+    return [PSCustomObject]@{
         PSTypeName = 'GuestConfiguration.Package'
         Name = $Name
-        Path = $packageFilePath
+        Path = $packageDestinationPath
     }
 }

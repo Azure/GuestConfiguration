@@ -531,19 +531,6 @@ describe 'Test Environment' {
             $testPackageResult.resources[0].complianceStatus | Should -Be $true
             $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
         }
-
-        It 'Supports Pester as a language abstraction' -Skip:($IsMacOS -or $IsLinux) {
-            New-Item -Path $pesterFolderPath -ItemType Directory -Force
-            $testPackageResult = New-GuestConfigurationFile -Name $policyName -Source $pesterScriptsFolderPath -Path $pesterMofFilePath -Force |
-                New-GuestConfigurationPackage -Path $pesterPackagePath -FilesToInclude $pesterScriptsFolderPath -Force |
-                Test-GuestConfigurationPackage
-
-            $testPackageResult.complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
-            $testPackageResult.resources[0].complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'testPolicy'
-            $testPackageResult.resources[0].properties.PesterFileName | Should -Be 'EnvironmentVariables'
-        }
     }
     Context 'Protect-GuestConfigurationPackage' {
 

@@ -50,7 +50,7 @@ Describe 'Protect-GuestConfigurationPackage' -ForEach @{
 
     It 'Signed package should be extractable' -Skip:($IsLinux -or $IsMacOS -or -not $IsRunningAsAdmin) {
         $signedFileName = $policyName + "_signed.zip"
-        $package = Get-Item "$testPackagePath/$policyName/$signedFileName"
+        $package = Get-Item "$testPackagePath/$signedFileName"
         # Set up type needed for package extraction
         $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
         { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw

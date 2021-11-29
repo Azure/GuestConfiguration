@@ -15,7 +15,7 @@
 
     .PARAMETER Path
         The path to a folder to output the package under.
-        By default the package will be created under the current working directory (Get-Location).
+        By default the package will be created under the current working directory (Get-Item -Path $(Get-Location)).
 
     .PARAMETER ChefInspecProfilePath
         The path to a folder containing Chef InSpec profiles to include with the package.
@@ -33,10 +33,15 @@
         If present, this function will overwrite any existing package files.
 
     .EXAMPLE
-        New-GuestConfigurationPackage -Name WindowsTLS -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
+        New-GuestConfigurationPackage -Name 'WindowsTLS' -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
 
     .OUTPUTS
         Returns a PSCustomObject with the name and path of the new Guest Configuration package.
+        [PSCustomObject]@{
+            PSTypeName = 'GuestConfiguration.Package'
+            Name = (Same as the Name parameter)
+            Path = (Path to the newly created package zip file)
+        }
 #>
 function New-GuestConfigurationPackage
 {

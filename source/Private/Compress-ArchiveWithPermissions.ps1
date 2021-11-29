@@ -37,7 +37,7 @@ function Compress-ArchiveWithPermissions
     param
     (
         [Parameter(Mandatory = $true)]
-        [System.String]
+        [System.IO.DirectoryInfo]
         $Path,
 
         [Parameter(Mandatory = $true)]
@@ -49,7 +49,7 @@ function Compress-ArchiveWithPermissions
         $CompressionLevel = [System.IO.Compression.CompressionLevel]::Fastest,
 
         [Parameter()]
-        [System.Management.Automation.SwitchParameter]
+        [Switch]
         $IncludeBaseDirectory
     )
 

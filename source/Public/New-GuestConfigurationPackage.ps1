@@ -15,7 +15,7 @@
 
     .PARAMETER Path
         The path to a folder to output the package under.
-        By default the package will be created under the current directory.
+        By default the package will be created under the current working directory (Get-Location).
 
     .PARAMETER ChefInspecProfilePath
         The path to a folder containing Chef InSpec profiles to include with the package.
@@ -52,7 +52,7 @@ function New-GuestConfigurationPackage
 
         [Parameter(Position = 1, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [System.String]
+        [System.IO.FileInfo]
         $Configuration,
 
         [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
@@ -61,23 +61,23 @@ function New-GuestConfigurationPackage
         $Version = '0.0.0',
 
         [Parameter()]
-        [System.String]
-        $ChefInspecProfilePath,
-
-        [Parameter()]
-        [System.String]
-        $FilesToInclude,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [System.String]
-        $Path = '.',
-
-        [Parameter()]
         [ValidateSet('Audit', 'AuditAndSet')]
         [ValidateNotNullOrEmpty()]
         [String]
         $Type = 'Audit',
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [System.IO.DirectoryInfo]
+        $Path = $(Get-Item -Path $(Get-Location)),
+
+        [Parameter()]
+        [System.IO.DirectoryInfo]
+        $ChefInspecProfilePath,
+
+        [Parameter()]
+        [System.IO.FileInfo]
+        $FilesToInclude,
 
         [Parameter()]
         [Switch]
@@ -85,6 +85,19 @@ function New-GuestConfigurationPackage
     )
 
     Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
+
+    $Configuration = [System.IO.Path]::GetFullPath($Configuration)
+    $Path = [System.IO.Path]::GetFullPath($Path)
+
+    if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
+    {
+        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath)
+    }
+
+    if (-not [String]::IsNullOrEmpty($FilesToInclude))
+    {
+        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude)
+    }
 
     #-----VALIDATION-----
 

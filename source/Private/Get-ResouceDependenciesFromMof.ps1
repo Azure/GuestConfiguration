@@ -5,9 +5,11 @@ function Get-ResouceDependenciesFromMof
     param
     (
         [Parameter(Mandatory = $true)]
-        [String]
+        [System.IO.FileInfo]
         $MofFilePath
     )
+
+    $MofFilePath = [System.IO.Path]::GetFullPath($MofFilePath)
 
     $resourceDependencies = @()
     $reservedResourceNames = @('OMI_ConfigurationDocument')

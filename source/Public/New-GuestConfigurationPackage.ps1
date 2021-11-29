@@ -340,7 +340,8 @@ function New-GuestConfigurationPackage
     }
 
     # Zip the package
-    $null = Compress-Archive -Path $packageRootPath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
+    $compressArchiveSourcePath = Join-Path -Path $packageRootPath -ChildPath '*'
+    $null = Compress-Archive -Path $compressArchiveSourcePath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
 
     return [PSCustomObject]@{
         PSTypeName = 'GuestConfiguration.Package'

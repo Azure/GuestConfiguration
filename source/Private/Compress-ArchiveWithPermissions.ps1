@@ -53,6 +53,9 @@ function Compress-ArchiveWithPermissions
         $IncludeBaseDirectory
     )
 
+    $Path = [System.IO.Path]::GetFullPath($Path, $PWD).ToString()
+    $DestinationPath = [System.IO.Path]::GetFullPath($DestinationPath, $PWD).ToString()
+
     Write-Verbose -Message "Compressing from '$Path' to '$DestinationPath' with compression level '$CompressionLevel'"
     [System.IO.Compression.ZipFile]::CreateFromDirectory($Path, $DestinationPath, $CompressionLevel, $IncludeBaseDirectory.ToBool())
 }

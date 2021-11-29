@@ -44,6 +44,9 @@ function Expand-ArchiveWithPermissions
         $Force
     )
 
+    $Path = [System.IO.Path]::GetFullPath($Path, $PWD)
+    $DestinationPath = [System.IO.Path]::GetFullPath($DestinationPath, $PWD)
+
     Write-Verbose -Message "Expanding from '$Path' to '$DestinationPath' with force as $Force"
     [System.IO.Compression.ZipFile]::ExtractToDirectory($Path, $DestinationPath, $Force.ToBool())
 }

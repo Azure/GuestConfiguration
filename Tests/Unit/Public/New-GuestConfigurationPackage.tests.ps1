@@ -186,6 +186,27 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $metaconfigJson.Type | Should -Be $itSpecificParameters.Type
             $metaconfigJson.Version | Should -Be $itSpecificParameters.Version
         }
+
+        It 'Should be able to use the default Path parameter value' {
+            Push-Location -Path $newGuestConfigurationPackageParameters.Path
+
+            try
+            {
+                $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+                $itSpecificParameters.Remove('Path')
+
+                $null = New-GuestConfigurationPackage @itSpecificParameters
+
+                $itSpecificExpandedPackagePath = "$expandedPackagePath-PathDefault"
+                $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+                Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+            }
+            finally
+            {
+                Pop-Location
+            }
+        }
     }
 
     Context 'Linux package with native InSpec resource' {
@@ -310,6 +331,27 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
         It 'Should overwrite a custom policy package when -Force is specified' {
             { $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+        }
+
+        It 'Should be able to use the default Path parameter value' {
+            Push-Location -Path $newGuestConfigurationPackageParameters.Path
+
+            try
+            {
+                $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+                $itSpecificParameters.Remove('Path')
+
+                $null = New-GuestConfigurationPackage @itSpecificParameters
+
+                $itSpecificExpandedPackagePath = "$expandedPackagePath-PathDefault"
+                $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+                Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+            }
+            finally
+            {
+                Pop-Location
+            }
         }
     }
 }

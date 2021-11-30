@@ -378,8 +378,8 @@ function New-GuestConfigurationPackage
     }
 
     # Zip the package
-    Write-Verbose -Message "Compressing the generated package from the path '$compressArchiveSourcePath' to the package path '$packageDestinationPath'..."
     $compressArchiveSourcePath = Join-Path -Path $packageRootPath -ChildPath '*'
+    Write-Verbose -Message "Compressing the generated package from the path '$compressArchiveSourcePath' to the package path '$packageDestinationPath'..."
     $null = Compress-Archive -Path $compressArchiveSourcePath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
 
     return [PSCustomObject]@{

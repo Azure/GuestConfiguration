@@ -1,6 +1,8 @@
 BeforeDiscovery {
+    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
 
-    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
@@ -9,23 +11,34 @@ BeforeDiscovery {
 
 Describe 'Test-GuestConfigurationPackage' -ForEach @{
     ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
+    ProjectName    = $projectName
+    ImportedModule = $importedModule
 } {
     BeforeAll {
-        # test Assets path
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        # Test Config Package MOF
-        $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
-        $policyName = 'testPolicy'
+        Set-StrictMode -Version 'latest'
+
+        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
     }
 
     It 'Validate that the resource compliance results are as expected on Windows' -Skip:(-not $IsWindows) {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
+        $newGuestConfigurationPackageParameters = @{
+            Name = 'testWindowsTimeZone'
+            Configuration = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+            Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+
+        $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+
         $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+
+        $testPackageResult | Should -Not -Be $null
         $testPackageResult.complianceStatus | Should -Be $false
+
+        $testPackageResult.resources.Count | Should -Be 1
         $testPackageResult.resources[0].properties.ModuleName | Should -Be 'ComputerManagementDsc'
         $testPackageResult.resources[0].complianceStatus | Should -Be $false
         $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
@@ -33,26 +46,24 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
     }
 
     It 'Validate that the resource compliance results are as expected on Linux' -Skip:(-not $IsLinux) {
-        $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
-        $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
-        $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'
+        $inSpecTestAssetsPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
 
-        $package = New-GuestConfigurationPackage -Configuration $inspecMofPath -Name $policyName -Path $inspecPackagePath -ChefInspecProfilePath $inSpecFolderPath -Force
-        Write-Host "Package Created '$($package.Path)'."
-        $testPackageResult = $null
-        try
-        {
-            $VerbosePreference = 'Continue'
-            $DebugPreference = 'Continue'
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction Stop -Verbose -Debug
-        }
-        catch
-        {
-            Write-Host -ForegroundColor 'Red' -Object "Error running 'Test-GuestConfigurationPackage': $($_.Exception.Message)."
-            throw $_
+        $newGuestConfigurationPackageParameters = @{
+            Name = 'testLinuxNativeInSpec'
+            Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
+            Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+            ChefInspecProfilePath = $inSpecTestAssetsPath
+            Force = $true
         }
 
+        $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+
+        $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction 'Stop' -Verbose -Debug
+
+        $testPackageResult | Should -Not -Be $null
         $testPackageResult.complianceStatus | Should -Be $true
+
+        $testPackageResult.resources.Count | Should -Be 1
         $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
         $testPackageResult.resources[0].complianceStatus | Should -Be $true
         $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'

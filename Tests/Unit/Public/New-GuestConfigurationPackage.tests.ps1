@@ -11,8 +11,8 @@ BeforeDiscovery {
 
 Describe 'New-GuestConfigurationPackage' -ForEach @{
     ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
+    ProjectName    = $projectName
+    ImportedModule = $importedModule
 } {
     BeforeAll {
         Set-StrictMode -Version 'latest'

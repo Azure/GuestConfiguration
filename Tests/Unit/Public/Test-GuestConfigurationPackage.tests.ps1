@@ -22,7 +22,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
     }
 
-    It 'Validate that the resource compliance results are as expected on Windows' -Skip:($IsLinux -or $IsMacOS) {
+    It 'Validate that the resource compliance results are as expected on Windows' -Skip:(-not $IsWindows) {
         $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
         $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
         $testPackageResult.complianceStatus | Should -Be $false
@@ -32,7 +32,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         $testPackageResult.resources[0].properties.IsSingleInstance | Should -Be 'Yes'
     }
 
-    It 'Validate that the resource compliance results are as expected on Linux' -Skip:($IsWindows -or $IsMacOS) -Tag bugLinuxGCAgent {
+    It 'Validate that the resource compliance results are as expected on Linux' -Skip:(-not $IsLinux) {
         $inSpecFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
         $inspecMofPath = Join-Path -Path $inSpecFolderPath -ChildPath 'InSpec_Config.mof'
         $inspecPackagePath = Join-Path -Path $testOutputPath -ChildPath 'InspecPackage'

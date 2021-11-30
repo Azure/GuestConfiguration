@@ -6,12 +6,21 @@
     .PARAMETER Name
         The name of the Guest Configuration package.
 
+    .PARAMETER Configuration
+        The path to the compiled DSC configuration file (.mof) to base the package on.
+
     .PARAMETER Version
         The semantic version of the Guest Configuration package.
         This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
 
-    .PARAMETER Configuration
-        The path to the compiled DSC configuration file (.mof) to base the package on.
+    .PARAMETER Type
+        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
+        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
+
+        Audit indicates that the package will not set the state of the machine and may only monitor settings.
+        AuditAndSet indicates that the package may be used for setting the state of the machine.
+
+        By default this tag is set to Audit.
 
     .PARAMETER Path
         The path to a folder to output the package under.
@@ -19,15 +28,14 @@
 
     .PARAMETER ChefInspecProfilePath
         The path to a folder containing Chef InSpec profiles to include with the package.
-        The compiled DSC configuration (.mof) provided should include a reference to the native Chef InSpec resource
-        with the reference name of the resources matching the name of the profile folder to use.
 
-    .PARAMETER Type
-        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
-        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
-        AuditAndSet indicates that the package may be used for setting the state of the machine.
-        Audit indicates that the package will not set the state of the machine and may only monitor settings.
-        By default this tag is set to Audit.
+        The compiled DSC configuration (.mof) provided must include a reference to the native Chef InSpec resource
+        with the reference name of the resources matching the name of the profile folder to use.
+        If the compiled DSC configuration (.mof) provided includes a reference to the native Chef InSpec resource,
+        then specifying a Chef InSpec profile to include with this parameter is required.
+
+    .PARAMETER FilesToInclude
+        The path to a file or folder to include under the Modules path within the package.
 
     .PARAMETER Force
         If present, this function will overwrite any existing package files.
@@ -267,21 +275,23 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
-        Write-Verbose -Message "Removing existing package at the path '$packageRootPath'..."
+        Write-Verbose -Message "Removing an existing item at the path '$packageRootPath'..."
         $null = Remove-Item -Path $packageRootPath -Recurse -Force
     }
 
+    Write-Verbose -Message "Creating the package root folder at the path '$packageRootPath'..."
     $null = New-Item -Path $packageRootPath -ItemType 'Directory' -Force
 
     # Clear the package destination
     if (Test-Path -Path $packageDestinationPath)
     {
-        Write-Verbose -Message "Removing existing package zip at the path '$packageDestinationPath'..."
+        Write-Verbose -Message "Removing an existing item at the path '$packageDestinationPath'..."
         $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
     }
 
     # Create the package structure
     $modulesFolderPath = Join-Path -Path $packageRootPath -ChildPath 'Modules'
+    Write-Verbose -Message "Creating the package Modules folder at the path '$modulesFolderPath'..."
     $null = New-Item -Path $modulesFolderPath -ItemType 'Directory'
 
     # Create the metaconfig file
@@ -294,12 +304,14 @@ function New-GuestConfigurationPackage
     }
 
     $metaconfigJson = $metaconfig | ConvertTo-Json
+    Write-Verbose -Message "Setting the content of the package metaconfig at the path '$metaconfigFilePath'..."
     $null = Set-Content -Path $metaconfigFilePath -Value $metaconfigJson -Encoding 'ascii'
 
     # Copy the mof into the package
     $mofFileName = "$Name.mof"
     $mofFilePath = Join-Path -Path $packageRootPath -ChildPath $mofFileName
 
+    Write-Verbose -Message "Copying the compiled DSC configuration (.mof) from the path '$Configuration' to the package path '$mofFilePath'..."
     $null = Copy-Item -Path $Configuration -Destination $mofFilePath
 
     # Edit the native Chef InSpec resource parameters in the mof if needed
@@ -321,25 +333,31 @@ function New-GuestConfigurationPackage
     if ($usingInSpecResource)
     {
         $nativeResourcesFolder = Join-Path -Path $modulesFolderPath -ChildPath 'DscNativeResources'
+        Write-Verbose -Message "Creating the package native resources folder at the path '$nativeResourcesFolder'..."
         $null = New-Item -Path $nativeResourcesFolder -ItemType 'Directory'
 
         $inSpecResourceFolder = Join-Path -Path $nativeResourcesFolder -ChildPath 'MSFT_ChefInSpecResource'
+        Write-Verbose -Message "Creating the native Chef InSpec resource folder at the path '$inSpecResourceFolder'..."
         $null = New-Item -Path $inSpecResourceFolder -ItemType 'Directory'
 
         $dscResourcesFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'DscResources'
         $inSpecResourceSourcePath = Join-Path -Path $dscResourcesFolderPath -ChildPath 'MSFT_ChefInSpecResource'
 
         $installInSpecScriptSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'install_inspec.sh'
+        Write-Verbose -Message "Copying the Chef Inspec install script from the path '$installInSpecScriptSourcePath' to the package path '$modulesFolderPath'..."
         $null = Copy-Item -Path $installInSpecScriptSourcePath -Destination $modulesFolderPath
 
         $inSpecResourceLibrarySourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'
+        Write-Verbose -Message "Copying the native Chef Inspec resource library from the path '$inSpecResourceLibrarySourcePath' to the package path '$inSpecResourceFolder'..."
         $null = Copy-Item -Path $inSpecResourceLibrarySourcePath -Destination $inSpecResourceFolder
 
         $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+        Write-Verbose -Message "Copying the native Chef Inspec resource schema from the path '$inSpecResourceSchemaMofSourcePath' to the package path '$inSpecResourceFolder'..."
         $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceFolder
 
         foreach ($inSpecProfileSourcePath in $inSpecProfileSourcePaths)
         {
+            Write-Verbose -Message "Copying the Chef Inspec profile from the path '$inSpecProfileSourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $inSpecProfileSourcePath -Destination $modulesFolderPath -Container -Recurse
         }
     }
@@ -349,15 +367,18 @@ function New-GuestConfigurationPackage
     {
         if (Test-Path $FilesToInclude -PathType 'Leaf')
         {
+            Write-Verbose -Message "Copying the custom file to include from the path '$FilesToInclude' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath
         }
         else
         {
+            Write-Verbose -Message "Copying the custom folder to include from the path '$FilesToInclude' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath -Container -Recurse
         }
     }
 
     # Zip the package
+    Write-Verbose -Message "Compressing the generated package from the path '$compressArchiveSourcePath' to the package path '$packageDestinationPath'..."
     $compressArchiveSourcePath = Join-Path -Path $packageRootPath -ChildPath '*'
     $null = Compress-Archive -Path $compressArchiveSourcePath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
 

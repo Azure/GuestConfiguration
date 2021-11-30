@@ -5,6 +5,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- New-GuestConfigurationPackage
+  - Change to file type parameters instead of strings
+  - Resolve all path parameters to full paths
+  - Add Verbose messaging
+  - Switch to built-in compression cmdlet (Compress-Archive)
+- Clean Test-GuestConfigurationPackage tests and remove skip flag for bug on Linux
+
+## [4.0.0-preview0001] - 2021-11-24
+
 - Remove experimental Pester resource
 - Rewrite of New-GuestConfigurationPackage
   - Remove extra folder level created under Path

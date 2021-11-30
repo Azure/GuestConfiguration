@@ -11,21 +11,13 @@ BeforeDiscovery {
 
 Describe 'New-GuestConfigurationPackage' -ForEach @{
     ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
+    ProjectName    = $projectName
+    ImportedModule = $importedModule
 } {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testsFolder = Split-Path -Path $unitTestsFolderPath -Parent
-        $rootFolder = Split-Path -Path $testsFolder -Parent
-        $sourceFolder = Join-Path -Path $rootFolder -ChildPath 'source'
-        $privateFolder = Join-Path -Path $sourceFolder -ChildPath 'Private'
-
-        $expandArchiveCmdletPath = Join-Path -Path $privateFolder -ChildPath 'Expand-ArchiveWithPermissions.ps1'
-        $null = Import-Module -Name $expandArchiveCmdletPath -Force
-
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
@@ -63,7 +55,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Should be able to expand the new package' {
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
             Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
         }
 
@@ -100,7 +92,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-DirectoryIncluded"
 
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
             $expectedExtraDirectoryPath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'FilesToInclude'
@@ -124,7 +116,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-FileIncluded"
 
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
             $expectedExtraFilePath = Join-Path -Path $itSpecificExpandedPackageModulesPath -ChildPath 'file.txt'
@@ -138,7 +130,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-NoFileIncluded"
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $itSpecificExpandedPackageModulesPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath 'Modules'
 
@@ -158,7 +150,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @itSpecificParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
@@ -181,7 +173,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = New-GuestConfigurationPackage @itSpecificParameters
 
             $itSpecificExpandedPackagePath = "$expandedPackagePath-TypeSetAndVersion"
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $itSpecificExpandedPackagePath -ChildPath $expectedMetaconfigName
@@ -193,6 +185,27 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be $itSpecificParameters.Type
             $metaconfigJson.Version | Should -Be $itSpecificParameters.Version
+        }
+
+        It 'Should be able to use the default Path parameter value' {
+            Push-Location -Path $newGuestConfigurationPackageParameters.Path
+
+            try
+            {
+                $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+                $itSpecificParameters.Remove('Path')
+
+                $null = New-GuestConfigurationPackage @itSpecificParameters
+
+                $itSpecificExpandedPackagePath = "$expandedPackagePath-PathDefault"
+                $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+                Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+            }
+            finally
+            {
+                Pop-Location
+            }
         }
     }
 
@@ -240,7 +253,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Should be able to expand the new package' {
-            $null = Expand-ArchiveWithPermissions -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
             Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
         }
 
@@ -318,6 +331,27 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
         It 'Should overwrite a custom policy package when -Force is specified' {
             { $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+        }
+
+        It 'Should be able to use the default Path parameter value' {
+            Push-Location -Path $newGuestConfigurationPackageParameters.Path
+
+            try
+            {
+                $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+                $itSpecificParameters.Remove('Path')
+
+                $null = New-GuestConfigurationPackage @itSpecificParameters
+
+                $itSpecificExpandedPackagePath = "$expandedPackagePath-PathDefault"
+                $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+                Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+            }
+            finally
+            {
+                Pop-Location
+            }
         }
     }
 }

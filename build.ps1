@@ -490,11 +490,9 @@ Begin
             $null = $PSBoundParameters.Remove('ResolveDependency')
         }
 
-        Write-Host -Object "[build] Starting build with InvokeBuild." -ForegroundColor Green
+        Write-Host -Object "[build] Starting build with InvokeBuild" -ForegroundColor Green
 
         Invoke-Build @PSBoundParameters -Task $Tasks -File $MyInvocation.MyCommand.Path
-
-        Pop-Location -StackName 'BuildModule'
 
         if ($Tasks -contains 'build')
         {
@@ -509,12 +507,23 @@ Begin
 
             Get-ChildItem -Recurse -Path $OutputDirectory\MSFT_ChefInSpecResource.schema.mof | Rename-Item -NewName { $_.Name -replace '.schema.mof','.schema' }
 
+            Write-Host -Object "[build] outputDirectory:$OutputDirectory" -ForegroundColor Green
+            Write-Host -Object "[build] outputDirectory:$(dir $OutputDirectory\GuestConfiguration\4.0.0*\)" -ForegroundColor Green
+
             $GuestConfigurationManifest = Get-ChildItem -Recurse -Path $OutputDirectory\GuestConfiguration.psd1
 
             # Remove AliasesToExport.
             (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('AliasesToExport = @()', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
             (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('# Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
+
+            $GuestConfigurationManifestContent = Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)
+
+            Write-Host -Object "[build] GuestConfigurationManifestContent:$GuestConfigurationManifestContent" -ForegroundColor Green
         }
+
+        Write-Host -Object "[build] build is completed." -ForegroundColor Green
+
+        Pop-Location -StackName 'BuildModule'
 
         return
     }

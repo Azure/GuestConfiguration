@@ -490,11 +490,12 @@ Begin
             $null = $PSBoundParameters.Remove('ResolveDependency')
         }
 
-        Write-Host -Object "[build] Starting build with InvokeBuild" -ForegroundColor Green
+        Write-Host -Object "[build] BALU. Starting build with InvokeBuild tasks:$Tasks" -ForegroundColor Green
 
         Invoke-Build @PSBoundParameters -Task $Tasks -File $MyInvocation.MyCommand.Path
 
-        if ($Tasks -contains 'build')
+
+        #if ($Tasks -contains 'build')
         {
             # Native DSC resource compilation fails with PSDSCV3 module as it ONLY supports class based resources.
             # PSDSC module is no longer shipped with PowerShell from PSV7.2+. Users have to download either PSDSCV2 / PSDSCV3 from PSGallery.

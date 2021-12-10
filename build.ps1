@@ -511,7 +511,7 @@ Begin
 
             $GuestConfigurationManifest = Get-ChildItem -Recurse -Path $OutputDirectory\GuestConfiguration.psd1
 
-            # Remove AliasesToExport / CmdletsToExport.
+            # Remove AliasesToExport.
             (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('AliasesToExport = @()', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
             (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('# Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
         }

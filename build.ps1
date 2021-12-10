@@ -496,6 +496,26 @@ Begin
 
         Pop-Location -StackName 'BuildModule'
 
+        if ($Tasks -contains 'build')
+        {
+            # Native DSC resource compilation fails with PSDSCV3 module as it ONLY supports class based resources.
+            # PSDSC module is no longer shipped with PowerShell from PSV7.2+. Users have to download either PSDSCV2 / PSDSCV3 from PSGallery.
+
+            # The following changes are required to support the native DSC resource compilation on all supported PowerShell versions with both PSDSCV2 (PS V6.2+) and PSDSCV3 (PS V7.2+). Just to be clear, PSDSCV2 module is still supported on PSV7.2+ as well.
+            # 1. Add the Class based DSC resoruce "MSFT_ChefInSpecResource" to the GuestConfiguration.psm1.
+            # 2. Rename MSFT_ChefInSpecResource.schema.mof to avoid duplicate "MSFT_ChefInSpecResource" DSC resources.
+            #    After we rename, during native DSC resource compilation only the "MSFT_ChefInSpecResource" DSC resource defined in GuestConfiguration.psm1 is surfaced.
+            # 3. Due to a bug in the PowerShell introduced long back, inorder to surface the class "MSFT_ChefInSpecResource" DSC resource defined in GuestConfiguration.psm1, we need to remove either AliasesToExport / CmdletsToExport.
+
+            Get-ChildItem -Recurse -Path $OutputDirectory\MSFT_ChefInSpecResource.schema.mof | Rename-Item -NewName { $_.Name -replace '.schema.mof','.schema' }
+
+            $GuestConfigurationManifest = Get-ChildItem -Recurse -Path $OutputDirectory\GuestConfiguration.psd1
+
+            # Remove AliasesToExport / CmdletsToExport.
+            (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('AliasesToExport = @()', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
+            (Get-Content -Raw -Path $($GuestConfigurationManifest.FullName)).Replace('# Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.', '') | Set-Content -Path $($GuestConfigurationManifest.FullName)
+        }
+
         return
     }
 }

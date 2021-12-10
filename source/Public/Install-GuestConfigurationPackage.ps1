@@ -83,7 +83,13 @@ function Install-GuestConfigurationPackage
                 $installedPackageMetadata.Version -eq $packageZipMetadata.Version)
             {
                 $isPackageAlreadyInstalled = $true
-                Write-Debug -Message ("Package '{0}{1}' is installed." -f $PackageName,($packageZipMetadata.Contains('Version') ? "_$($packageZipMetadata['Version'])" : ''))
+                $packageVersion = [string]::Empty
+                if ($packageZipMetadata.Contains('Version'))
+                {
+                    $packageVersion = $packageZipMetadata['Version']
+                }
+
+                Write-Debug -Message ("Package '{0}_{1}' is installed." -f $PackageName, $packageVersion)
             }
             else
             {

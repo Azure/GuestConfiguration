@@ -50,7 +50,7 @@ Describe 'GuestConfiguration Module validation' -ForEach @{
             $inSpecResourceLibraryPath = Join-Path -Path $inSpecResourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'
             Test-Path -Path $inSpecResourceLibraryPath -PathType 'Leaf' | Should -BeTrue
 
-            $inSpecResourceSchemaPath = Join-Path -Path $inSpecResourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+            $inSpecResourceSchemaPath = Join-Path -Path $inSpecResourcePath -ChildPath 'MSFT_ChefInSpecResource.schema'
             Test-Path -Path $inSpecResourceSchemaPath -PathType 'Leaf' | Should -BeTrue
 
             $inSpecInstallScriptPath = Join-Path -Path $inSpecResourcePath -ChildPath 'install_inspec.sh'

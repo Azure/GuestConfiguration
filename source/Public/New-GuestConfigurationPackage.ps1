@@ -80,6 +80,10 @@ function New-GuestConfigurationPackage
         $Type = 'Audit',
 
         [Parameter()]
+        [int]
+        $FrequencyMinutes = 15,
+
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.IO.DirectoryInfo]
         $Path = $(Get-Item -Path $(Get-Location)),

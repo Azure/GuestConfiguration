@@ -10,7 +10,11 @@ function Get-ModuleDependencies
 
         [Parameter()]
         [String]
-        $ModuleVersion
+        $ModuleVersion,
+
+        [Parameter()]
+        [String]
+        $ModuleSourcePath = $env:PSModulePath
     )
 
     $moduleDependencies = @()
@@ -38,7 +42,17 @@ function Get-ModuleDependencies
         }
     }
 
-    $sourceModule = Get-Module @getModuleParameters
+    $originalPSModulePath = $env:PSModulePath
+
+    try
+    {
+        $env:PSModulePath = $ModuleSourcePath
+        $sourceModule = Get-Module @getModuleParameters
+    }
+    finally
+    {
+        $env:PSModulePath = $originalPSModulePath
+    }
 
     if ($null -eq $sourceModule)
     {

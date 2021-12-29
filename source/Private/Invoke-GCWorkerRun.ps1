@@ -11,7 +11,7 @@ function Invoke-GCWorkerRun
 
         [Parameter()]
         [Switch]
-        $ApplyConfiguration
+        $Apply
     )
 
     # Remove any existing reports if needed
@@ -25,7 +25,7 @@ function Invoke-GCWorkerRun
 
     $arguments = "-o run_consistency -a $ConfigurationName -r -c Pending"
 
-    if ($ApplyConfiguration)
+    if ($Apply)
     {
         $arguments += "-s inguest_apply_and_monitor"
     }

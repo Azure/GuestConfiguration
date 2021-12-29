@@ -40,7 +40,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         }
 
         It 'Should return the expected output with compliance status as false with no parameters' {
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Verbose
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $false
@@ -60,7 +60,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
                 ResourcePropertyValue = $currentTimeZone.Id
             }
 
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue -Verbose
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $true

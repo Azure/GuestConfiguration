@@ -1,7 +1,7 @@
 
 <#
     .SYNOPSIS
-        Creates a package to run code on machines for use through Azure Guest Configuration.
+        Creates a package to run code on machines through Azure Guest Configuration.
 
     .PARAMETER Name
         The name of the Guest Configuration package.

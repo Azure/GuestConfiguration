@@ -62,9 +62,9 @@ function Test-GuestConfigurationPackage
         Path = $Path
     }
 
-    if ($null -ne $Parameters)
+    if ($null -ne $Parameter)
     {
-        $invokeParameters['Parameters'] = $Parameters
+        $invokeParameters['Parameters'] = $Parameter
     }
 
     $result = Invoke-GuestConfigurationPackage @invokeParameters

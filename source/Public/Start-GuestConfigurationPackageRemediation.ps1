@@ -69,9 +69,9 @@ function Start-GuestConfigurationPackageRemediation
         Apply = $true
     }
 
-    if ($null -ne $Parameters)
+    if ($null -ne $Parameter)
     {
-        $invokeParameters['Parameters'] = $Parameters
+        $invokeParameters['Parameter'] = $Parameter
     }
 
     $result = Invoke-GuestConfigurationPackage @invokeParameters

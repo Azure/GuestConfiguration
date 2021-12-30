@@ -1,82 +1,104 @@
 BeforeDiscovery {
-    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
-    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
+    $projectModule = Get-Module -Name $projectName
+    $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
+    $importedModule = Import-Module -Name $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
 Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
     ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
+    ProjectName    = $projectName
+    ImportedModule = $importedModule
 } {
     BeforeAll {
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $packagePath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages/testStartPolicy-MyFile.zip'
+        Set-StrictMode -Version 'latest'
 
-        # Path to temp files
-        $Env:MyTestPath = $TestDrive
-        if ($IsWindows)
-        {
-            $tempDefaultFile = Join-Path -Path $TestDrive -ChildPath 'test.txt'
-        }
-        else
-        {
-            $tempDefaultFile = "/tmp/test.txt"
-        }
-        $tempWithParameterFile = Join-Path -Path $TestDrive -ChildPath 'test_gen.txt'
+        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
 
-        # Contents of temp file
-        $tempFileDefaultContents = 'foobar'
-        $tempWithParameterContents = 'barfoo'
+        $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
+        $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage.zip'
+
+        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+        Push-Location -Path $testOutputPath
     }
 
-    It 'Validate that start scenario is working as expected without parameters' {
-        # Validate that dummy file does not exist
-        Test-Path -Path $tempDefaultFile | Should -Be $False
-
-        # Run start, validate it does not throw
-        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Force } | Should -Not -Throw
-
-        # Validate temp file exists
-        Test-Path -Path $tempDefaultFile | Should -Be $True
-
-        # Validate contents of temp file
-        Get-Content -Path $tempDefaultFile -Raw | Should -Be $tempFileDefaultContents -Because "File '$tempDefaultFile' has not the right content."
+    AfterAll {
+        Pop-Location
     }
 
+    Context 'TestFile package with no parameters' {
+        BeforeAll {
+            $testFilePath = 'test.txt'
+            $expectedContent = 'default'
 
-    It 'Validate that start scenario is working as expected with parameters' {
-        # Validate that dummy file does not exist
-        Test-Path -Path $tempWithParameterFile | Should -Be $False
+            if (Test-Path -Path $testFilePath)
+            {
+                $null = Remove-Item -Path $testFilePath -Force
+            }
+        }
 
-        # Run start, validate it does not throw
-        $Parameter = @(
+        It 'Set should run without throwing' {
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Force } | Should -Not -Throw
+        }
+
+        It 'Test file should exist at expected path' {
+            Test-Path -Path $testFilePath | Should -Be $True
+        }
+
+        It 'Test file should have expected content' {
+            $fileContent = Get-Content -Path $testFilePath -Raw
+            $fileContent | Should -Be $expectedContent
+        }
+    }
+
+    Context 'TestFile package with parameters' {
+        BeforeAll {
+            $testFilePath = Join-Path -Path $TestDrive -ChildPath 'Hogwarts.txt'
+            $expectedContent = 'Harry Potter'
+
+            if (Test-Path -Path $testFilePath)
+            {
+                $null = Remove-Item -Path $testFilePath -Force
+            }
+
+            $parameters = @(
             @{
-                ResourceType = 'MyFile'
-                ResourceId = 'createFoobarTestFile'
+                ResourceType = 'TestFile'
+                ResourceId = 'MyTestFile'
                 ResourcePropertyName = 'Ensure'
                 ResourcePropertyValue = 'Present'
             },
             @{
                 ResourceType = 'MyFile'
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = 'path'
-                ResourcePropertyValue = $tempWithParameterFile
+                ResourceId = 'MyTestFile'
+                ResourcePropertyName = 'Path'
+                ResourcePropertyValue = $testFilePath
             },
             @{
                 ResourceType = 'MyFile'
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = 'content'
-                ResourcePropertyValue = $tempWithParameterContents
+                ResourceId = 'MyTestFile'
+                ResourcePropertyName = 'Content'
+                ResourcePropertyValue = $expectedContent
             })
-        { Start-GuestConfigurationPackageRemediation -Path $packagePath -Parameter $Parameter -Force } | Should -Not -Throw
+        }
 
-        # Validate temp file exists
-        Test-Path -Path $tempWithParameterFile | Should -Be $True
+        It 'Set should run without throwing' {
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Parameter $parameters -Verbose } | Should -Not -Throw
+        }
 
-        # Validate contents of temp file
-        Get-Content -Path $tempWithParameterFile -Raw | Should -Be $tempWithParameterContents
+        It 'Test file should exist at expected path' {
+            Test-Path -Path $testFilePath | Should -Be $True
+        }
+
+        It 'Test file should have expected content' {
+            $fileContent = Get-Content -Path $testFilePath -Raw
+            $fileContent | Should -Be $expectedContent
+        }
     }
 }

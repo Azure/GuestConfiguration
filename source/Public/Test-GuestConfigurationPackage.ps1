@@ -9,13 +9,46 @@
     .PARAMETER Parameter
         A list of hashtables describing the parameters to use when running the package.
 
-        Example:
+        Basic Example:
         $Parameter = @(
             @{
-                ResourceType = "Service"            # dsc configuration resource type (mandatory)
-                ResourceId = 'windowsService'       # dsc configuration resource property id (mandatory)
-                ResourcePropertyName = "Name"       # dsc configuration resource property name (mandatory)
-                ResourcePropertyValue = 'winrm'     # dsc configuration resource property value (mandatory)
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
+            },
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Ensure'
+                ResourcePropertyValue = 'Present'
+            }
+        )
+
+        Technical Example:
+        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof) file in the package before running it.
+        If your compiled DSC configuration (.mof) file looked like this:
+
+        instance of TestFile as $TestFile1ref
+        {
+            ModuleName = "TestFileModule";
+            ModuleVersion = "1.0.0.0";
+            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type and ID
+            Path = "test.txt"; <--- Here is the name of the parameter that I want to change the value of
+            Content = "default";
+            Ensure = "Present";
+            SourceInfo = "TestFileSource";
+            ConfigurationName = "TestFileConfig";
+        };
+
+        Then your parameter value would look like this:
+
+        $Parameter = @(
+            @{
+                ResourceType = 'TestFile'
+                ResourceId = 'MyTestFile'
+                ResourcePropertyName = 'Path'
+                ResourcePropertyValue = 'C:\myPath\newFile.txt'
             }
         )
 
@@ -25,10 +58,10 @@
     .EXAMPLE
         $Parameter = @(
             @{
-                ResourceType = "Service"            # dsc configuration resource type (mandatory)
-                ResourceId = 'windowsService'       # dsc configuration resource property id (mandatory)
-                ResourcePropertyName = "Name"       # dsc configuration resource property name (mandatory)
-                ResourcePropertyValue = 'winrm'     # dsc configuration resource property value (mandatory)
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
             })
 
         Test-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter

@@ -42,7 +42,12 @@ function Install-GuestConfigurationWorker
         {
             # The Linux package contains an additional folder level
             $linuxPackageSourcePath = Join-Path -Path $binFolderSourcePath -ChildPath 'DSC_Linux.zip'
-            $null = Expand-Archive -Path $linuxPackageSourcePath -DestinationPath $binFolderDestinationPath
+            $null = Expand-Archive -Path $linuxPackageSourcePath -DestinationPath $workerInstallPath
+
+            if (-not (Test-Path -Path $binFolderDestinationPath -PathType 'Container'))
+            {
+                throw "Linux agent package structure has changed. Expected a 'GC' folder within the package but the folder '$binFolderDestinationPath' does not exist."
+            }
 
             # Fix for “LTTng-UST: Error (-17) while registering tracepoint probe. Duplicate registration of tracepoint probes having the same name is not allowed.”
             $tracePointProviderLibPath = Join-Path -Path $binFolderDestinationPath -ChildPath 'libcoreclrtraceptprovider.so'

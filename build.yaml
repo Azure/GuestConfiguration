@@ -20,10 +20,6 @@ NestedModule:
     VersionedOutputDirectory: false
     prefix: prefix.ps1
     # Verbose: true
-  DscOperations:
-    VersionedOutputDirectory: false
-    Prefix: prefix.ps1
-    # Verbose: true
   GuestConfigurationPolicy:
     AddToManifest: false
     VersionedOutputDirectory: false

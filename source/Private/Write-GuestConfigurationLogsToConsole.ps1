@@ -7,22 +7,25 @@ function Write-GuestConfigurationLogsToConsole
     $gcLogFolderPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'logs'
     $gcLogPath = Join-Path -Path $gcLogFolderPath -ChildPath 'gc_agent.json'
 
-    $gcLogContent = Get-Content -Path $gcLogPath -Raw
-    $gcLog = $gcLogContent | ConvertFrom-Json
-
-    foreach ($logEvent in $gcLog)
+    if (Test-Path -Path $gcLogPath)
     {
-        if ($logEvent.type -ieq 'warning')
+        $gcLogContent = Get-Content -Path $gcLogPath -Raw
+        $gcLog = $gcLogContent | ConvertFrom-Json
+
+        foreach ($logEvent in $gcLog)
         {
-            Write-Warning -Message $logEvent.message
-        }
-        elseif ($logEvent.type -ieq 'error')
-        {
-            Write-Error -Message $logEvent.message
-        }
-        else
-        {
-            Write-Verbose -Message $logEvent.message
+            if ($logEvent.type -ieq 'warning')
+            {
+                Write-Warning -Message $logEvent.message
+            }
+            elseif ($logEvent.type -ieq 'error')
+            {
+                Write-Error -Message $logEvent.message
+            }
+            else
+            {
+                Write-Verbose -Message $logEvent.message
+            }
         }
     }
 }

@@ -25,6 +25,12 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage.zip'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+
+        if (-not (Test-Path -Path $testOutputPath))
+        {
+            $null = New-Item -Path $testOutputPath -ItemType 'Directory' -Force
+        }
+
         Push-Location -Path $testOutputPath
     }
 

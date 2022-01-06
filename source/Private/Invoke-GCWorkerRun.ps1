@@ -23,12 +23,14 @@ function Invoke-GCWorkerRun
         $null = Remove-Item -Path $reportsFolderPath -Recurse -Force
     }
 
-    $arguments = "-o run_consistency -a $ConfigurationName -r -c Pending"
+    $arguments = "-o run_consistency -a $ConfigurationName -r "
 
     if ($Apply)
     {
-        $arguments += "-s inguest_apply_and_monitor"
+        $arguments += "-s inguest_apply_and_monitor "
     }
+
+    $arguments += "-c Pending"
 
     Invoke-GCWorker -Arguments $arguments
 

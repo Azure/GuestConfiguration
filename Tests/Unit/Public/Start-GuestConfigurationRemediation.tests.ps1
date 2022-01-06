@@ -22,7 +22,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
 
         $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
-        $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage.zip'
+        $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_1.0.0.0.zip'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
 
@@ -40,7 +40,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
 
     Context 'TestFile package with no parameters' {
         BeforeAll {
-            $testFilePath = 'test.txt'
+            $testFilePath = "$($env:SystemDrive)test.txt"
             $expectedContent = 'default'
 
             if (Test-Path -Path $testFilePath)
@@ -50,7 +50,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         }
 
         It 'Set should run without throwing' {
-            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Force } | Should -Not -Throw
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Verbose } | Should -Not -Throw
         }
 
         It 'Test file should exist at expected path' {
@@ -81,13 +81,13 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
                 ResourcePropertyValue = 'Present'
             },
             @{
-                ResourceType = 'MyFile'
+                ResourceType = 'TestFile'
                 ResourceId = 'MyTestFile'
                 ResourcePropertyName = 'Path'
                 ResourcePropertyValue = $testFilePath
             },
             @{
-                ResourceType = 'MyFile'
+                ResourceType = 'TestFile'
                 ResourceId = 'MyTestFile'
                 ResourcePropertyName = 'Content'
                 ResourcePropertyValue = $expectedContent
@@ -95,7 +95,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         }
 
         It 'Set should run without throwing' {
-            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Parameter $parameters -Verbose } | Should -Not -Throw
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Parameter $parameters } | Should -Not -Throw
         }
 
         It 'Test file should exist at expected path' {

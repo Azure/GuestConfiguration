@@ -45,8 +45,8 @@ function Invoke-GuestConfigurationPackage
     $gcWorkerPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
     $gcWorkerPackagesFolderPath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
 
-    $packageName = $sourceZipFile.BaseName
-    $packageInstallPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageName
+    $packageInstallFolderName = $sourceZipFile.BaseName
+    $packageInstallPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageInstallFolderName
 
     if (Test-Path -Path $packageInstallPath)
     {
@@ -55,14 +55,34 @@ function Invoke-GuestConfigurationPackage
 
     $null = Expand-Archive -Path $Path -DestinationPath $packageInstallPath -Force
 
-    # Validate mof
-    $mofFileName = "$packageName.mof"
-    $mofFilePath = Join-Path -Path $packageInstallPath -ChildPath $mofFileName
+    # Find and validate the mof file
+    $mofFilePattern = '*.mof'
+    $mofChildItems = @( Get-ChildItem -Path $packageInstallPath -Filter $mofFilePattern -File )
 
-    if (-not (Test-Path -Path $mofFilePath -PathType 'Leaf'))
+    if ($mofChildItems.Count -eq 0)
     {
         throw "No .mof file found in the package. The Guest Configuration package must include a compiled DSC configuration (.mof) with the same name as the package. Please use the New-GuestConfigurationPackage cmdlet to generate a valid package."
     }
+    elseif ($mofChildItems.Count -gt 1)
+    {
+        throw "Found more than one .mof file in the extracted Guest Configuration package. Please remove any extra .mof files from the root of the package. Please use the New-GuestConfigurationPackage cmdlet to generate a valid package."
+    }
+
+    $mofFile = $mofChildItems[0]
+
+    # Rename the package install folder to match what the GC worker expects
+    $packageName = $mofFile.BaseName
+    $newPackageInstallPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageName
+
+    if (Test-Path -Path $newPackageInstallPath)
+    {
+        $null = Remove-Item -Path $newPackageInstallPath -Recurse -Force
+    }
+
+    $null = Rename-Item -Path $packageInstallPath -NewName $newPackageInstallPath
+    $packageInstallPath = $newPackageInstallPath
+
+    $mofFilePath = Join-Path -Path $packageInstallPath -ChildPath $mofFile.Name
 
     # Validate dependencies
     $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $mofFilePath )
@@ -164,6 +184,11 @@ function Invoke-GuestConfigurationPackage
         debugMode = 'ForceModuleImport'
     }
 
+    if ($Apply)
+    {
+        $propertiesToUpdate['configurationMode'] = 'ApplyAndMonitor'
+    }
+
     Set-MetaconfigProperty -MetaconfigPath $metaconfigPath -Property $propertiesToUpdate
 
     # Update package configuration parameters
@@ -182,72 +207,4 @@ function Invoke-GuestConfigurationPackage
     $result = Invoke-GCWorkerRun -ConfigurationName $packageName -Apply:$Apply
 
     return $result
-}
-
-function Set-GuestConfigurationPackageParameters
-{
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [String]
-        $Path,
-
-        [Parameter()]
-        [Hashtable[]]
-        $Parameter
-    )
-
-    if ($Parameter.Count -eq 0)
-    {
-        return
-    }
-
-    $mofInstances = [Microsoft.PowerShell.DesiredStateConfiguration.Internal.DscClassCache]::ImportInstances($Path, 4)
-
-    foreach ($parameterInfo in $Parameter)
-    {
-        if (-not $parameterInfo.ContainsKey('ResourceType'))
-        {
-            throw "Policy parameter is missing a mandatory property 'ResourceType'. Please make sure that configuration resource type is specified in configuration parameter."
-        }
-
-        if (-not $parameterInfo.ContainsKey('ResourceId'))
-        {
-            throw "Policy parameter is missing a mandatory property 'ResourceId'. Please make sure that configuration resource Id is specified in configuration parameter."
-        }
-
-        if (-not $parameterInfo.ContainsKey('ResourcePropertyName'))
-        {
-            throw "Policy parameter is missing a mandatory property 'ResourcePropertyName'. Please make sure that configuration resource property name is specified in configuration parameter."
-        }
-
-        if (-not $parameterInfo.ContainsKey('ResourcePropertyValue'))
-        {
-            throw "Policy parameter is missing a mandatory property 'ResourcePropertyValue'. Please make sure that configuration resource property value is specified in configuration parameter."
-        }
-
-        $resourceId = "[$($parameterInfo.ResourceType)]$($parameterInfo.ResourceId)"
-
-        $matchingMofInstance = @( $mofInstances | Where-Object {
-            ($_.CimInstanceProperties.Name -contains 'ResourceID') -and
-            ($_.CimInstanceProperties['ResourceID'].Value -ieq $resourceId) -and
-            ($_.CimInstanceProperties.Name -icontains $parameterInfo.ResourcePropertyName)
-        })
-
-        if ($null -eq $matchingMofInstance -or $matchingMofInstance.Count -eq 0)
-        {
-            throw "Failed to find a matching parameter reference with ResourceType:'$($parameterInfo.ResourceType)', ResourceId:'$($parameterInfo.ResourceId)' and ResourcePropertyName:'$($parameterInfo.ResourcePropertyName)' in the configuration. Please ensure that this resource instance exists in the configuration."
-        }
-
-        if ($matchingMofInstance.Count -gt 1)
-        {
-            throw "Found more than one matching parameter reference with ResourceType:'$($parameterInfo.ResourceType)', ResourceId:'$($parameterInfo.ResourceId)' and ResourcePropertyName:'$($parameterInfo.ResourcePropertyName)'. Please ensure that only one resource instance with this information exists in the configuration."
-        }
-
-        $mofInstanceParameter = $matchingMofInstance[0].CimInstanceProperties.Item($parameterInfo.ResourcePropertyName)
-        $mofInstanceParameter.Value = $parameterInfo.ResourcePropertyValue
-    }
-
-    Write-MofContent -MofInstances $mofInstances -OutputPath $Path
 }

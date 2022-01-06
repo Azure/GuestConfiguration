@@ -32,6 +32,7 @@ function Invoke-GCWorker
 
     try
     {
+        Write-Verbose -Message "Invoking GC worker with the arguments '$Arguments'"
         $null = Start-Process -FilePath $gcWorkerExePath -ArgumentList $Arguments -Wait -NoNewWindow
     }
     finally

@@ -10,7 +10,7 @@ BeforeDiscovery {
     $importedModule = Import-Module -Name $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
-Describe 'Get-GuestConfigurationPackageComplianceStatus' -ForEach @{
+Describe 'Test-GuestConfigurationPackage' -ForEach @{
     ProjectPath    = $projectPath
     ProjectName    = $projectName
     ImportedModule = $importedModule
@@ -40,7 +40,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' -ForEach @{
         }
 
         It 'Should return the expected output with compliance status as false with no parameters' {
-            $testPackageResult = Get-GuestConfigurationPackageComplianceStatus -Path $package.Path -Verbose
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Verbose
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $false
@@ -60,7 +60,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' -ForEach @{
                 ResourcePropertyValue = $currentTimeZone.Id
             }
 
-            $testPackageResult = Get-GuestConfigurationPackageComplianceStatus -Path $package.Path -Parameter $parameterValue -Verbose
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue -Verbose
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $true
@@ -85,7 +85,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' -ForEach @{
                 ResourcePropertyValue = $otherTimeZone.Id
             }
 
-            $testPackageResult = Get-GuestConfigurationPackageComplianceStatus -Path $package.Path -Parameter $parameterValue
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $false
@@ -123,7 +123,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' -ForEach @{
 
             $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
 
-            $testPackageResult = Get-GuestConfigurationPackageComplianceStatus -Path $package.Path -ErrorAction 'Stop' -Verbose -Debug
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction 'Stop' -Verbose -Debug
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $true

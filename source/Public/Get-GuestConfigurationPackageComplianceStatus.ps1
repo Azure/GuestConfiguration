@@ -1,10 +1,10 @@
-
 <#
     .SYNOPSIS
-        Applies the given Guest Configuration package file (.zip) to the current machine.
+        Runs the given Guest Configuration package to retrieve the compliance status
+        of the package on the current machine.
 
     .PARAMETER Path
-        The path to the Guest Configuration package file (.zip) to apply.
+        The path to the Guest Configuration package file (.zip) to run.
 
     .PARAMETER Parameter
         A list of hashtables describing the parameters to use when running the package.
@@ -53,32 +53,32 @@
         )
 
     .EXAMPLE
-        Start-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
+        Get-GuestConfigurationPackageComplianceStatus -Path ./custom_policy/WindowsTLS.zip
 
     .EXAMPLE
         $Parameter = @(
             @{
-                ResourceType = 'MyFile'
-                ResourceId = 'hi'
-                ResourcePropertyName = 'Ensure'
-                ResourcePropertyValue = 'Present'
-            }
-        )
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
+            })
 
-        Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
+        Get-GuestConfigurationPackageComplianceStatus -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
 
     .OUTPUTS
-        None.
+        Returns a PSCustomObject with the compliance details.
 #>
 
-function Start-GuestConfigurationPackageRemediation
+function Get-GuestConfigurationPackageComplianceStatus
 {
     [CmdletBinding()]
+    [OutputType([PSCustomObject])]
     param
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [System.String]
+        [System.IO.FileInfo]
         $Path,
 
         [Parameter()]
@@ -88,12 +88,11 @@ function Start-GuestConfigurationPackageRemediation
 
     if ($IsMacOS)
     {
-        throw 'The Start-GuestConfigurationPackageRemediation cmdlet is not supported on MacOS'
+        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
     $invokeParameters = @{
         Path = $Path
-        Apply = $true
     }
 
     if ($null -ne $Parameter)

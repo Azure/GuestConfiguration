@@ -16,7 +16,7 @@ function Write-GuestConfigurationLogsToConsole
         {
             if ($logEvent.type -ieq 'warning')
             {
-                Write-Warning -Message $logEvent.message
+                Write-Verbose -Message $logEvent.message
             }
             elseif ($logEvent.type -ieq 'error')
             {

@@ -66,6 +66,9 @@ function Install-GuestConfigurationWorker
 
             # Give root user permission to execute gc_worker
             chmod 700 $binFolderDestinationPath
+
+            $gcWorkerExePath = Join-Path -Path $binFolderDestinationPath -ChildPath 'gc_worker'
+            chmod '+x' $gcWorkerExePath
         }
 
         $logPath = Join-Path -Path $logsFolderPath -ChildPath 'gc_worker.log'

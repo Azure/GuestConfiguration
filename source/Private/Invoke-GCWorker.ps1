@@ -19,6 +19,9 @@ function Invoke-GCWorker
         $null = Remove-Item -Path $gcLogPath -Recurse -Force
     }
 
+    # Linux requires that this path already exists when GC worker is run
+    $null = New-Item -Path $gcLogPath -ItemType 'Directory' -Force
+
     # Execute the publish operation through GC worker
     $gcWorkerExePath = Get-GCWorkerExePath
     $gcEnvPath = Split-Path -Path $gcWorkerExePath -Parent

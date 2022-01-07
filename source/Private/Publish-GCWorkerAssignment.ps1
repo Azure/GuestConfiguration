@@ -17,9 +17,9 @@ function Publish-GCWorkerAssignment
     $PackagePath = Resolve-Path -Path $PackagePath
     $packageName = Split-Path -Path $PackagePath -LeafBase
 
-    if (-not ($PackagePath.EndsWith('\')))
+    if (-not ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar)))
     {
-        $PackagePath = $PackagePath + '\'
+        $PackagePath = $PackagePath + [System.IO.Path]::DirectorySeparatorChar
     }
 
     $arguments = "-o publish_assignment -a $packageName -p $PackagePath"

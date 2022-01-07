@@ -20,7 +20,7 @@ function Invoke-GuestConfigurationPackage
 
     if ($IsMacOS)
     {
-        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
+        throw 'The Invoke-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
     $Path = [System.IO.Path]::GetFullPath($Path)
@@ -39,10 +39,11 @@ function Invoke-GuestConfigurationPackage
         throw "The file found at the path '$Path' is not a .zip file. It has extension '$($sourceZipFile.Extension)'. Please specify the file path to a compressed Guest Configuration package (.zip) with the Path parameter."
     }
 
-    # Extract the package
-    Install-GuestConfigurationWorker
+    # Install the Guest Configuration worker if needed
+    Install-GCWorker
 
-    $gcWorkerPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    # Extract the package
+    $gcWorkerPath = Get-GCWorkerRootPath
     $gcWorkerPackagesFolderPath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
 
     $packageInstallFolderName = $sourceZipFile.BaseName
@@ -69,18 +70,21 @@ function Invoke-GuestConfigurationPackage
     }
 
     $mofFile = $mofChildItems[0]
-
-    # Rename the package install folder to match what the GC worker expects
     $packageName = $mofFile.BaseName
-    $newPackageInstallPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageName
 
-    if (Test-Path -Path $newPackageInstallPath)
+    # Rename the package install folder to match what the GC worker expects if needed
+    if ($packageName -ne $packageInstallFolderName)
     {
-        $null = Remove-Item -Path $newPackageInstallPath -Recurse -Force
-    }
+        $newPackageInstallPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageName
 
-    $null = Rename-Item -Path $packageInstallPath -NewName $newPackageInstallPath
-    $packageInstallPath = $newPackageInstallPath
+        if (Test-Path -Path $newPackageInstallPath)
+        {
+            $null = Remove-Item -Path $newPackageInstallPath -Recurse -Force
+        }
+
+        $null = Rename-Item -Path $packageInstallPath -NewName $newPackageInstallPath
+        $packageInstallPath = $newPackageInstallPath
+    }
 
     $mofFilePath = Join-Path -Path $packageInstallPath -ChildPath $mofFile.Name
 

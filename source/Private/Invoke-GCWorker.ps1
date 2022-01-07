@@ -10,8 +10,9 @@ function Invoke-GCWorker
     )
 
     # Remove the logs if needed
-    $gcWorkerFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    $gcWorkerFolderPath = Get-GCWorkerRootPath
     $gcLogPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'logs'
+    $standardOutputPath = Join-Path -Path $gcLogPath -ChildPath 'gcworker_stdout.txt'
 
     if (Test-Path -Path $gcLogPath)
     {
@@ -19,7 +20,7 @@ function Invoke-GCWorker
     }
 
     # Execute the publish operation through GC worker
-    $gcWorkerExePath = Get-GuestWorkerExePath
+    $gcWorkerExePath = Get-GCWorkerExePath
     $gcEnvPath = Split-Path -Path $gcWorkerExePath -Parent
 
     $originalEnvPath = $env:Path
@@ -33,7 +34,7 @@ function Invoke-GCWorker
     try
     {
         Write-Verbose -Message "Invoking GC worker with the arguments '$Arguments'"
-        $null = Start-Process -FilePath $gcWorkerExePath -ArgumentList $Arguments -Wait -NoNewWindow
+        $null = Start-Process -FilePath $gcWorkerExePath -ArgumentList $Arguments -Wait -NoNewWindow -RedirectStandardOutput $standardOutputPath
     }
     finally
     {

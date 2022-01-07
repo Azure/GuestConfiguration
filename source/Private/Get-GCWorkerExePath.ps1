@@ -1,10 +1,10 @@
-function Get-GuestWorkerExePath
+function Get-GCWorkerExePath
 {
     [CmdletBinding()]
     [OutputType([String])]
     param ()
 
-    $gcWorkerFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    $gcWorkerFolderPath = Get-GCWorkerRootPath
     $binFolderPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'GC'
 
     if ($IsWindows)

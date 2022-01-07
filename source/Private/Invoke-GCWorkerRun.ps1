@@ -15,7 +15,7 @@ function Invoke-GCWorkerRun
     )
 
     # Remove any existing reports if needed
-    $gcWorkerFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    $gcWorkerFolderPath = Get-GCWorkerRootPath
     $reportsFolderPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'reports'
 
     if (Test-Path -Path $reportsFolderPath)

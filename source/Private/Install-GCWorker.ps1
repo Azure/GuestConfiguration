@@ -1,4 +1,4 @@
-function Install-GuestConfigurationWorker
+function Install-GCWorker
 {
     [CmdletBinding()]
     param
@@ -8,7 +8,7 @@ function Install-GuestConfigurationWorker
         $Force
     )
 
-    $workerInstallPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    $workerInstallPath = Get-GCWorkerRootPath
     $logsFolderPath = Join-Path -Path $workerInstallPath -ChildPath 'logs'
 
     if (Test-Path -Path $workerInstallPath -PathType 'Container')
@@ -77,10 +77,10 @@ function Install-GuestConfigurationWorker
         $modulePath = Join-Path -Path $binFolderDestinationPath -ChildPath 'Modules'
 
         # The directory paths in gc.config must have trailing slashes
-        $basePath = $workerInstallPath + '\'
-        $binPath = $binFolderDestinationPath + '\'
-        $configurationsFolderPath = $configurationsFolderPath + '\'
-        $modulePath = $modulePath + '\'
+        $basePath = $workerInstallPath + [System.IO.Path]::DirectorySeparatorChar
+        $binPath = $binFolderDestinationPath + [System.IO.Path]::DirectorySeparatorChar
+        $configurationsFolderPath = $configurationsFolderPath + [System.IO.Path]::DirectorySeparatorChar
+        $modulePath = $modulePath + [System.IO.Path]::DirectorySeparatorChar
 
         # Save GC config settings file
         $gcConfig = @{
@@ -95,6 +95,7 @@ function Install-GuestConfigurationWorker
                 "TelemetryPath" = $telemetryPath
             }
         }
+
         $gcConfigContent = $gcConfig | ConvertTo-Json
 
         $gcConfigPath = Join-Path -Path $binFolderDestinationPath -ChildPath 'gc.config'

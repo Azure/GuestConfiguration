@@ -3,7 +3,7 @@ function Write-GuestConfigurationLogsToConsole
     [CmdletBinding()]
     param ()
 
-    $gcWorkerFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'gcworker'
+    $gcWorkerFolderPath = Get-GCWorkerRootPath
     $gcLogFolderPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'logs'
     $gcLogPath = Join-Path -Path $gcLogFolderPath -ChildPath 'gc_agent.json'
 

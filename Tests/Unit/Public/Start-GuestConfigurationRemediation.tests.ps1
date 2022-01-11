@@ -49,6 +49,13 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
             }
         }
 
+        AfterAll {
+            if (Test-Path -Path $testFilePath)
+            {
+                $null = Remove-Item -Path $testFilePath -Force
+            }
+        }
+
         It 'Set should run without throwing' {
             { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Verbose } | Should -Not -Throw
         }
@@ -74,24 +81,19 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
             }
 
             $parameters = @(
-            @{
-                ResourceType = 'TestFile'
-                ResourceId = 'MyTestFile'
-                ResourcePropertyName = 'Ensure'
-                ResourcePropertyValue = 'Present'
-            },
-            @{
-                ResourceType = 'TestFile'
-                ResourceId = 'MyTestFile'
-                ResourcePropertyName = 'Path'
-                ResourcePropertyValue = $testFilePath
-            },
-            @{
-                ResourceType = 'TestFile'
-                ResourceId = 'MyTestFile'
-                ResourcePropertyName = 'Content'
-                ResourcePropertyValue = $expectedContent
-            })
+                @{
+                    ResourceType = 'TestFile'
+                    ResourceId = 'MyTestFile'
+                    ResourcePropertyName = 'Path'
+                    ResourcePropertyValue = $testFilePath
+                },
+                @{
+                    ResourceType = 'TestFile'
+                    ResourceId = 'MyTestFile'
+                    ResourcePropertyName = 'Content'
+                    ResourcePropertyValue = $expectedContent
+                }
+            )
         }
 
         It 'Set should run without throwing' {

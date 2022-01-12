@@ -20,6 +20,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
 
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
     }
@@ -28,7 +29,7 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testWindowsTimeZone'
-                Configuration = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
                 Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
                 Force = $true
             }

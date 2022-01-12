@@ -19,6 +19,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
     }
@@ -27,7 +28,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testWindowsTimeZone'
-                Configuration = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
                 Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
                 Verbose = $true
                 Force = $true
@@ -219,6 +220,29 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
+    }
+
+    Context 'Windows package with PSDesiredStateConfiguration resource' -skip:(-not $IsWindows) {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testInvalidPSDesiredStateConfiguration'
+                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'InvalidPSDesiredStateConfiguration.mof'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Verbose = $true
+                Force = $true
+            }
+
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+        }
+
+        It 'Should throw when trying to create a custom Windows package with a resource from PSDesiredStateConfiguration' {
+            { $null = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Throw
+        }
+
+        It 'Should not have created the new package' {
+            Test-Path -Path $compressedPackagePath | Should -BeFalse
         }
     }
 

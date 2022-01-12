@@ -1,82 +1,106 @@
+<#
+    .SYNOPSIS
+        Runs the given Guest Configuration package to retrieve the compliance status
+        of the package on the current machine.
+
+    .PARAMETER Path
+        The path to the Guest Configuration package file (.zip) to run.
+
+    .PARAMETER Parameter
+        A list of hashtables describing the parameters to use when running the package.
+
+        Basic Example:
+        $Parameter = @(
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
+            },
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Ensure'
+                ResourcePropertyValue = 'Present'
+            }
+        )
+
+        Technical Example:
+        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof) file in the package before running it.
+        If your compiled DSC configuration (.mof) file looked like this:
+
+        instance of TestFile as $TestFile1ref
+        {
+            ModuleName = "TestFileModule";
+            ModuleVersion = "1.0.0.0";
+            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type and ID
+            Path = "test.txt"; <--- Here is the name of the parameter that I want to change the value of
+            Content = "default";
+            Ensure = "Present";
+            SourceInfo = "TestFileSource";
+            ConfigurationName = "TestFileConfig";
+        };
+
+        Then your parameter value would look like this:
+
+        $Parameter = @(
+            @{
+                ResourceType = 'TestFile'
+                ResourceId = 'MyTestFile'
+                ResourcePropertyName = 'Path'
+                ResourcePropertyValue = 'C:\myPath\newFile.txt'
+            }
+        )
+
+    .EXAMPLE
+        Get-GuestConfigurationPackageComplianceStatus -Path ./custom_policy/WindowsTLS.zip
+
+    .EXAMPLE
+        $Parameter = @(
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
+            })
+
+        Get-GuestConfigurationPackageComplianceStatus -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
+
+    .OUTPUTS
+        Returns a PSCustomObject with the compliance details.
+#>
+
 function Get-GuestConfigurationPackageComplianceStatus
 {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-        [System.String]
+        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.IO.FileInfo]
         $Path,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [Hashtable[]]
         $Parameter = @()
     )
 
-    begin
+    if ($IsMacOS)
     {
-        # Determine if verbose is enabled to pass down to other functions
-        $verbose = ($PSBoundParameters.ContainsKey("Verbose") -and ($PSBoundParameters["Verbose"] -eq $true))
-        $systemPSModulePath = [Environment]::GetEnvironmentVariable("PSModulePath", "Process")
-        $gcBinPath = Get-GuestConfigBinaryPath
-        $guestConfigurationPolicyPath = Get-GuestConfigPolicyPath
-
+        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    process
-    {
-        try
-        {
-            if ($PSBoundParameters.ContainsKey('Force') -and $Force)
-            {
-                $withForce = $true
-            }
-            else
-            {
-                $withForce = $false
-            }
-
-            $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$withForce
-
-            Write-Debug -Message "Looking into Package '$PackagePath' for MOF document."
-
-            $packageName = Get-GuestConfigurationPackageName -Path $PackagePath
-
-            # Confirm mof exists
-            $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
-            $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
-
-            if (-not $dscDocument)
-            {
-                throw "Invalid Guest Configuration package, failed to find dsc document at '$packageMof' path."
-            }
-
-            # update configuration parameters
-            if ($Parameter.Count -gt 0)
-            {
-                Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
-            }
-
-            # Publish policy package
-            Publish-DscConfiguration -ConfigurationName $packageName -Path $PackagePath -Verbose:$verbose
-
-            # Set LCM settings to force load powershell module.
-            $metaConfigPath = Join-Path -Path $PackagePath -ChildPath "$packageName.metaconfig.json"
-            Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-
-            Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $PackagePath -Verbose:$verbose
-
-
-            # Clear Inspec profiles
-            Remove-Item -Path $(Get-InspecProfilePath) -Recurse -Force -ErrorAction SilentlyContinue
-
-            $getResult = @()
-            $getResult = $getResult + (Get-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose)
-            return $getResult
-        }
-        finally
-        {
-            $env:PSModulePath = $systemPSModulePath
-        }
+    $invokeParameters = @{
+        Path = $Path
     }
+
+    if ($null -ne $Parameter)
+    {
+        $invokeParameters['Parameter'] = $Parameter
+    }
+
+    $result = Invoke-GuestConfigurationPackage @invokeParameters
+
+    return $result
 }

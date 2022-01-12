@@ -22,8 +22,5 @@ package-lock.json
 localhost.mof
 Vagrantfile
 VagrantRun.ps1
-*.zip
-!**/testPolicy.zip
-!**/testStartPolicy-MyFile.zip
 *.log
 source/gc_agents

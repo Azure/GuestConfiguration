@@ -1,29 +1,71 @@
 
 <#
     .SYNOPSIS
-        Starting to remediate a Guest Configuration policy package.
+        Applies the given Guest Configuration package file (.zip) to the current machine.
 
-    .Parameter Path
-        Relative/Absolute local path of the zipped Guest Configuration package.
+    .PARAMETER Path
+        The path to the Guest Configuration package file (.zip) to apply.
 
-    .Parameter Parameter
-        Policy parameters.
+    .PARAMETER Parameter
+        A list of hashtables describing the parameters to use when running the package.
 
-    .Parameter Force
-        Allows cmdlet to make changes on machine for remediation that cannot otherwise be changed.
+        Basic Example:
+        $Parameter = @(
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Name'
+                ResourcePropertyValue = 'winrm'
+            },
+            @{
+                ResourceType = 'Service'
+                ResourceId = 'windowsService'
+                ResourcePropertyName = 'Ensure'
+                ResourcePropertyValue = 'Present'
+            }
+        )
 
-    .Example
-        Start-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Force
+        Technical Example:
+        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof) file in the package before running it.
+        If your compiled DSC configuration (.mof) file looked like this:
+
+        instance of TestFile as $TestFile1ref
+        {
+            ModuleName = "TestFileModule";
+            ModuleVersion = "1.0.0.0";
+            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type and ID
+            Path = "test.txt"; <--- Here is the name of the parameter that I want to change the value of
+            Content = "default";
+            Ensure = "Present";
+            SourceInfo = "TestFileSource";
+            ConfigurationName = "TestFileConfig";
+        };
+
+        Then your parameter value would look like this:
 
         $Parameter = @(
             @{
-                ResourceType = "MyFile"            # dsc configuration resource type (mandatory)
-                ResourceId = 'hi'       # dsc configuration resource property id (mandatory)
-                ResourcePropertyName = "Ensure"       # dsc configuration resource property name (mandatory)
-                ResourcePropertyValue = 'Present'     # dsc configuration resource property value (mandatory)
-            })
+                ResourceType = 'TestFile'
+                ResourceId = 'MyTestFile'
+                ResourcePropertyName = 'Path'
+                ResourcePropertyValue = 'C:\myPath\newFile.txt'
+            }
+        )
 
-        Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter -Force
+    .EXAMPLE
+        Start-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip
+
+    .EXAMPLE
+        $Parameter = @(
+            @{
+                ResourceType = 'MyFile'
+                ResourceId = 'hi'
+                ResourcePropertyName = 'Ensure'
+                ResourcePropertyValue = 'Present'
+            }
+        )
+
+        Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
 
     .OUTPUTS
         None.
@@ -32,87 +74,34 @@
 function Start-GuestConfigurationPackageRemediation
 {
     [CmdletBinding()]
-    [OutputType()]
     param
     (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
-        [string]
+        [System.String]
         $Path,
-
-        [Parameter()]
-        [Switch]
-        $Force,
 
         [Parameter()]
         [Hashtable[]]
         $Parameter = @()
     )
 
-    $osPlatform = Get-OSPlatform
-
-    if ($osPlatform -eq 'MacOS')
+    if ($IsMacOS)
     {
-        throw 'The Install-GuestConfigurationPackage cmdlet is not supported on MacOS'
+        throw 'The Start-GuestConfigurationPackageRemediation cmdlet is not supported on MacOS'
     }
 
-    $verbose = ($PSBoundParameters.ContainsKey('Verbose') -and ($PSBoundParameters['Verbose'] -eq $true))
-    $systemPSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Process')
-    if ($PSBoundParameters.ContainsKey('Force') -and $Force)
-    {
-        $withForce = $true
-    }
-    else
-    {
-        $withForce = $false
+    $invokeParameters = @{
+        Path = $Path
+        Apply = $true
     }
 
-    try
+    if ($null -ne $Parameter)
     {
-        # Install the package
-        $packagePath = Install-GuestConfigurationPackage -Path $Path -Force:$withForce -ErrorAction 'Stop'
-
-        # The leaf part of the Path returned by Install-GCPackage will always be the BaseName of the MOF.
-        $packageName = Get-GuestConfigurationPackageName -Path $packagePath
-
-        # Confirm mof exists
-        $packageMof = Join-Path -Path $packagePath -ChildPath "$packageName.mof"
-        $dscDocument = Get-Item -Path $packageMof -ErrorAction 'SilentlyContinue'
-        if (-not $dscDocument)
-        {
-            throw "Invalid Guest Configuration package, failed to find dsc document at $packageMof path."
-        }
-
-        # Throw if package is not set to AuditAndSet. If metaconfig is not found, assume Audit.
-        $metaConfig = Get-GuestConfigurationPackageMetaConfig -Path $packagePath
-        if ($metaConfig.Type -ne "AuditAndSet")
-        {
-            throw "Cannot run Start-GuestConfigurationPackage on a package that is not set to AuditAndSet. Current metaconfig contents: $metaconfig"
-        }
-
-        # Update mof values
-        if ($Parameter.Count -gt 0)
-        {
-            Write-Debug -Message "Updating MOF with $($Parameter.Count) parameters."
-            Update-MofDocumentParameters -Path $dscDocument.FullName -Parameter $Parameter
-        }
-
-        Write-Verbose -Message "Publishing policy package '$packageName' from '$packagePath'."
-        Publish-DscConfiguration -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
-
-        # Set LCM settings to force load powershell module.
-        $metaConfigPath = Join-Path -Path $packagePath -ChildPath "$packageName.metaconfig.json"
-        Write-Debug -Message "Setting 'LCM' Debug mode to force module import."
-        Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'debugMode' -Value 'ForceModuleImport'
-        Write-Debug -Message "Setting 'LCM' configuration mode to ApplyAndMonitor."
-        Update-GuestConfigurationPackageMetaconfig -metaConfigPath $metaConfigPath -Key 'configurationMode' -Value 'ApplyAndMonitor'
-        Set-DscLocalConfigurationManager -ConfigurationName $packageName -Path $packagePath -Verbose:$verbose
-
-        # Run Deploy/Remediation
-        Start-DscConfiguration -ConfigurationName $packageName -Verbose:$verbose
+        $invokeParameters['Parameter'] = $Parameter
     }
-    finally
-    {
-        $env:PSModulePath = $systemPSModulePath
-    }
+
+    $result = Invoke-GuestConfigurationPackage @invokeParameters
+
+    return $result
 }

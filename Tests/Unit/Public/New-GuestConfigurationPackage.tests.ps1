@@ -29,6 +29,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
                 Name = 'testWindowsTimeZone'
                 Configuration = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
                 Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Verbose = $true
                 Force = $true
             }
 
@@ -207,6 +208,18 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
                 Pop-Location
             }
         }
+
+        It 'Should be able to use a relative path for Configuration' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+            $itSpecificParameters['Configuration'] = Resolve-Path -Path $newGuestConfigurationPackageParameters.Configuration -Relative
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-RelativeConfigurationPath"
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
     }
 
     Context 'Linux package with native InSpec resource' {
@@ -218,6 +231,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
                 Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
                 Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
                 ChefInspecProfilePath = $inSpecTestAssetsPath
+                Verbose = $true
                 Force = $true
             }
 
@@ -352,6 +366,18 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             {
                 Pop-Location
             }
+        }
+
+        It 'Should be able to use a relative path for Configuration' {
+            $itSpecificParameters = $newGuestConfigurationPackageParameters.Clone()
+            $itSpecificParameters['Configuration'] = Resolve-Path -Path $newGuestConfigurationPackageParameters.Configuration -Relative
+
+            $null = New-GuestConfigurationPackage @itSpecificParameters
+
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-RelativeConfigurationPath"
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
+
+            Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
         }
     }
 }

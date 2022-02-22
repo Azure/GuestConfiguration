@@ -1,0 +1,8 @@
+name: linux-path
+title: Test profile
+maintainer: Test
+summary: Test profile
+license: MIT
+version: 1.0.0
+supports:
+- os-family: unix

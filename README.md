@@ -1,100 +1,121 @@
----
-ArtifactType: nupkg, executable, azure-web-app, azure-cloud-service, etc. More requirements for artifact type standardization may come later.
-Documentation: URL
-Language: typescript, csharp, java, js, python, golang, powershell, markdown, etc. More requirements for language names standardization may come later.
-Platform: windows, node, linux, ubuntu16, azure-function, etc. More requirements for platform standardization may come later.
-Stackoverflow: URL
-Tags: comma,separated,list,of,tags
----
+# PowerShell module for Microsoft Azure Policy's guest configuration
 
-# Project Title. MUST BE topmost header
+![GuestConfig](./GuestConfigXS.png)
 
-One Paragraph of project description goes here. Including links to other user docs or a project website is good here as well. This paragraph will be used as a blurb on CodeHub. Please make the first paragraph short and to the point.
+The `GuestConfiguration` PowerShell module provides commands
+that assist authors in  creating, testing, and publishing
+custom content for guest configureation to manage settings
+inside Azure virtual machines and Arc-enabled servers.
 
-You can expand on project description in subsequent paragraphs. It is a good practice to explain how this project is used and what other projects depend on it.
+Tasks that this module automates:
 
-## Getting Started
+- Create the content package (.zip) from an existing DSC configuration (.mof)
+- Test content package against the local machine
+- Publish the package
+- Create Azure Policy definitions
+- Publish Azure Policy definitions
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Please leave comments, feature requests, and bug reports in the issues tab for
+this module.
 
-### Prerequisites
+## Branches
 
-What things you need to install the software and how to install them
+### master
 
-``` powershell
-Give examples
-```
+[![Build Status](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_apis/build/status/PowerShell.GuestConfiguration%20(Public)?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_build/latest?definitionId=7&branchName=master)
 
-### Installing
+This is the branch containing the latest release.
+No contributions should be made directly to this branch.
+Branch protection is set to require approval from at least one reviewer.
 
-A step by step series of examples that tell you how to get a development environment running
+## Installation
 
-1. Describe what needs to be done first
+The agent binaries are added to the module
+when it is published to the PowerShell Gallery.
+The module will not be functional if it is installed by cloning the GitHub repo.
 
-    ``` batch
-    Give an example of performing step 1
-    ```
+To install from the PowerShell gallery using PowerShellGet
+run the following command:
 
-2. And then repeat for each step
+    Install-Module -Name GuestConfiguration -Repository PSGallery
 
-    ``` sh
-    Another example, this time for step 2
-    ```
+## Requirements
 
-## Running the tests
+The minimum PowerShell version is
+PowerShell 7.1.3 for Windows and
+7.2 preview 6 for Linux.
 
-Explain how to run the tests for this project that are relevant to users. You can also link to the testing portion of [CONTRIBUTING.md](CONTRIBUTING.md) for tests relevant to contributors.
+## Changelog
 
-### End-to-end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### Unit tests
-
-Explain what these test and why
-
-```
-Give examples
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-Documenting some of the main tools used to build this project, manage dependencies, etc will help users get more information if they are trying to understand or having difficulties getting the project up and running.
-
-* Link to some dependency manager
-* Link to some framework or build tool
-* Link to some compiler, linting tool, bundler, etc
+A full list of changes in each version can be found in the
+[change log](CHANGELOG.md)
 
 ## Contributing
 
-Please read our [CONTRIBUTING.md](CONTRIBUTING.md) which outlines all of our policies, procedures, and requirements for contributing to this project.
+This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
-## Versioning and changelog
+When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](link-to-tags-or-other-release-location).
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-It is a good practice to keep `CHANGELOG.md` file in repository that can be updated as part of a pull request.
+## Branch naming conventions
+This repository uses git versioning to automatically calculate the newest version of the module. Branches that begin with "feature/" will increment the minor version, and those that begin with "fix" will increment the patch version. Please refer to the GitVersion.yml file for more details. 
 
-## Authors
+## How to Build
+Steps to build the repository for the first time:
 
-List main authors of this project with a couple of words about their contribution.
+To perform tasks with the GuestConfiguration module, navigate to the GuestConfiguration repository 
 
-Also insert a link to the `owners.txt` file if it exists as well as any other dashboard or other resources that lists all contributors to the project.
+* To build the repository
+  `./build.ps1 -tasks build`
+* To run no operation
+  `./build.ps1 -tasks noop`
+* To install required modules 
+  `./build.ps1 -tasks noop -RequiredModules`
+* To run all tests
+  `./build.ps1 -tasks test`
+* To run a specific test
+  `./build.ps1 -tasks test -PesterScript [Insert Path to Script]`
+* To perform several tasks, you can use a comma delimeter for the task parameter
+  `./build.ps1 -tasks test, build`
 
-## License
+## Example of Initial Build
+1. Install RequiredModules with `-RequiredModules` tag
+  `./build.ps1 -tasks noop -RequiredModules`
+1. Build 
+  `./build.ps1 -tasks build`
+1. Import Module
+  `Import-Module GuestConfiguration -Force`
+1. Run tests
+  `./build.ps1 -tasks test`
+1. Run specific test
+  `./build.ps1 -tasks test -PesterScript ./Tests/Unit/Public/foo.tests.ps1`
 
-This project is licensed under the < INSERT LICENSE NAME > - see the [LICENSE](LICENSE) file for details
+## Common Error Messages
 
-## Acknowledgments
+| Error Message         | Solution|
+|-----------------------|----------------------------------------------------------------------|
+| "Sampler does not exist..." | Make sure you are using pwsh7, not PowerShell 5 |
+| Unable to find Path in Sampler/Invoke-Pester.psm1 | Make sure you only have one copy of Pester on your machine. `Get-Module Pester -ListAvailable` and delete excess copies.  |
+|Test-GuestConfigurationPackage -Path ../AzureDockerBaseline.zip -Verbose Publish-DscConfiguration: Exception calling "PublishDscConfiguration" with "5" argument(s): "Value cannot be null. (Parameter 'path1')" | Ensure you are using pwsh-preview on a Linux machine | 
+| Failed to initialize DSC Library. | Something could be wrong with the agent. Try deleting the agent on your machine in C:\ProgramData\GuestConfig\ and run `Install-GuestConfigurationAgent -Force -Verbose`|
+|A second CIM class definition for 'MSFT_ChefInSpecResource' was found while processing the schema file| PowerShell has loaded a CIM class definition twice in one session. Ignorable. |
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+## Contents
+
+| File/folder           | Description                                                          |
+|-----------------------|----------------------------------------------------------------------|
+| `source`              | All source files used to build the module.                           |
+| `Tests`               | Pester tests for evaluating the current quality of the module.       |
+| `.gitignore`          | Define what to ignore at commit time.                                |
+| `Tools`               | Build scripts to test public PRs using Azure DevOps.                 |
+| `CODE_OF_CONDUCT.md`  | Code of conduct for participating in this community collaboration.   |
+| `LICENSE`             | The license for the sample.                                          |
+| `README.md`           | This README file.                                                    |
+| `SECURITY.md`         | How to report security issues.                                       |

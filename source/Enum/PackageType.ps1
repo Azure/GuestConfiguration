@@ -1,0 +1,5 @@
+enum PackageType
+{
+    Audit
+    AuditAndSet
+}

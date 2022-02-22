@@ -1,0 +1,12 @@
+﻿{
+  "tool": "Credential Scanner",
+  "suppressions": [
+    {
+      "file": [
+        "\\README.md",
+        "\\Tests\\helpers\\New-SelfSignedCertificateEx.ps1"
+      ],
+      "_justification": "Not an actual secretes, those are sample creds to show usage."
+    }
+  ]
+}

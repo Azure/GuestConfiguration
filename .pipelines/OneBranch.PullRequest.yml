@@ -72,6 +72,16 @@ extends:
               artifactName: 'drop_linux_build_multibuild'
               downloadPath: '$(Build.SourcesDirectory)\output'
 
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'specific'
+              project: 'b32aa71e-8ed2-41b2-9d77-5bc261222004'
+              pipeline: '236428'
+              buildVersionToDownload: 'latest'
+              downloadType: 'single'
+              artifactName: 'out'
+              downloadPath: '$(Build.SourcesDirectory)\output'
+
           - task: Bash@3
             displayName: 'Initial set up for Ubuntu 16'
             inputs:
@@ -91,6 +101,10 @@ extends:
                 sudo apt-get update
                 echo "Install PowerShell"
                 sudo apt-get install -y powershell
+                echo "Copy GC agent"
+                mkdir -p '$(Build.SourcesDirectory)/source/gc_agents'
+                sudo find $(Build.SourcesDirectory) -type f -name GC.zip | tee '$(Build.SourcesDirectory)/source/gc_agents/DSC_Linux.zip'
+                sudo find $(Build.SourcesDirectory) -type f -name InGuestPolicyPackagex64.zip | tee '$(Build.SourcesDirectory)/source/gc_agents/DSC_Windows.zip'
 
           - task: PowerShell@2
             name: package

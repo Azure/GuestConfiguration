@@ -50,7 +50,7 @@ BuildWorkflow:
       {
         $GHPAT = (gc -raw $GitHubPATPath).Trim()
       }
-      elseif ((Test-Path $localLinuxAgent) -and (Test-Path $localWindowsAgent))
+      elseif ((Test-Path $localLinuxAgent) -or (Test-Path $localWindowsAgent))
       {
         Write-Warning "Using local versions of the agent available in './source/gc_agents'"
       }

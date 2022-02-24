@@ -22,7 +22,7 @@ variables:
   ENABLE_PRS_DELAYSIGN: 1
   ROOT: $(Build.SourcesDirectory)
   REPOROOT: $(Build.SourcesDirectory)
-  OUTPUTROOT: $(REPOROOT)\output
+  OUTPUTROOT: $(REPOROOT)/output
   NUGET_XMLDOC_MODE: none
   LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-1804:latest'
 
@@ -42,7 +42,7 @@ extends:
       tsa:
         enabled: false # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
       credscan:
-        suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+        suppressionsFile: $(Build.SourcesDirectory)/.config/CredScanSuppressions.json
       binskim:
         break: true # always break the build on binskim issues in addition to TSA upload
       policheck:
@@ -58,7 +58,7 @@ extends:
           type: linux  # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
 
         variables:
-          ob_outputDirectory: '$(REPOROOT)\output' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          ob_outputDirectory: '$(REPOROOT)/output' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
           ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}: # conditionally enable symbolsPublishing for master branch only
             ob_symbolsPublishing_enabled: true # https://aka.ms/obpipelines/symbols
@@ -73,7 +73,7 @@ extends:
               buildVersionToDownload: 'latest'
               downloadType: 'single'
               artifactName: 'drop_linux_build_multibuild'
-              downloadPath: '$(Build.SourcesDirectory)\output'
+              downloadPath: '$(Build.SourcesDirectory)/output'
 
           - task: Bash@3
             displayName: 'Initial set up for Ubuntu 16'

@@ -22,7 +22,7 @@ variables:
   ENABLE_PRS_DELAYSIGN: 0
   ROOT: $(Build.SourcesDirectory)
   REPOROOT: $(Build.SourcesDirectory)
-  OUTPUTROOT: $(REPOROOT)\output
+  OUTPUTROOT: $(REPOROOT)/output
   NUGET_XMLDOC_MODE: none
   LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-1804:latest'
 
@@ -40,7 +40,7 @@ extends:
       tsa:
         enabled: false # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
       credscan:
-         suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+         suppressionsFile: $(Build.SourcesDirectory)/.config/CredScanSuppressions.json
       binskim:
         break: true # always break the build on binskim issues. You can disable it by setting to 'false'
       policheck:
@@ -56,7 +56,7 @@ extends:
           type: linux  # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
 
         variables: # More settings at https://aka.ms/obpipelines/yaml/jobs
-          ob_outputDirectory: '$(REPOROOT)\output' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          ob_outputDirectory: '$(REPOROOT)/output' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
           ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
 
           # ob_sdl_suppression_suppressionFile: $(Build.SourcesDirectory)\.gdn\build.nonofficial.gdnsuppress
@@ -113,16 +113,6 @@ extends:
               filePath: './build.ps1'
               arguments: '-ResolveDependency -tasks pack'
               pwsh: true
-
-          - task: onebranch.pipeline.signing@1
-            displayName: 'Sign output'
-            inputs:
-              command: 'sign'
-              #signing_profile: 'internal_azure_service'
-              signing_profile: 'internal_azure_service'
-              #files_to_sign: '*;**/*'
-              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.psm1;**/*.psd1;**/*.ps1xml'
-              search_root: '$(OUTPUTROOT)/'
 
           # - task: UseDotNet@2
           #   continueOnError: true

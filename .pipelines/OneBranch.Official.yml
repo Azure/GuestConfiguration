@@ -36,6 +36,8 @@ resources:
 extends:
   template: v2/OneBranch.Official.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
   parameters:
+    featureFlags:
+      linuxEsrpSigningPreview: true
     cloudvault: # https://aka.ms/obpipelines/cloudvault
       enabled: false
     globalSdl: # https://aka.ms/obpipelines/sdl
@@ -111,9 +113,8 @@ extends:
             displayName: 'Sign output'
             inputs:
               command: 'sign'
-              #signing_profile: 'internal_azure_service'
-              signing_profile: 'internal_azure_service'
-              #files_to_sign: '*;**/*'
+              signing_environment: 'azure-ado'
+              signing_profile: 'external_distribution'
               files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.psm1;**/*.psd1;**/*.ps1xml'
               search_root: '$(OUTPUTROOT)/'
 

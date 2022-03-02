@@ -1,0 +1,44 @@
+{
+  "version": "latest",
+  "suppressionSets": {
+    "default": {
+      "name": "default",
+      "createdDate": "2022-03-01 09:00:00Z",
+      "lastUpdatedDate": "2022-03-01 09:00:00Z"
+    }
+  },
+  "results": {
+    "231e9d890fd0ce3162f4b0168fc8dcd90ba48df93bd974b234a7dd9ca881d3f2": {
+      "signature": "231e9d890fd0ce3162f4b0168fc8dcd90ba48df93bd974b234a7dd9ca881d3f2",
+      "alternativeSignatures": [
+        "3aea592be1988bcfc3c241fbd463ffdb3306f1ad633df97411ae1ad527095769"
+      ],
+      "target": "output/RequiredModules/Pester/5.3.1/bin/net452/Pester.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2022",
+      "justification": null,
+      "createdDate": "2022-03-01 09:00:00Z",
+      "expirationDate": null,
+      "type": null
+    },
+    "3eac2b3129de9efef195451534c10189f4b8c4663f3b569e40bbe569d395ee2c": {
+      "signature": "3eac2b3129de9efef195451534c10189f4b8c4663f3b569e40bbe569d395ee2c",
+      "alternativeSignatures": [
+        "e3c5805ad60b287308946f5cc5ce08120674f1a8af144f45506c6b0fa3995fb7"
+      ],
+      "target": "output/RequiredModules/Pester/5.3.1/bin/netstandard2.0/Pester.dll",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "binskim",
+      "ruleId": "BA2022",
+      "justification": null,
+      "createdDate": "2022-03-01 09:00:00Z",
+      "expirationDate": null,
+      "type": null
+    }
+  }
+}

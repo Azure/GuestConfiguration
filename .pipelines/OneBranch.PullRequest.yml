@@ -25,6 +25,7 @@ variables:
   OUTPUTROOT: $(REPOROOT)/output
   NUGET_XMLDOC_MODE: none
   LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-1804:latest'
+  WindowsContainerImage: 'cdpxwin1809.azurecr.io/global/corext:latest'
 
 resources:
   repositories:
@@ -46,21 +47,17 @@ extends:
       policheck:
         break: true # always break the build on policheck issues. You can disable it by setting to 'false'
       # suppression:
-      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
-
+      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppres
     stages:
     - stage: build
       jobs:
-      - job: main
+      - job: main_linux
         pool:
           type: linux  # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
-
         variables: # More settings at https://aka.ms/obpipelines/yaml/jobs
           ob_outputDirectory: '$(REPOROOT)/output' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
           ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-
           # ob_sdl_suppression_suppressionFile: $(Build.SourcesDirectory)\.gdn\build.nonofficial.gdnsuppress
-
         steps:
           - task: DownloadBuildArtifacts@1
             inputs:
@@ -177,6 +174,7 @@ extends:
           #     testResultsFormat: VSTest
           #     testResultsFiles: '$(Build.SourcesDirectory)\out\logs\TestResults\**\*.trx'
           #     failTaskOnFailedTests: true
+
 
 # https://aka.ms/obpipelines/cloudtest
 # uncomment this section and edit parameters to enable CloudTest

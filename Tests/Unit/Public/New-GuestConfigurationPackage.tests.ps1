@@ -404,4 +404,64 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
         }
     }
+
+    Context 'Cross-platform package with PSDscResources Script resource' {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testScript'
+                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'TestScript.mof'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Verbose = $true
+                Force = $true
+            }
+
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+
+            $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
+            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
+
+            $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
+        }
+
+        It 'Should be able to create a custom Windows package with the expected output object' {
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $package | Should -Not -BeNull
+            $package.Name | Should -Be $newGuestConfigurationPackageParameters.Name
+            $package.Path | Should -Be $compressedPackagePath
+        }
+
+        It 'Compressed package should exist at expected output path' {
+            Test-Path -Path $compressedPackagePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Should be able to expand the new package' {
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Mof file should exist in expanded package' {
+            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
+            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
+            Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
+
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
+
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be 'Audit'
+            $metaconfigJson.Version | Should -Be '0.0.0'
+        }
+
+        It 'Expanded package should include the PSDscResources module dependency' {
+            $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'PSDscResources'
+            Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        }
+    }
 }

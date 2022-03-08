@@ -140,4 +140,39 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
             Test-Path -Path $systemGuestConfigurationPath | Should -BeFalse
         }
     }
+
+    Context 'Windows Script package' -Skip:(-not $IsWindows) {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testScript'
+                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'TestScript.mof'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Force = $true
+            }
+
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $packageHash = Get-FileHash -Path $package.Path
+        }
+
+        It 'Should return the expected output with compliance status as false with no parameters' {
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Verbose
+
+            $testPackageResult | Should -Not -Be $null
+            $testPackageResult.complianceStatus | Should -Be $false
+
+            $testPackageResult.resources.Count | Should -Be 1
+            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'PSDscResources'
+            $testPackageResult.resources[0].complianceStatus | Should -Be $false
+        }
+
+        It 'Should not have installed Guest Configuration under the system path' {
+            $systemGuestConfigurationPath = 'C:\ProgramData\GuestConfig'
+            Test-Path -Path $systemGuestConfigurationPath | Should -BeFalse
+        }
+
+        It 'Package should not have changed after running all tests' {
+            $currentPackageHash = Get-FileHash -Path $package.Path
+            $currentPackageHash.Hash | Should -Be $packageHash.Hash
+        }
+    }
 }

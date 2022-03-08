@@ -1,0 +1,46 @@
+/*
+@TargetNode='localhost'
+@GeneratedBy=kakeim
+@GenerationDate=01/26/2022 13:55:29
+@GenerationHost=DESKTOP-IQHSK3I
+*/
+
+instance of MSFT_ScriptResource as $MSFT_ScriptResource1ref
+{
+ModuleVersion = "2.12.0.0";
+ SetScript = " $null = New-Item -Path 'C:\\Test-GC-Folder' -ItemType 'Directory'";
+ ModuleName = "PSDscResources";
+ ResourceID = "[Script]MyTestScript";
+ SourceInfo = "C:\\Users\\kakeim\\Clones\\GuestConfiguration\\Tests\\Unit\\assets\\TestConfigs\\TestScriptConfig.ps1::5::9::Script";
+ TestScript = " return (Test-Path -Path 'C:\\Test-GC-Folder') ";
+ GetScript = "\n                $fileExists = Test-Path -Path 'C:\\Test-GC-Folder'\n                return @{\n                    Path = 'C:\\Test-GC-Folder'\n                }\n            ";
+
+ ConfigurationName = "TestScriptConfig";
+
+};
+instance of OMI_ConfigurationDocument
+
+
+                    {
+ Version="2.0.0";
+
+
+                        MinimumCompatibleVersion = "1.0.0";
+
+
+                        CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+
+
+                        Author="kakeim";
+
+
+                        GenerationDate="01/26/2022 13:55:29";
+
+
+                        GenerationHost="DESKTOP-IQHSK3I";
+
+
+                        Name="TestScriptConfig";
+
+
+                    };

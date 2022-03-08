@@ -87,6 +87,8 @@ function Publish-GuestConfigurationPackage
     # THREE YEAR EXPIRATION
     $StartTime = Get-Date
 
+    # Add permissions on just the one file and not the whole blob
+    # Put expiration time as a parameter
     $newAzStorageBlobSASTokenParams = @{
         Context    = $Context
         Container  = $StorageContainerName

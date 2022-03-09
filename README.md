@@ -1,6 +1,8 @@
 # PowerShell module for Microsoft Azure Policy's guest configuration
 
-![GuestConfig](./GuestConfigXS.png)
+<img src="GuestConfigXS.png"
+     alt="Guest Config Logo"
+     style="float: right; margin-right: 10px;" />
 
 The `GuestConfiguration` PowerShell module provides commands
 that assist authors in  creating, testing, and publishing
@@ -22,10 +24,10 @@ this module.
 
 ### master
 
-[![Build Status](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_apis/build/status/PowerShell.GuestConfiguration%20(Public)?branchName=master)](https://dev.azure.com/guestconfiguration/guestconfigurationmodule/_build/latest?definitionId=7&branchName=master)
+[![Build Status](https://mscodehub.visualstudio.com/GuestConfiguration_Module/_apis/build/status/Azure.GuestConfiguration.Public?branchName=master)](https://mscodehub.visualstudio.com/GuestConfiguration_Module/_apis/build/status/Azure.GuestConfiguration.Public/_build/latest?definitionId=234092&branchName=master)
 
 This is the branch containing the latest release.
-No contributions should be made directly to this branch.
+No contributions should be made directly to this branch.  
 Branch protection is set to require approval from at least one reviewer.
 
 ## Installation
@@ -36,8 +38,9 @@ The module will not be functional if it is installed by cloning the GitHub repo.
 
 To install from the PowerShell gallery using PowerShellGet
 run the following command:
-
-    Install-Module -Name GuestConfiguration -Repository PSGallery
+```powershell
+Install-Module -Name GuestConfiguration -Repository PSGallery
+```
 
 ## Requirements
 
@@ -52,22 +55,29 @@ A full list of changes in each version can be found in the
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+We are not able to accept community contribution at this time, unless we've agreed otherwise.
+Should you want to contribute, please make sure we're keen to consider a pull request by discussing with us in an issue.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## Code of conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Branch naming conventions
+
 This repository uses git versioning to automatically calculate the newest version of the module. Branches that begin with "feature/" will increment the minor version, and those that begin with "fix" will increment the patch version. Please refer to the GitVersion.yml file for more details. 
 
 ## How to Build
+
+Please note that the Guest Configuration Agent binaries are not publicly available at this time.  
+Therefore, when you build the project, they won't be downloaded and most commands won't work.  
+If you have access to those binaries, you can save them under:
+- `./source/gc_agents/DSC_Linux.zip`
+- `./source/gc_agents/DSC_Windows.zip`
+
+Then run the following build steps.
+
 Steps to build the repository for the first time:
 
 To perform tasks with the GuestConfiguration module, navigate to the GuestConfiguration repository 
@@ -86,8 +96,9 @@ To perform tasks with the GuestConfiguration module, navigate to the GuestConfig
   `./build.ps1 -tasks test, build`
 
 ## Example of Initial Build
-1. Install RequiredModules with `-RequiredModules` tag
-  `./build.ps1 -tasks noop -RequiredModules`
+
+1. Install RequiredModules with `-ResolveDependency` tag
+  `./build.ps1 -tasks noop -ResolveDependency`
 1. Build 
   `./build.ps1 -tasks build`
 1. Import Module

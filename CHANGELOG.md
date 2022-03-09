@@ -5,16 +5,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
 - New-GuestConfigurationPackage
   - Change to file type parameters instead of strings
   - Resolve all path parameters to full paths
   - Add Verbose messaging
   - Switch to built-in compression cmdlet (Compress-Archive)
 - Clean Test-GuestConfigurationPackage tests and remove skip flag for bug on Linux
+- Restored GuestConfig logo image from previous commit
+- Updated Changelog to be compliant with keepachangelog.com
+
+### Removed
+
+- Deleted obsolete pipeline files
 
 ## [4.0.0-preview0001] - 2021-11-24
 
+### Removed
+
 - Remove experimental Pester resource
+
+### Changed
+
 - Rewrite of New-GuestConfigurationPackage
   - Remove extra folder level created under Path
   - Remove any existing working folder before updating package
@@ -27,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add nested module dependencies to package
   - Update tests
 
-## [3.5.3]
+## [3.5.3] - 2021-10-15
 
 ### Removed
 
@@ -152,6 +165,7 @@ rather than integer
 ## [1.20.0-prerelease] - 2020-04-30
 
 ### Added
+
 - Support for custom Policy categories
 - Adds support for additional Linux distributions
 - Support Arc machines
@@ -208,7 +222,7 @@ rather than integer
 
 - moved build scripts to 'tools' folder
 
-## [1.19.0.0] - 2020-01-17
+## [1.19.0] - 2020-01-17
 
 ### Fixed
 

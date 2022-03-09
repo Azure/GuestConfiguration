@@ -5,6 +5,7 @@
 *.sh    text eol=lf
 
 # Ensure any exe files are treated as binary
+*.png binary
 *.exe binary
 *.jpg binary
 *.xl* binary

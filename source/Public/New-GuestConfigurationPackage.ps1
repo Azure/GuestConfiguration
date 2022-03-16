@@ -367,9 +367,10 @@ function New-GuestConfigurationPackage
         Write-Verbose -Message "Copying the native Chef Inspec resource library from the path '$inSpecResourceLibrarySourcePath' to the package path '$inSpecResourceFolder'..."
         $null = Copy-Item -Path $inSpecResourceLibrarySourcePath -Destination $inSpecResourceFolder
 
-        $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
-        Write-Verbose -Message "Copying the native Chef Inspec resource schema from the path '$inSpecResourceSchemaMofSourcePath' to the package path '$inSpecResourceFolder'..."
-        $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceFolder
+        $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema'
+        $inSpecResourceSchemaMofDestinationPath = Join-Path -Path $inSpecResourceFolder -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+        Write-Verbose -Message "Copying the native Chef Inspec resource schema from the path '$inSpecResourceSchemaMofSourcePath' to the package path '$inSpecResourceSchemaMofDestinationPath'..."
+        $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceSchemaMofDestinationPath
 
         foreach ($inSpecProfileSourcePath in $inSpecProfileSourcePaths)
         {

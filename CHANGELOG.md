@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Switch to built-in compression cmdlet (Compress-Archive)
 - Clean Test-GuestConfigurationPackage tests and remove skip flag for bug on Linux
 
+### FIXED
+
+- Fixed the InSpec resource with pwsh 7.2+ by using a Class based resource for compilation.
+
 ## [4.0.0-preview0001] - 2021-11-24
 
 ### Changed

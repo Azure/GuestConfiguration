@@ -65,16 +65,15 @@
 
     .PARAMETER Tag
         The name and value of a tag on the policy definition.
-        Tags do not affect Guest Configuration.
 
     .EXAMPLE
         New-GuestConfigurationPolicy `
-                                 -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
-                                 -DisplayName 'Monitor Windows Service Policy.' `
-                                 -Description 'Policy to monitor service on Windows machine.' `
-                                 -Version 1.0.0.0
-                                 -Path ./git/custom_policy
-                                 -Tag @{Owner = 'WebTeam'}
+            -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
+            -DisplayName 'Monitor Windows Service Policy.' `
+            -Description 'Policy to monitor service on Windows machine.' `
+            -Version 1.0.0.0
+            -Path ./git/custom_policy
+            -Tag @{Owner = 'WebTeam'}
 
         $PolicyParameterInfo = @(
             @{
@@ -86,14 +85,15 @@
                 ResourcePropertyName = "Name"                              # dsc configuration resource property name (mandatory)
                 DefaultValue = 'winrm'                                     # Policy parameter default value (optional)
                 AllowedValues = @('wscsvc','WSearch','wcncsvc','winrm')    # Policy parameter allowed values (optional)
-            })
+            }
+        )
 
-            New-GuestConfigurationPolicy -ContentUri 'https://github.com/azure/auditservice/release/AuditService.zip' `
-                                 -DisplayName 'Monitor Windows Service Policy.' `
-                                 -Description 'Policy to monitor service on Windows machine.' `
-                                 -Version 1.0.0.0
-                                 -Path ./policyDefinitions `
-                                 -Parameter $PolicyParameterInfo
+        New-GuestConfigurationPolicy -ContentUri 'https://github.com/azure/auditservice/release/AuditService.zip' `
+            -DisplayName 'Monitor Windows Service Policy.' `
+            -Description 'Policy to monitor service on Windows machine.' `
+            -Version 1.0.0.0
+            -Path ./policyDefinitions `
+            -Parameter $PolicyParameterInfo
 
     .OUTPUTS
         Return name and path of the Guest Configuration policy definitions.
@@ -127,7 +127,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [System.String]
+        [System.Guid]
         $PolicyId = [System.Guid]::NewGuid(),
 
         [Parameter()]
@@ -155,7 +155,7 @@ function New-GuestConfigurationPolicy
         $Mode = 'Audit',
 
         [Parameter()]
-        [System.Collections.Hashtable[]]
+        [System.Collections.Hashtable]
         $Tag
     )
 
@@ -180,7 +180,7 @@ function New-GuestConfigurationPolicy
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
     }
 
-    $requiredParameterProperties = @('Name', 'DisplayName', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
+    $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
 
     foreach ($parameterInfo in $Parameter)
     {
@@ -188,7 +188,8 @@ function New-GuestConfigurationPolicy
         {
             if (-not ($parameterInfo.ContainsKey($requiredParameterProperty)))
             {
-                throw "One of the specified policy parameters is missing the mandatory property '$requiredParameterProperty'."
+                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
+                throw "One of the specified policy parameters is missing the mandatory property '$requiredParameterProperty'. The mandatory properties for parameters are: $requiredParameterPropertyString"
             }
         }
     }
@@ -307,8 +308,8 @@ function New-GuestConfigurationPolicy
 
     # Convert definition hashtable to JSON
     # TODO: Fix too many slashes in description?
-    $policyDefinitionContentJson = ConvertTo-Json -InputObject $policyDefinitionContent
-    $formattedPolicyDefinitionContentJson = Format-Json -Json $policyDefinitionContentJson
+    $policyDefinitionContentJson = ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100
+    $formattedPolicyDefinitionContentJson = Format-PolicyDefinitionJson -Json $policyDefinitionContentJson
 
     # Write JSON to file
     $null = Set-Content -Path $filePath -Value $formattedPolicyDefinitionContentJson -Force
@@ -382,7 +383,7 @@ function New-GuestConfigurationPolicyDefinitionContent
         $Parameter,
 
         [Parameter()]
-        [Hashtable[]]
+        [Hashtable]
         $Tag
     )
 
@@ -424,7 +425,7 @@ function New-GuestConfigurationPolicyDefinitionContent
             parameters  = $policyParameters
             policyRule = $policyRule
         }
-        name = $PolicyId # Do we need this?
+        name = $PolicyId # Do we need this for new policies?
     }
 
     return $policyDefinition
@@ -476,7 +477,7 @@ function New-GuestConfigurationPolicyDefinitionMetadata
         foreach ($currentParameter in $Parameter)
         {
             $configurationParameterDefinition = [Ordered]@{
-                $currentParameter['ReferenceName'] = New-GuestConfigurationPolicyDefinitionParameterReferenceString -Parameter $currentParameter
+                $currentParameter['Name'] = New-GuestConfigurationPolicyDefinitionParameterReferenceString -Parameter $currentParameter
             }
             $parameters += $configurationParameterDefinition
         }
@@ -511,7 +512,6 @@ function New-GuestConfigurationPolicyDefinitionParameters
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)
     {
-        $customParameters = @()
         $optionalFields = @('AllowedValues', 'DefaultValue')
 
         foreach ($currentParameter in $Parameter)
@@ -533,10 +533,8 @@ function New-GuestConfigurationPolicyDefinitionParameters
                 }
             }
 
-            $customParameters += $configurationParameterDefinition
+            $parameters[$currentParameter['Name']] = $configurationParameterDefinition
         }
-
-        $parameters[$currentParameter['ReferenceName']] = $customParameters
     }
 
     return $parameters
@@ -583,7 +581,7 @@ function New-GuestConfigurationPolicyDefinitionPolicyRule
         $Parameter,
 
         [Parameter()]
-        [System.Collections.Hashtable[]]
+        [System.Collections.Hashtable]
         $Tag
     )
 
@@ -620,7 +618,7 @@ function New-GuestConfigurationPolicyRuleConditions
         $Platform,
 
         [Parameter()]
-        [System.Collections.Hashtable[]]
+        [System.Collections.Hashtable]
         $Tag
     )
 
@@ -660,22 +658,33 @@ function New-GuestConfigurationPolicyRuleTagConditions
     param
     (
         [Parameter()]
-        [System.Collections.Hashtable[]]
+        [System.Collections.Hashtable]
         $Tag
     )
 
     $tagConditionList = @()
 
-    foreach ($currentTag in $Tag)
+    foreach ($tagName in $Tag.Keys)
     {
         $tagConditionList += [Ordered]@{
-            field  = "tags['$($currentTag['Name'])']"
-            equals = $($currentTag['Value'])
+            field  = "tags['$tagName']"
+            equals = $($Tag[$tagName])
         }
     }
 
-    $tagConditions = [Ordered]@{
-        allOf = $tagConditionList
+    if ($tagConditionList.Count -eq 1)
+    {
+        $tagConditions = $tagConditionList[0]
+    }
+    elseif ($tagConditionList.Count -gt 1)
+    {
+        $tagConditions = [Ordered]@{
+            allOf = $tagConditionList
+        }
+    }
+    else
+    {
+        $tagConditions = $null
     }
 
     return $tagConditions
@@ -1029,28 +1038,25 @@ function Format-GuestConfigurationPolicyRuleVirtualMachineImageConditions
     }
 
     $policyRuleImageConditions = [Ordered]@{
-        anyOf = @(
-            $formattedImageConditions,
-            [Ordered]@{
-                allOf = @(
-                    [Ordered]@{
-                        anyOf = @(
-                            [Ordered]@{
-                                field = "Microsoft.Compute/virtualMachines/osProfile.{0}" -f $ImageConditions['UnknownImageConditions']['OSProfileFieldExists']
-                                exists = $true
-                            },
-                            [Ordered]@{
-                                field = 'Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType'
-                                like = $ImageConditions['UnknownImageConditions']['StorageProfileOSTypeLike']
-                            }
-                        )
-                    },
-                    [Ordered]@{
-                        anyOf = $unknownImageConditions
-                    }
-                )
-            }
-        )
+        anyOf = $formattedImageConditions + [Ordered]@{
+            allOf = @(
+                [Ordered]@{
+                    anyOf = @(
+                        [Ordered]@{
+                            field = "Microsoft.Compute/virtualMachines/osProfile.{0}" -f $ImageConditions['UnknownImageConditions']['OSProfileFieldExists']
+                            exists = $true
+                        },
+                        [Ordered]@{
+                            field = 'Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType'
+                            like = $ImageConditions['UnknownImageConditions']['StorageProfileOSTypeLike']
+                        }
+                    )
+                },
+                [Ordered]@{
+                    anyOf = $unknownImageConditions
+                }
+            )
+        }
     }
 
     return $policyRuleImageConditions
@@ -1110,8 +1116,6 @@ function Format-GuestConfigurationPolicyRuleVirtualMachineImageConditionEntry
         [ValidateNotNullOrEmpty()]
         $Value
     )
-
-    Write-Verbose -Message "Formatting key '$Key' and Value '$value'" -Verbose
 
     $validFields = @('SKU', 'Offer', 'Publisher')
 
@@ -1410,7 +1414,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateReso
         {
             $configurationParameters += [Ordered]@{
                 name = New-GuestConfigurationPolicyDefinitionParameterReferenceString -Parameter $currentParameter
-                value = "[parameters('$($currentParameter.ReferenceName)')]"
+                value = "[parameters('$($currentParameter.Name)')]"
             }
         }
 
@@ -1457,7 +1461,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplatePara
 
     foreach ($currentParameter in $Parameter)
     {
-        $referenceName = $currentParameter['ReferenceName']
+        $referenceName = $currentParameter['Name']
         $parametersDefinition[$referenceName] = [Ordered]@{
             type = 'string'
         }
@@ -1523,7 +1527,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentParametersDe
 
     foreach ($currentParameter in $Parameter)
     {
-        $referenceName = $currentParameter['ReferenceName']
+        $referenceName = $currentParameter['Name']
         $parametersDefinition[$referenceName] = [Ordered]@{
             value = "[parameters('$referenceName')]"
         }
@@ -1568,7 +1572,7 @@ function New-GuestConfigurationPolicyRuleGuestAssignmentName
         $ConfigurationName
     )
 
-    $guestAssignmentName = "[concat('{0}$pid', uniqueString(policy().assignmentId, policy().definitionReferenceId))]" -f $ConfigurationName
+    $guestAssignmentName = "[concat('{0}`$pid', uniqueString(policy().assignmentId, policy().definitionReferenceId))]" -f $ConfigurationName
     return $guestAssignmentName
 }
 
@@ -1652,27 +1656,7 @@ function Get-GuestConfigurationAssignmentParameterStringValue
         $Parameter
     )
 
-    if ($Parameter.ContainsKey('ConfigurationValue'))
-    {
-        $value = $Parameter['ConfigurationValue']
-        if ($value.StartsWith('[') -and $value.EndsWith(']'))
-        {
-            $assignmentParameterStringValue = $value.Substring(1, $value.Length - 2)
-        }
-        else
-        {
-            $assignmentParameterStringValue = "'$value'"
-        }
-    }
-    elseif ($Parameter.ContainsKey('ReferenceName'))
-    {
-        $assignmentParameterStringValue = "parameters('$($Parameter['ReferenceName'])')"
-    }
-    else
-    {
-        throw "Unable to determine the value to pass to Guest Configuration for the parameter '$($Parameter.DisplayName)'. Please provide ConfigurationValue or ReferenceName in the parameter specification."
-    }
-
+    $assignmentParameterStringValue = "parameters('$($Parameter['Name'])')"
     return $assignmentParameterStringValue
 }
 
@@ -1688,6 +1672,6 @@ function New-GuestConfigurationPolicyDefinitionParameterReferenceString
         $Parameter
     )
 
-    $parameterReferenceString = "$($Parameter['MofResourceReference']);$($Parameter['MofParameterName'])"
+    $parameterReferenceString = "[$($Parameter['ResourceType'])]$($Parameter['ResourceId']);$($Parameter['ResourcePropertyName'])"
     return $parameterReferenceString
 }

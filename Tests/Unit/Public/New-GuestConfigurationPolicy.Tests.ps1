@@ -14,732 +14,573 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
     ProjectName    = $projectName
     ImportedModule = $importedModule
 } {
-    function Assert-GuestConfigurationPolicyDefinitionFileValid
-    {
-        [CmdletBinding()]
-        param
-        (
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedFilePath,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedDisplayName,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedDescription,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedContentUri,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedContentHash,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedConfigurationName,
-
-            [Parameter(Mandatory = $true)]
-            [String]
-            $expectedConfigurationVersion
-        )
-
-        Test-Path -Path $expectedFilePath -PathType 'Leaf' | Should -BeTrue
-        $fileContent = Get-Content -Path $expectedFilePath -Raw
-        $fileContent | Should -Not -BeNullOrEmpty
-
-        $fileContentJson = $fileContent | ConvertFrom-Json
-        $fileContentJson | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties | Should -Not -BeNullOrEmpty
-
-        $fileContentJson.properties.displayName | Should -Be $expectedDisplayName
-        $fileContentJson.properties.description | Should -Be $expectedDescription
-        $fileContentJson.properties.policyType | Should -Be 'Custom'
-        $fileContentJson.properties.mode | Should -Be 'Indexed'
-
-        $fileContentJson.properties.metadata | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.metadata.version | Should -Be '1.0.0'
-        $fileContentJson.properties.metadata.category | Should -Be 'Guest Configuration'
-
-        $fileContentJson.properties.metadata.guestConfiguration | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.metadata.guestConfiguration.name | Should -Not -Be $expectedConfigurationName
-        $fileContentJson.properties.metadata.guestConfiguration.version | Should -Not -Be $expectedConfigurationVersion
-        $fileContentJson.properties.metadata.guestConfiguration.contentType | Should -Be 'Custom'
-        $fileContentJson.properties.metadata.guestConfiguration.contentUri | Should -Be $expectedContentUri
-        $fileContentJson.properties.metadata.guestConfiguration.contentHash | Should -Be $expectedContentHash
-        { $fileContentJson.properties.metadata.guestConfiguration.configurationParameter | Should -BeNullOrEmpty } | Should -Throw
-
-        $fileContentJson.properties.parameters | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.parameters.Count | Should -Be 1
-        $fileContentJson.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.parameters.IncludeArcMachines.type | Should -Be 'boolean'
-        $fileContentJson.properties.parameters.IncludeArcMachines.defaultValue | Should -Be $false
-        $fileContentJson.properties.parameters.IncludeArcMachines.metadata | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.parameters.IncludeArcMachines.metadata.displayName | Should -Be 'Include Arc connected machines'
-        $fileContentJson.properties.parameters.IncludeArcMachines.metadata.description | Should -Be 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
-
-        $fileContentJson.properties.policyRule | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.policyRule.if | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.policyRule.then | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.policyRule.then.effect | Should -Be 'auditIfNotExists'
-
-        $fileContentJson.properties.policyRule.then.details | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.policyRule.then.details.type | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments'
-        $fileContentJson.properties.policyRule.then.details.name | Should -Be $expectedConfigurationName
-        $fileContentJson.properties.policyRule.then.details.existenceCondition | Should -Not -BeNullOrEmpty
-        $fileContentJson.properties.policyRule.then.details.existenceCondition.field | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
-        $fileContentJson.properties.policyRule.then.details.existenceCondition.equals | Should -Be $true
-
-        { $null = [System.Guid]$fileContentJson.name } | Should -Not -Throw
-    }
-
     BeforeAll {
-        <#
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $testAINEOutputPathWindows = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/AINE_NO_PARAM'
-        $testAINEOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/AINE_NO_PARAM'
-        $testDINEOutputPathWindows = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/DINE_NO_PARAM'
-        $testDINEOutputPathLinux = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/DINE_NO_PARAM'
-
-        $testAINEOutputPathWindows_WithParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/AINE_PARAM'
-        $testAINEOutputPathLinux_WithParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/AINE_PARAM'
-        $testDINEOutputPathWindows_WithParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/DINE_PARAM'
-        $testDINEOutputPathLinux_WithParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/DINE_PARAM'
-
-        $testAINEOutputPathWindows_WithOneParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/AINE_PARAM_ONE'
-        $testAINEOutputPathLinux_WithOneParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/AINE_PARAM_ONE'
-        $testDINEOutputPathWindows_WithOneParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Windows/DINE_PARAM_ONE'
-        $testDINEOutputPathLinux_WithOneParam = Join-Path -Path $testOutputPath -ChildPath 'Policy/Linux/DINE_PARAM_ONE'
-
-        $currentDateString = Get-Date -Format "yyyy-MM-dd HH:mm"
-        $contentURI_MyFile = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
-        $contentURI_AuditWindowService = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-
-        $defaultAineFormatConfigParam_path = '[MyFile]createFoobarTestFile;path'
-        $defaultAineFormatConfigParam_content = '[MyFile]createFoobarTestFile;content'
-        $defaultAineFormatConfigParam_ensure = '[MyFile]createFoobarTestFile;ensure'
-
-        $policyID_Windows = [Guid]::NewGuid()
-        $policyID_Linux = [Guid]::NewGuid()
-        $foo_policyId = "foobar"
-
-        if ($IsWindows -or $PSVersionTable.PSVersion.Major -le 5)
-        {
-            $computerInfo = Get-ComputerInfo
-            $currentWindowsOSString = $computerInfo.WindowsProductName
-        }
-        else
-        {
-            $currentWindowsOSString = 'Non-Windows'
-        }
-
-        $defaultEnsure = 'Present'
-        $defaultPath = ' '
-        $defaultContent = 'foo_content'
-        $policyParameterInfo = @(
-            @{
-                Name = 'ensure'
-                DisplayName = 'Presence.'
-                Description = 'Whether or not the file is present.'
-                ResourceType = "MyFile"
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = 'ensure'
-                DefaultValue = $defaultEnsure
-                AllowedValues = @('Present','Absent')
-            },
-            @{
-                Name = 'path'
-                DisplayName = 'path'
-                Description = "Where file should be present."
-                ResourceType = "MyFile"
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = "path"
-                DefaultValue = $defaultPath
-            },
-            @{
-                Name = 'content'
-                DisplayName = 'Content.'
-                Description = "Where file should be present."
-                ResourceType = "MyFile"
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = 'content'
-                DefaultValue = $defaultContent
-            })
-
-        $singlePolicyParamInfo = @(
-            @{
-                Name = 'ensure'
-                DisplayName = 'Presence.'
-                Description = 'Whether or not the file is present.'
-                ResourceType = "MyFile"
-                ResourceId = 'createFoobarTestFile'
-                ResourcePropertyName = 'ensure'
-                DefaultValue = $defaultEnsure
-                AllowedValues = @('Present','Absent')
-            })
-
-        # AINE Parameters
-        $newGCPolicyAINEParametersWindows = @{
-            ContentUri  = $contentURI_AuditWindowService
-            DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = $testAINEOutputPathWindows
-            Version     = '1.0.0.0'
-            Platform    = 'Windows'
-            PolicyId    = $policyID_Windows
-        }
-
-        $newGCPolicyAINEParametersLinux = @{
-            ContentUri  = $contentURI_AuditWindowService
-            DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Linux path'
-            Path        = $testAINEOutputPathLinux
-            Version     = '1.0.0.0'
-            Platform    = 'Linux'
-            PolicyId    = $policyID_Linux
-        }
-
-        $newGCPolicyAINEParametersWindows_WithParam = @{
-            ContentUri  = $contentURI_MyFile
-            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = $testAINEOutputPathWindows_WithParam
-            Version     = '1.0.0.0'
-            Platform    = 'Windows'
-            PolicyId    = $policyID_Windows
-            Parameter   = $policyParameterInfo
-        }
-
-        $newGCPolicyAINEParametersLinux_WithParam = @{
-            ContentUri  = $contentURI_MyFile
-            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Linux path'
-            Path        = $testAINEOutputPathLinux_WithParam
-            Version     = '1.0.0.0'
-            Platform    = 'Linux'
-            PolicyId    = $policyID_Linux
-            Parameter   = $policyParameterInfo
-        }
-
-        # DINE Parameters
-        $newGCPolicyDINEParametersWindows = @{
-            ContentUri  = $contentURI_AuditWindowService
-            DisplayName = "[ModuleTestCI] Audit Windows Service - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = $testDINEOutputPathWindows
-            Version     = '1.0.0.0'
-            Platform    = 'Windows'
-            PolicyId    = $policyID_Windows
-            Mode        = 'ApplyAndMonitor'
-        }
-
-        $newGCPolicyDINEParametersLinux = @{
-            ContentUri  = $contentURI_AuditWindowService
-            DisplayName = "[ModuleTestCI] Audit Linux Path - Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Linux path'
-            Path        = $testDINEOutputPathLinux
-            Version     = '1.0.0.0'
-            Platform    = 'Linux'
-            PolicyId    = $policyID_Linux
-            Mode        = 'ApplyAndMonitor'
-        }
-
-        $newGCPolicyDINEParametersWindows_WithParam = @{
-            ContentUri  = $contentURI_MyFile
-            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Windows service'
-            Path        = $testDINEOutputPathWindows_WithParam
-            Version     = '1.0.0.0'
-            Platform    = 'Windows'
-            Mode        = 'ApplyAndMonitor'
-            PolicyId    = $policyID_Windows
-            Parameter   = $policyParameterInfo
-        }
-
-        $newGCPolicyDINEParametersLinux_WithParam = @{
-            ContentUri  = $contentURI_MyFile
-            DisplayName = "[ModuleTestCI] MyFile Date: $currentDateString OS: $currentWindowsOSString"
-            Description = 'Policy to audit a Linux path'
-            Path        = $testDINEOutputPathLinux_WithParam
-            Version     = '1.0.0.0'
-            Platform    = 'Linux'
-            Mode        = 'ApplyAndMonitor'
-            PolicyId    = $policyID_Linux
-            Parameter   = $policyParameterInfo
-        }
-        #>
-
-        $testPackageInfo = @{
-            ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
-            ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
-            ConfigurationName = 'MyFile'
-            ConfigurationVersion = '1.0.0'
-        }
-
         $gcModule = Get-Module -Name 'GuestConfiguration'
         $psm1Path = $gcModule.Path
         $gcModuleRootPath = Split-Path -Path $psm1Path -Parent
         $gcWorkerRoot = Join-Path -Path $gcModuleRootPath -ChildPath 'gcworker'
         $defaultDefinitionsPath = Join-Path -Path $gcWorkerRoot -ChildPath 'definitions'
+
+        function Assert-GuestConfigurationPolicyDefinitionFileValid
+        {
+            [CmdletBinding()]
+            param
+            (
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedFilePath,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedPolicyVersion,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedDisplayName,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedDescription,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedContentUri,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedContentHash,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedConfigurationName,
+
+                [Parameter(Mandatory = $true)]
+                [String]
+                $ExpectedConfigurationVersion,
+
+                [Parameter()]
+                [String]
+                $ExpectedMode = 'Audit',
+
+                [Parameter()]
+                [String]
+                $ExpectedPlatform = 'Windows',
+
+                [Parameter()]
+                [String]
+                $ExpectedPolicyId,
+
+                [Parameter()]
+                [Hashtable[]]
+                $ExpectedParameters = @(),
+
+                [Parameter()]
+                [Hashtable]
+                $ExpectedTags = @{}
+            )
+
+            $expectedMAFormatConfigurationName = "[concat('$ExpectedConfigurationName`$pid', uniqueString(policy().assignmentId, policy().definitionReferenceId))]"
+
+            Test-Path -Path $ExpectedFilePath -PathType 'Leaf' | Should -BeTrue
+            $fileContent = Get-Content -Path $ExpectedFilePath -Raw
+            $fileContent | Should -Not -BeNullOrEmpty
+
+            $fileContentJson = $fileContent | ConvertFrom-Json -Depth 100
+            $fileContentJson | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties | Should -Not -BeNullOrEmpty
+
+            $fileContentJson.properties.displayName | Should -Be $ExpectedDisplayName
+            $fileContentJson.properties.description | Should -Be $ExpectedDescription
+            $fileContentJson.properties.policyType | Should -Be 'Custom'
+            $fileContentJson.properties.mode | Should -Be 'Indexed'
+
+            $fileContentJson.properties.metadata | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.metadata.version | Should -Be $ExpectedPolicyVersion
+            $fileContentJson.properties.metadata.category | Should -Be 'Guest Configuration'
+
+            $fileContentJson.properties.metadata.guestConfiguration | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.metadata.guestConfiguration.name | Should -Be $ExpectedConfigurationName
+            $fileContentJson.properties.metadata.guestConfiguration.version | Should -Be $ExpectedConfigurationVersion
+            $fileContentJson.properties.metadata.guestConfiguration.contentType | Should -Be 'Custom'
+            $fileContentJson.properties.metadata.guestConfiguration.contentUri | Should -Be $ExpectedContentUri
+            $fileContentJson.properties.metadata.guestConfiguration.contentHash | Should -Be $ExpectedContentHash
+
+            $fileContentJson.properties.parameters | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.parameters.IncludeArcMachines.type | Should -Be 'boolean'
+            $fileContentJson.properties.parameters.IncludeArcMachines.defaultValue | Should -Be $false
+            $fileContentJson.properties.parameters.IncludeArcMachines.metadata | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.parameters.IncludeArcMachines.metadata.displayName | Should -Be 'Include Arc connected machines'
+            $fileContentJson.properties.parameters.IncludeArcMachines.metadata.description | Should -Be 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+
+            $fileContentJson.properties.policyRule | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.policyRule.if | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.policyRule.then | Should -Not -BeNullOrEmpty
+
+            $fileContentJson.properties.policyRule.then.details | Should -Not -BeNullOrEmpty
+            $fileContentJson.properties.policyRule.then.details.type | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments'
+            $fileContentJson.properties.policyRule.then.details.name | Should -Be $expectedMAFormatConfigurationName
+            $fileContentJson.properties.policyRule.then.details.existenceCondition | Should -Not -BeNullOrEmpty
+
+            { $null = [System.Guid]$fileContentJson.name } | Should -Not -Throw
+
+            if (-not [String]::IsNullOrEmpty($ExpectedPolicyId))
+            {
+                $fileContentJson.name | Should -Be $ExpectedPolicyId
+            }
+
+            # Parameters
+            if ($ExpectedParameters.Count -eq 0)
+            {
+                $fileContentJson.properties.metadata.guestConfiguration.configurationParameter | Should -BeNullOrEmpty
+
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.field | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.equals | Should -Be $true
+            }
+            else
+            {
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf | Should -Not -BeNullOrEmpty
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf.Count | Should -Be 2
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf[0].field | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus'
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf[0].equals | Should -Be $true
+
+                $parameterHashItems = @()
+
+                foreach ($parameter in $ExpectedParameters)
+                {
+                    $parameterName = $parameter['Name']
+
+                    $fileContentJson.properties.parameters.$parameterName | Should -Not -BeNullOrEmpty
+                    $fileContentJson.properties.parameters.$parameterName.type | Should -Be 'string'
+                    $fileContentJson.properties.parameters.$parameterName.metadata | Should -Not -BeNullOrEmpty
+                    $fileContentJson.properties.parameters.$parameterName.metadata.displayName | Should -Be $parameter['DisplayName']
+                    $fileContentJson.properties.parameters.$parameterName.metadata.description | Should -Be $parameter['Description']
+
+                    if ($parameter.ContainsKey('AllowedValues'))
+                    {
+                        $fileContentJson.properties.parameters.$parameterName.allowedValues | Should -Be $parameter['AllowedValues']
+                    }
+
+                    if ($parameter.ContainsKey('DefaultValue'))
+                    {
+                        $fileContentJson.properties.parameters.$parameterName.defaultValue | Should -Be $parameter['DefaultValue']
+                    }
+
+                    $resourceReferenceString = "[$($parameter['ResourceType'])]$($parameter['ResourceId']);$($parameter['ResourcePropertyName'])"
+                    $fileContentJson.properties.metadata.guestConfiguration.configurationParameter.$parameterName | Should -Not -BeNullOrEmpty $resourceReferenceString
+
+                    $parameterHashItems += "'$resourceReferenceString', '=', parameters('$parameterName')"
+                }
+
+                $parameterHashItemString = $parameterHashItems -join ", ',', "
+                $expectedParameterHashString = "[base64(concat($parameterHashItemString))]"
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf[1].field | Should -Be 'Microsoft.GuestConfiguration/guestConfigurationAssignments/parameterHash'
+                $fileContentJson.properties.policyRule.then.details.existenceCondition.allOf[1].equals | Should -Be $expectedParameterHashString
+            }
+
+            # Tags
+            if ($ExpectedTags.Keys.Count -eq 0)
+            {
+                $imageConditionList = $fileContentJson.properties.policyRule.if.anyOf
+            }
+            else
+            {
+                $fileContentJson.properties.policyRule.if.allOf | Should -Not -BeNullOrEmpty
+                $fileContentJson.properties.policyRule.if.allOf.Count | Should -Be 2
+
+                $imageConditionList = $fileContentJson.properties.policyRule.if.allOf[0].anyOf
+
+                if ($ExpectedTags.Keys.Count -gt 1)
+                {
+                    $tagList = $fileContentJson.properties.policyRule.if.allOf[1].allOf
+                }
+                else
+                {
+                    $tagList = @( $fileContentJson.properties.policyRule.if.allOf[1] )
+                }
+
+                $tagList | Should -Not -BeNullOrEmpty
+                $tagList.Count | Should -Be $ExpectedTags.Keys.Count
+
+                foreach ($expectedTagName in $ExpectedTags.Keys)
+                {
+                    $matchingField = $tagList | Where-Object { $_.field -eq "tags['$expectedTagName']" }
+                    $matchingField | Should -Not -BeNullOrEmpty
+                    $matchingField.equals | Should -Be $ExpectedTags[$expectedTagName]
+                }
+            }
+
+            $imageConditionList | Should -Not -BeNullOrEmpty
+            $imageConditionList.Count | Should -Be 2
+
+            $imageConditionList[0] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf.Count | Should -Be 2
+
+            # Compute section
+            $imageConditionList[0].allOf[0] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[0].field | Should -Be 'type'
+            $imageConditionList[0].allOf[0].equals | Should -Be 'Microsoft.Compute/virtualMachines'
+
+            $imageConditionList[0].allOf[1] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf.Count | Should -BeGreaterThan 2
+
+            $imageConditionList[0].allOf[1].anyOf[0].field | Should -Be 'Microsoft.Compute/imagePublisher'
+            $imageConditionList[0].allOf[1].anyOf[0].in | Should -Not -BeNullOrEmpty
+
+            $imageConditionList[0].allOf[1].anyOf[-1] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf.Count | Should -Be 2
+
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf.Count | Should -Be 2
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[0].field | Should -Be "Microsoft.Compute/virtualMachines/osProfile.$($ExpectedPlatform.ToLower())Configuration"
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[0].exists | Should -Be $true
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[1].field | Should -Be "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[1].like | Should -Be "$ExpectedPlatform*"
+
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf.Count | Should -Be 2
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[0].field.StartsWith("Microsoft.Compute/image") | Should -BeTrue
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[0].exists | Should -Be $false
+            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[1] | Should -Not -BeNullOrEmpty
+
+            # Hybrid section
+            $imageConditionList[1].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[1].allOf.Count | Should -Be 2
+            $imageConditionList[1].allOf[0].value | Should -Be "[parameters('IncludeArcMachines')]"
+            $imageConditionList[1].allOf[0].equals | Should -Be $true
+            $imageConditionList[1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[1].allOf[1].anyOf.Count | Should -Be 2
+
+            $imageConditionList[1].allOf[1].anyOf[0].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[1].allOf[1].anyOf[0].allOf.Count | Should -Be 2
+            $imageConditionList[1].allOf[1].anyOf[0].allOf[0].field | Should -Be 'type'
+            $imageConditionList[1].allOf[1].anyOf[0].allOf[0].equals | Should -Be 'Microsoft.HybridCompute/machines'
+            $imageConditionList[1].allOf[1].anyOf[0].allOf[1].field | Should -Be 'Microsoft.HybridCompute/imageOffer'
+            $imageConditionList[1].allOf[1].anyOf[0].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+
+            $imageConditionList[1].allOf[1].anyOf[1].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[1].allOf[1].anyOf[1].allOf.Count | Should -Be 2
+            $imageConditionList[1].allOf[1].anyOf[1].allOf[0].field | Should -Be 'type'
+            $imageConditionList[1].allOf[1].anyOf[1].allOf[0].equals | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines'
+            $imageConditionList[1].allOf[1].anyOf[1].allOf[1].field | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines/osProfile.osType'
+            $imageConditionList[1].allOf[1].anyOf[1].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+
+            # Set
+            if ($ExpectedMode -ieq 'Audit')
+            {
+                $fileContentJson.properties.policyRule.then.effect | Should -Be 'auditIfNotExists'
+            }
+            else
+            {
+                $fileContentJson.properties.policyRule.then.effect | Should -Be 'deployIfNotExists'
+                $fileContentJson.properties.policyRule.then.details.deployment | Should -Not -BeNullOrEmpty
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.mode | Should -Be 'incremental'
+                $fileContentJson.properties.policyRule.then.details.deployment.parameters.vmName.value | Should -Be "[field('name')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.parameters.location.value | Should -Be "[field('location')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.parameters.type.value | Should -Be "[field('type')]"
+
+                $fileContentJson.properties.policyRule.then.details.deployment.template.'$schema' | Should -Be 'https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#'
+                $fileContentJson.properties.policyRule.then.details.deployment.template.contentVersion | Should -Be '1.0.0.0'
+
+                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.vmName.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.location.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.type.type | Should -Be 'string'
+
+                foreach ($parameter in $ExpectedParameters)
+                {
+                    $parameterName = $parameter['Name']
+                    $fileContentJson.properties.policyRule.then.details.deployment.parameters.$parameterName | Should -Be "[parameters('$parameterName')]"
+                    $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.$parameterName.type | Should -Be 'string'
+                }
+
+                $fileContentJson.properties.policyRule.then.details.deployment.template.resources.Count | Should -Be 2
+
+                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[0].condition | Should -Be "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[0].type | Should -Be "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments"
+
+                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[1].condition | Should -Be "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
+                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[1].type | Should -Be "Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments"
+
+                foreach ($deploymentResource in $fileContentJson.properties.policyRule.then.details.deployment.template.resources)
+                {
+                    $deploymentResource.apiVersion | Should -Be "2018-11-20"
+                    $deploymentResource.name | Should -Be "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', '$ExpectedConfigurationName')]"
+                    $deploymentResource.location | Should -Be "[parameters('location')]"
+
+                    $deploymentResource.properties.guestConfiguration.name | Should -Be $ExpectedConfigurationName
+                    $deploymentResource.properties.guestConfiguration.version | Should -Be $ExpectedConfigurationVersion
+                    $deploymentResource.properties.guestConfiguration.assignmentType | Should -Be $ExpectedMode
+
+                    if ($ExpectedParameters.Count -gt 0)
+                    {
+                        $deploymentResource.properties.guestConfiguration.configurationParameter | Should -Not -BeNullOrEmpty
+                        $deploymentResource.properties.guestConfiguration.configurationParameter.Count | Should -Be $ExpectedParameters.Count
+
+                        foreach ($parameter in $ExpectedParameters)
+                        {
+                            $parameterName = $parameter['Name']
+                            $resourceReferenceString = "[$($parameter['ResourceType'])]$($parameter['ResourceId']);$($parameter['ResourcePropertyName'])"
+
+                            $resourceParameter = $deploymentResource.properties.guestConfiguration.configurationParameter | Where-Object { $_.value -eq "[parameters('$parameterName')]" }
+                            $resourceParameter | Should -Not -BeNullOrEmpty
+                            $resourceParameter.name | Should -Be $resourceReferenceString
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    # Windows AINE No parameters
-
-    # Windows AINE 1 parameter
-
-    # Windows AINE 2 parameters
-
-    # Windows DINE No parameters
-
-    # Windows DINE 1 parameter
-
-    # Windows DINE 2 parameters
-
-    # Linux AINE No parameters
-
-    # Linux AINE 1 parameter
-
-    # Linux AINE 2 parameters
-
-    # Linux DINE No parameters
-
-    # Linux DINE 1 parameter
-
-    # Linux DINE 2 parameters
-
-    # Windows Tags
-
-    # Linux Tags
-
-    # Update policy
-
-    Context 'Windows' {
-        BeforeAll {
-            $newPolicyParameters = @{
-                DisplayName = 'Windows Test Policy'
-                Description = 'This is a test policy on Windows.'
-                ContentUri = $testPackageInfo.ContentUri
+    # Test Data
+    BeforeDiscovery {
+        $policiesToTest = @(
+            @{
+                Platform = @('Windows', 'Linux')
+                DisplayName = 'MyFile Test Policy'
+                Description = 'This is a test policy for the MyFile package.'
+                ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
+                ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
+                ConfigurationName = 'MyFile'
+                ConfigurationVersion = '1.0.0'
+                ParameterSets = @(
+                    @(
+                        @{
+                            Name = 'FilePath'
+                            DisplayName = 'File Path'
+                            Description = 'A file path'
+                            ResourceType = 'MyFile'
+                            ResourceId = 'createFoobarTestFile'
+                            ResourcePropertyName = 'Path'
+                        }
+                    ),
+                    @(
+                        @{
+                            Name = 'FilePath'
+                            DisplayName = 'File Path'
+                            Description = 'A file path'
+                            ResourceType = 'MyFile'
+                            ResourceId = 'createFoobarTestFile'
+                            ResourcePropertyName = 'Path'
+                        },
+                        @{
+                            Name = 'FileState'
+                            DisplayName = 'File State'
+                            Description = 'Whether the file should be present or absent'
+                            ResourceType = 'MyFile'
+                            ResourceId = 'createFoobarTestFile'
+                            ResourcePropertyName = 'ensure'
+                            AllowedValues = @('Present', 'Absent')
+                            DefaultValue = 'Present'
+                        }
+                    )
+                )
+            },
+            @{
+                Platform = @('Windows')
+                DisplayName = 'Windows Service Test Policy'
+                Description = 'This is a test policy for the Windows Service package.'
+                ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+                ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+                ConfigurationName = 'AuditWindowsService'
+                ConfigurationVersion = '1.0.0'
+                ParameterSets = @(
+                    @(
+                        @{
+                            Name = 'ServiceName'
+                            DisplayName = 'Service Name'
+                            Description = 'A service name'
+                            ResourceType = 'Service'
+                            ResourceId = 'windowsService'
+                            ResourcePropertyName = 'Name'
+                        }
+                    ),
+                    @(
+                        @{
+                            Name = 'ServiceName'
+                            DisplayName = 'Service Name'
+                            Description = 'A service name'
+                            ResourceType = 'Service'
+                            ResourceId = 'windowsService'
+                            ResourcePropertyName = 'Name'
+                        },
+                        @{
+                            Name = 'ServiceState'
+                            DisplayName = 'Service State'
+                            Description = 'A service state'
+                            ResourceType = 'Service'
+                            ResourceId = 'windowsService'
+                            ResourcePropertyName = 'State'
+                            AllowedValues = @('Running', 'Stopped', 'Disabled')
+                            DefaultValue = 'Running'
+                        }
+                    )
+                )
             }
-        }
+        )
+    }
 
-        Context 'Default parameter values' {
+    Context '<DisplayName>' -ForEach $policiesToTest {
+        Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and -not $IsWindows) {
             BeforeAll {
-                $expectedFileName = '{0}_AuditIfNotExists.json' -f $testPackageInfo.ConfigurationName
-                $assertionParameters = @{
-                    expectedFilePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $expectedFileName
-                    expectedDisplayName = $newPolicyParameters.DisplayName
-                    expectedDescription = $newPolicyParameters.Description
-                    expectedContentUri = $newPolicyParameters.ContentUri
-                    expectedContentHash = $testPackageInfo.ContentHash
-                    expectedConfigurationName = $testPackageInfo.ConfigurationName
-                    expectedConfigurationVersion = $testPackageInfo.ConfigurationVersion
+                $platformString = $_
+
+                # Required Parameters
+                $basePolicyParameters = @{
+                    DisplayName = $DisplayName
+                    Description = $Description
+                    ContentUri = $ContentUri
+                }
+
+                $expectedFileName = '{0}_AuditIfNotExists.json' -f $ConfigurationName
+
+                $baseAssertionParameters = @{
+                    ExpectedDisplayName = $DisplayName
+                    ExpectedPolicyVersion = '1.0.0'
+                    ExpectedDescription = $Description
+                    ExpectedContentUri = $ContentUri
+                    ExpectedContentHash = $ContentHash
+                    ExpectedConfigurationName = $ConfigurationName
+                    ExpectedConfigurationVersion = $ConfigurationVersion
+                    ExpectedFilePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $expectedFileName
+                }
+
+                if ($platformString -ine 'Windows')
+                {
+                    $basePolicyParameters['Platform'] = $platformString
+                    $baseAssertionParameters['ExpectedPlatform'] = $platformString
                 }
             }
-            # Create the policy
-            It 'Should return the expected result object' {
-                $result = New-GuestConfigurationPolicy @newPolicyParameters
-                $result | Should -Not -BeNull
-                $result.Name | Should -Be $assertionParameters.expectedConfigurationName
-                $result.Path | Should -Be $assertionParameters.expectedFilePath
-                $result.PolicyId | Should -Not -BeNullOrEmpty
-                $result.PolicyId.GetType().Name | Should -Be 'Guid'
-            }
 
-            It 'Should have created expected policy definition file' {
-                Assert-GuestConfigurationPolicyDefinitionFileValid @assertionParameters
-            }
-        }
-
-        Context 'Monitor/AINE' -Skip {
-            BeforeAll {
-                $newPolicyParameters += @{
-                    Mode = 'Audit'
-                }
-            }
-
-            Context 'No parameters' {
-                # Create the policy
+            # Default Parameters
+            Context 'Default parameters' {
                 It 'Should return the expected result object' {
-                    $result = New-GuestConfigurationPolicy @newPolicyParameters
+                    $result = New-GuestConfigurationPolicy @basePolicyParameters
+
+                    $result | Should -Not -BeNull
+
+                    $result.Name | Should -Be $baseAssertionParameters.ExpectedConfigurationName
+                    $result.Path | Should -Be $baseAssertionParameters.ExpectedFilePath
+
+                    $result.PolicyId | Should -Not -BeNullOrEmpty
+                    $result.PolicyId.GetType().Name | Should -Be 'Guid'
+                }
+
+                It 'Should have created the expected policy definition file' {
+                    Assert-GuestConfigurationPolicyDefinitionFileValid @baseAssertionParameters
                 }
             }
-        }
 
-        Context 'Set/DINE' -Skip {
+            Context '<Mode>' -ForEach @(
+                @{ Mode = 'Audit' },
+                @{ Mode = 'ApplyAndMonitor' },
+                @{ Mode = 'ApplyAndAutoCorrect' }
+            ) {
+                BeforeAll {
+                    $basePolicyParameters['Mode'] = $Mode
+                    $baseAssertionParameters['ExpectedMode'] = $Mode
 
-        }
-    }
+                    if ($Mode -ieq 'Audit')
+                    {
+                        $expectedFileName = '{0}_AuditIfNotExists.json' -f $ConfigurationName
+                    }
+                    else
+                    {
+                        $expectedFileName = '{0}_DeployIfNotExists.json' -f $ConfigurationName
+                    }
 
-    Context 'Linux' -Skip {
-        Context 'Monitor/AINE' -Skip {
+                    $baseAssertionParameters['ExpectedFilePath'] = Join-Path -Path $defaultDefinitionsPath -ChildPath $expectedFileName
+                }
 
-        }
+                # Parameter Sets
+                Context '<_.Count> parameters' -ForEach $ParameterSets {
+                    BeforeAll {
+                        $newPolicyParameters = $basePolicyParameters + @{
+                            Parameter = $_
+                        }
 
-        Context 'Set/DINE' -Skip {
+                        $assertionParameters = $baseAssertionParameters + @{
+                            ExpectedParameters = $_
+                        }
+                    }
 
-        }
-    }
+                    It 'Should return the expected result object' {
+                        $result = New-GuestConfigurationPolicy @newPolicyParameters
 
-    Context 'Old tests' -Skip {
-        # AINE Tests - No Parameters
-        It 'New-GuestConfigurationPolicy should output path to generated policies with no parameters with more than one parameter' {
-            $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows
-            $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
+                        $result | Should -Not -BeNull
 
-            $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyAINEParametersLinux
-            $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
-        }
+                        $result.Name | Should -Be $assertionParameters.ExpectedConfigurationName
+                        $result.Path | Should -Be $assertionParameters.ExpectedFilePath
 
-        It 'Generated Audit policy file should exist with no parameters' {
-            $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileWindows | Should -BeTrue
+                        $result.PolicyId | Should -Not -BeNullOrEmpty
+                        $result.PolicyId.GetType().Name | Should -Be 'Guid'
+                    }
 
-            $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileLinux | Should -BeTrue
-        }
+                    It 'Should have created the expected policy definition file' {
+                        Assert-GuestConfigurationPolicyDefinitionFileValid @assertionParameters
+                    }
+                }
 
-        It 'Audit policy with no parameters should contain expected content' {
-            $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentWindows.properties.displayName.Contains($newGCPolicyAINEParametersWindows.DisplayName) | Should -BeTrue
-            $auditPolicyContentWindows.properties.description.Contains($newGCPolicyAINEParametersWindows.Description) | Should -BeTrue
-            $auditPolicyContentWindows.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentWindows.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
-            $auditPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $auditPolicyContentWindows.name | Should -Be $policyID_Windows
+                # Optional Parameters
+                Context 'Optional parameters: <OptionalParameters.Keys>' -ForEach @(
+                    @{ OptionalParameters = @{ PolicyId = [Guid]::NewGuid() }},
+                    @{ OptionalParameters = @{ Path = './relativepath' }},
+                    @{ OptionalParameters = @{ Path = './path with spaces' }},
+                    @{ OptionalParameters = @{ Version = '1.1.0' }},
+                    @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond' } }},
+                    @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond'; County = 'King' } }},
+                    @{ OptionalParameters = @{
+                        PolicyId = [Guid]::NewGuid()
+                        Path = './path with spaces'
+                        Version = '1.1.0'
+                        Tag = @{ Location = 'Redmond'; County = 'King'}
+                    }}
+                ) {
+                    BeforeAll {
+                        $newPolicyParameters = $basePolicyParameters + $OptionalParameters
+                        $assertionParameters = $baseAssertionParameters.Clone()
 
-            $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentLinux.properties.displayName.Contains($newGCPolicyAINEParametersLinux.DisplayName) | Should -BeTrue
-            $auditPolicyContentLinux.properties.description.Contains($newGCPolicyAINEParametersLinux.Description) | Should -BeTrue
-            $auditPolicyContentLinux.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentLinux.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
-            $auditPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $auditPolicyContentLinux.name | Should -Be $policyID_Linux
-        }
+                        if ($OptionalParameters.ContainsKey('PolicyId'))
+                        {
+                            $assertionParameters['ExpectedPolicyId'] = $OptionalParameters['PolicyId']
+                        }
 
-        # AINE - With more than one parameter
-        It 'New-GuestConfigurationPolicy should output path to generated policies' {
-            $newGCPolicyResultWindows_WithParam = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows_WithParam
-            $newGCPolicyResultWindows_WithParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows_WithParam.Path | Should -BeTrue
+                        if ($OptionalParameters.ContainsKey('Path'))
+                        {
+                            $filePath = Join-Path -Path $OptionalParameters['Path'] -ChildPath $expectedFileName
+                            $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath)
+                        }
 
-            $newGCPolicyResultLinux_WithParam = New-GuestConfigurationPolicy @newGCPolicyAINEParametersLinux_WithParam
-            $newGCPolicyResultLinux_WithParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux_WithParam.Path | Should -BeTrue
-        }
+                        if ($OptionalParameters.ContainsKey('Version'))
+                        {
+                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['Version']
+                        }
 
-        It 'Generated Audit policy file should exist with more than one parameter' {
-            $auditPolicyFileWindows_WithParam = Join-Path -Path $testAINEOutputPathWindows_WithParam -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileWindows_WithParam | Should -BeTrue
+                        if ($OptionalParameters.ContainsKey('Tag'))
+                        {
+                            $assertionParameters['ExpectedTags'] = $OptionalParameters['Tag']
+                        }
+                    }
 
-            $auditPolicyFileLinux_WithParam = Join-Path -Path $testAINEOutputPathLinux_WithParam -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileLinux_WithParam | Should -BeTrue
-        }
+                    It 'Should return the expected result object' {
+                        $result = New-GuestConfigurationPolicy @newPolicyParameters
 
-        It 'Audit policy with more than one parameter should contain expected content' {
-            $auditPolicyFileWindows_WithParam = Join-Path -Path $testAINEOutputPathWindows_WithParam -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentWindows_WithParam = Get-Content $auditPolicyFileWindows_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentWindows_WithParam.properties.displayName.Contains($newGCPolicyAINEParametersWindows_WithParam.DisplayName) | Should -BeTrue
-            $auditPolicyContentWindows_WithParam.properties.description.Contains($newGCPolicyAINEParametersWindows_WithParam.Description) | Should -BeTrue
-            $auditPolicyContentWindows_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentWindows_WithParam.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $auditPolicyContentWindows_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $auditPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $auditPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
-            $auditPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-            $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
-            $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $auditPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
-            $auditPolicyContentWindows_WithParam.name | Should -Be $policyID_Windows
+                        $result | Should -Not -BeNull
 
-            $auditPolicyFileLinux_WithParam = Join-Path -Path $testAINEOutputPathLinux_WithParam -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentLinux_WithParam = Get-Content $auditPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentLinux_WithParam.properties.displayName.Contains($newGCPolicyAINEParametersLinux_WithParam.DisplayName) | Should -BeTrue
-            $auditPolicyContentLinux_WithParam.properties.description.Contains($newGCPolicyAINEParametersLinux_WithParam.Description) | Should -BeTrue
-            $auditPolicyContentLinux_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentLinux_WithParam.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $auditPolicyContentLinux_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $auditPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $auditPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
-            $auditPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-            $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
-            $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $auditPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
-            $auditPolicyContentLinux_WithParam.name | Should -Be $policyID_Linux
-        }
+                        $result.Name | Should -Be $assertionParameters.ExpectedConfigurationName
+                        $result.Path | Should -Be $assertionParameters.ExpectedFilePath
 
+                        $result.PolicyId | Should -Not -BeNullOrEmpty
+                        $result.PolicyId.GetType().Name | Should -Be 'Guid'
+                    }
 
-        # AINE - With only one parameter
-        It 'New-GuestConfigurationPolicy should output path to generated policies with only one parameter' {
-            # Modify object to only have one parameter
-            $newGCPolicyAINEParametersWindows_WithParam.Parameter = $singlePolicyParamInfo
-            $newGCPolicyAINEParametersLinux_WithParam.Parameter = $singlePolicyParamInfo
-            $newGCPolicyAINEParametersWindows_WithParam.Path = $testAINEOutputPathWindows_WithOneParam
-            $newGCPolicyAINEParametersLinux_WithParam.Path = $testAINEOutputPathLinux_WithOneParam
-
-            $newGCPolicyResultWindows_WithOneParam = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows_WithParam
-            $newGCPolicyResultWindows_WithOneParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows_WithOneParam.Path | Should -BeTrue
-
-            $newGCPolicyResultLinux_WithOneParam = New-GuestConfigurationPolicy @newGCPolicyAINEParametersLinux_WithParam
-            $newGCPolicyResultLinux_WithOneParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux_WithOneParam.Path | Should -BeTrue
-        }
-
-        It 'Generated Audit policy file should exist with only one parameter' {
-            $auditPolicyFileWindows_WithOneParam = Join-Path -Path $testAINEOutputPathWindows_WithOneParam -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileWindows_WithOneParam | Should -BeTrue
-
-            $auditPolicyFileLinux_WithOneParam = Join-Path -Path $testAINEOutputPathLinux_WithOneParam -ChildPath 'AuditIfNotExists.json'
-            Test-Path -Path $auditPolicyFileLinux_WithOneParam | Should -BeTrue
-        }
-
-        It 'Audit policy with only one parameter should contain expected content' {
-            $auditPolicyFileWindows_WithOneParam = Join-Path -Path $testAINEOutputPathWindows_WithOneParam -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentWindows_WithOneParam = Get-Content $auditPolicyFileWindows_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentWindows_WithOneParam.properties.displayName.Contains($newGCPolicyAINEParametersWindows_WithParam.DisplayName) | Should -BeTrue
-            $auditPolicyContentWindows_WithOneParam.properties.description.Contains($newGCPolicyAINEParametersWindows_WithParam.Description) | Should -BeTrue
-            $auditPolicyContentWindows_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentWindows_WithOneParam.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $auditPolicyContentWindows_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $auditPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $auditPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
-            $auditPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
-            $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
-            $auditPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
-            $auditPolicyContentWindows_WithOneParam.name | Should -Be $policyID_Windows
-
-            $auditPolicyFileLinux_WithOneParam = Join-Path -Path $testAINEOutputPathLinux_WithOneParam -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentLinux_WithOneParam = Get-Content $auditPolicyFileLinux_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentLinux_WithOneParam.properties.displayName.Contains($newGCPolicyAINEParametersLinux_WithParam.DisplayName) | Should -BeTrue
-            $auditPolicyContentLinux_WithOneParam.properties.description.Contains($newGCPolicyAINEParametersLinux_WithParam.Description) | Should -BeTrue
-            $auditPolicyContentLinux_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $auditPolicyContentLinux_WithOneParam.properties.policyType | Should -Be 'Custom'
-            $auditPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $auditPolicyContentLinux_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $auditPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $auditPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
-            $auditPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
-            $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
-            $auditPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
-            $auditPolicyContentLinux_WithOneParam.name | Should -Be $policyID_Linux
-        }
-
-        # DINE Tests - no parameters
-        It 'New-GuestConfigurationPolicy -Type ApplyAndMonitor should output path to generated policies with no parameters' {
-            $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows
-            $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
-
-            $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyDINEParametersLinux
-            $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
-        }
-
-        It 'Generated Deploy policy file should exist with no parameters' {
-            $deployPolicyFileWindows = Join-Path -Path $testDINEOutputPathWindows -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileWindows | Should -BeTrue
-
-            $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileLinux | Should -BeTrue
-        }
-
-        It 'Deploy policy with no parameters should contain expected content' {
-            $deployPolicyFileWindows = Join-Path -Path $testDINEOutputPathWindows -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentWindows = Get-Content $deployPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentWindows.properties.displayName.Contains($newGCPolicyDINEParametersWindows.DisplayName) | Should -BeTrue
-            $deployPolicyContentWindows.properties.description.Contains($newGCPolicyDINEParametersWindows.Description) | Should -BeTrue
-            $deployPolicyContentWindows.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentWindows.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentWindows.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
-            $deployPolicyContentWindows.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $deployPolicyContentWindows.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentWindows.name | Should -Be $policyID_Windows
-
-            $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentLinux.properties.displayName.Contains($newGCPolicyDINEParametersLinux.DisplayName) | Should -BeTrue
-            $deployPolicyContentLinux.properties.description.Contains($newGCPolicyDINEParametersLinux.Description) | Should -BeTrue
-            $deployPolicyContentLinux.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentLinux.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentLinux.properties.policyRule.then.details.name | Should -Be 'AuditWindowsService'
-            $deployPolicyContentLinux.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $deployPolicyContentLinux.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentLinux.name | Should -Be $policyID_Linux
-        }
-
-        # DINE Tests - With more than one parameter
-        It 'New-GuestConfigurationPolicy -Type ApplyAndMonitor should output path to generated policies with more than one parameter' {
-            $newGCPolicyResultWindows_WithParam = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows_WithParam
-            $newGCPolicyResultWindows_WithParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows_WithParam.Path | Should -BeTrue
-
-            $newGCPolicyResultLinux_WithParam = New-GuestConfigurationPolicy @newGCPolicyDINEParametersLinux_WithParam
-            $newGCPolicyResultLinux_WithParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux_WithParam.Path | Should -BeTrue
-        }
-
-        It 'Generated Deploy policy file should exist with more than one parameter' {
-            $deployPolicyFileWindows_WithParam = Join-Path -Path $testDINEOutputPathWindows_WithParam -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileWindows_WithParam | Should -BeTrue
-
-            $deployPolicyFileLinux_WithParam = Join-Path -Path $testDINEOutputPathLinux_WithParam -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileLinux_WithParam | Should -BeTrue
-        }
-
-        It 'Deploy policy with more than one parameter should contain expected content' {
-            $deployPolicyFileWindows_WithParam = Join-Path -Path $testDINEOutputPathWindows_WithParam -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentWindows_WithParam = Get-Content $deployPolicyFileWindows_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentWindows_WithParam.properties.displayName.Contains($newGCPolicyDINEParametersWindows_WithParam.DisplayName) | Should -BeTrue
-            $deployPolicyContentWindows_WithParam.properties.description.Contains($newGCPolicyDINEParametersWindows_WithParam.Description) | Should -BeTrue
-            $deployPolicyContentWindows_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentWindows_WithParam.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $deployPolicyContentWindows_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $deployPolicyContentWindows_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentWindows_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $deployPolicyContentWindows_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
-            $deployPolicyContentWindows_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-            $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
-            $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $deployPolicyContentWindows_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
-            $deployPolicyContentWindows_WithParam.name | Should -Be $policyID_Windows
-
-            $deployPolicyFileLinux_WithParam = Join-Path -Path $testDINEOutputPathLinux_WithParam -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentLinux_WithParam = Get-Content $deployPolicyFileLinux_WithParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentLinux_WithParam.properties.displayName.Contains($newGCPolicyDINEParametersLinux_WithParam.DisplayName) | Should -BeTrue
-            $deployPolicyContentLinux_WithParam.properties.description.Contains($newGCPolicyDINEParametersLinux_WithParam.Description) | Should -BeTrue
-            $deployPolicyContentLinux_WithParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentLinux_WithParam.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $deployPolicyContentLinux_WithParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $deployPolicyContentLinux_WithParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentLinux_WithParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $deployPolicyContentLinux_WithParam.properties.parameters.path.defaultValue | Should -Be $defaultPath
-            $deployPolicyContentLinux_WithParam.properties.parameters.content.defaultValue | Should -Be $defaultContent
-            $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $defaultAineFormatConfigParam_content
-            $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $deployPolicyContentLinux_WithParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $defaultAineFormatConfigParam_path
-            $deployPolicyContentLinux_WithParam.name | Should -Be $policyID_Linux
-        }
-
-        # DINE Tests - With only one parameter
-        It 'New-GuestConfigurationPolicy -Type ApplyAndMonitor should output path to generated policies for only one parameter' {
-            # Modify object to only have one parameter
-            $newGCPolicyDINEParametersWindows_WithParam.Parameter = $singlePolicyParamInfo
-            $newGCPolicyDINEParametersLinux_WithParam.Parameter = $singlePolicyParamInfo
-            $newGCPolicyDINEParametersWindows_WithParam.Path = $testDINEOutputPathWindows_WithOneParam
-            $newGCPolicyDINEParametersLinux_WithParam.Path = $testDINEOutputPathLinux_WithOneParam
-
-            # Create policy
-            $newGCPolicyResultWindows_WithOneParam = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows_WithParam
-            $newGCPolicyResultWindows_WithOneParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows_WithOneParam.Path | Should -BeTrue
-
-            $newGCPolicyResultLinux_WithOneParam = New-GuestConfigurationPolicy @newGCPolicyDINEParametersLinux_WithParam
-            $newGCPolicyResultLinux_WithOneParam.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux_WithOneParam.Path | Should -BeTrue
-        }
-
-        It 'Generated Deploy policy file with one param should exist for only one parameter' {
-            $deployPolicyFileWindows_WithOneParam = Join-Path -Path $testDINEOutputPathWindows_WithOneParam -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileWindows_WithOneParam | Should -BeTrue
-
-            $deployPolicyFileLinux_WithOneParam = Join-Path -Path $testDINEOutputPathLinux_WithOneParam -ChildPath 'DeployIfNotExists.json'
-            Test-Path -Path $deployPolicyFileLinux_WithOneParam | Should -BeTrue
-        }
-
-        It 'Deploy policy with only one parameter should contain expected content ' {
-            $deployPolicyFileWindows_WithOneParam = Join-Path -Path $testDINEOutputPathWindows_WithOneParam -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentWindows_WithOneParam = Get-Content $deployPolicyFileWindows_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentWindows_WithOneParam.properties.displayName.Contains($newGCPolicyDINEParametersWindows_WithParam.DisplayName) | Should -BeTrue
-            $deployPolicyContentWindows_WithOneParam.properties.description.Contains($newGCPolicyDINEParametersWindows_WithParam.Description) | Should -BeTrue
-            $deployPolicyContentWindows_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentWindows_WithOneParam.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $deployPolicyContentWindows_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'MicrosoftWindowsServer'
-            $deployPolicyContentWindows_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentWindows_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $deployPolicyContentWindows_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
-            $deployPolicyContentWindows_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
-            $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
-            $deployPolicyContentWindows_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
-            $deployPolicyContentWindows_WithOneParam.name | Should -Be $policyID_Windows
-
-
-            $deployPolicyFileLinux_WithOneParam = Join-Path -Path $testDINEOutputPathLinux_WithOneParam -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentLinux_WithOneParam = Get-Content $deployPolicyFileLinux_WithOneParam | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentLinux_WithOneParam.properties.displayName.Contains($newGCPolicyDINEParametersLinux_WithParam.DisplayName) | Should -BeTrue
-            $deployPolicyContentLinux_WithOneParam.properties.description.Contains($newGCPolicyDINEParametersLinux_WithParam.Description) | Should -BeTrue
-            $deployPolicyContentLinux_WithOneParam.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $deployPolicyContentLinux_WithOneParam.properties.policyType | Should -Be 'Custom'
-            $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.name | Should -Be 'MyFile'
-            $deployPolicyContentLinux_WithOneParam.properties.policyRule.if.anyOf.allOf[1].anyOf[1].allOf | Where-Object field -eq 'Microsoft.Compute/imagePublisher' | ForEach-Object 'equals' | Should -Be 'OpenLogic'
-            $deployPolicyContentLinux_WithOneParam.properties.policyRule.then.details.deployment.properties.template.resources[0].properties.guestConfiguration.configurationParameter.GetType().BaseType.Name | Should -Be 'Array'
-            $deployPolicyContentLinux_WithOneParam.properties.parameters.ensure.defaultValue | Should -Be $defaultEnsure
-            $deployPolicyContentLinux_WithOneParam.properties.parameters.path.defaultValue | Should -Be $null
-            $deployPolicyContentLinux_WithOneParam.properties.parameters.content.defaultValue | Should -Be $null
-            $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.ensure | Should -Be $defaultAineFormatConfigParam_ensure
-            $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.path | Should -Be $null
-            $deployPolicyContentLinux_WithOneParam.properties.metadata.guestConfiguration.configurationParameter.content | Should -Be $null
-            $deployPolicyContentLinux_WithOneParam.name | Should -Be $policyID_Linux
-        }
-
-
-        # PolicyID Tests
-        It 'New-GuestConfigurationPolicy with random policyID should still generate - AINE' {
-            $newGCPolicyAINEParametersWindows.PolicyId = $foo_policyId
-            $newGCPolicyAINEParametersLinux.PolicyId = $foo_policyId
-
-            $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyAINEParametersWindows
-            $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
-            $auditPolicyFileWindows = Join-Path -Path $testAINEOutputPathWindows -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentWindows = Get-Content $auditPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentWindows.name | Should -Be $foo_policyId
-
-            $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyAINEParametersLinux
-            $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
-            $auditPolicyFileLinux = Join-Path -Path $testAINEOutputPathLinux -ChildPath 'AuditIfNotExists.json'
-            $auditPolicyContentLinux = Get-Content $auditPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
-            $auditPolicyContentLinux.name | Should -Be $foo_policyId
-        }
-
-        It 'New-GuestConfigurationPolicy with random policyID should still generate - DINE' {
-            $newGCPolicyDINEParametersWindows.PolicyId = $foo_policyId
-            $newGCPolicyDINEParametersLinux.PolicyId = $foo_policyId
-
-            $newGCPolicyResultWindows = New-GuestConfigurationPolicy @newGCPolicyDINEParametersWindows
-            $newGCPolicyResultWindows.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultWindows.Path | Should -BeTrue
-            $deployPolicyFileWindows = Join-Path -Path $testDINEOutputPathWindows -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentWindows = Get-Content $deployPolicyFileWindows | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentWindows.name | Should -Be $foo_policyId
-
-
-            $newGCPolicyResultLinux = New-GuestConfigurationPolicy @newGCPolicyDINEParametersLinux
-            $newGCPolicyResultLinux.Path | Should -Not -BeNullOrEmpty
-            Test-Path -Path $newGCPolicyResultLinux.Path | Should -BeTrue
-            $deployPolicyFileLinux = Join-Path -Path $testDINEOutputPathLinux -ChildPath 'DeployIfNotExists.json'
-            $deployPolicyContentLinux = Get-Content $deployPolicyFileLinux | ConvertFrom-Json | ForEach-Object { $_ }
-            $deployPolicyContentLinux.name | Should -Be $foo_policyId
+                    It 'Should have created the expected policy definition file' {
+                        Assert-GuestConfigurationPolicyDefinitionFileValid @assertionParameters
+                    }
+                }
+            }
         }
     }
 }

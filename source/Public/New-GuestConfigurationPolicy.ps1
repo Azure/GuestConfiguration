@@ -265,7 +265,8 @@ function New-GuestConfigurationPolicy
         $Path = Join-Path -Path $gcWorkerPath -ChildPath 'definitions'
     }
 
-    $Path = [System.IO.Path]::GetFullPath($Path)
+    $currentLocation = Get-Location
+    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
 
     if (-not (Test-Path -Path $Path))
     {
@@ -307,7 +308,6 @@ function New-GuestConfigurationPolicy
     $policyDefinitionContent = New-GuestConfigurationPolicyDefinitionContent @policyDefinitionContentParameters
 
     # Convert definition hashtable to JSON
-    # TODO: Fix too many slashes in description?
     $policyDefinitionContentJson = ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100
     $formattedPolicyDefinitionContentJson = Format-PolicyDefinitionJson -Json $policyDefinitionContentJson
 
@@ -1310,7 +1310,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentDefinition
     }
     $parametersDefinition = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentParametersDefinition @newParametersDefinitionParameters
 
-    $template = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplate -ConfigurationName $ConfigurationName -AssignmentType $AssignmentType -Parameter $Parameter
+    $template = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplate @PSBoundParameters
 
     $deploymentDefinition = [Ordered]@{
         properties = [Ordered]@{
@@ -1334,9 +1334,21 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplate
         $ConfigurationName,
 
         [Parameter(Mandatory = $true)]
+        [String]
+        $ConfigurationVersion,
+
+        [Parameter(Mandatory = $true)]
         [ValidateSet('ApplyAndMonitor', 'ApplyAndAutoCorrect')]
         [String]
         $AssignmentType,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ContentUri,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ContentHash,
 
         [Parameter()]
         [Hashtable[]]
@@ -1345,24 +1357,19 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplate
 
     $parametersDefinition = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateParametersDefinition -Parameter $Parameter
 
-    $newTemplateResourcesParameters = @{
-        AssignmentType = $AssignmentType
-        Parameter = $Parameter
-    }
-
-    $hybridMachineReference = 'Microsoft.HybridCompute/machines'
     $virtualMachineReference = 'Microsoft.Compute/virtualMachines'
+    $hybridMachineReference = 'Microsoft.HybridCompute/machines'
 
-    $hybridMachineTemplate = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateResources -MachineReference $hybridMachineReference @newTemplateResourcesParameters
-    $virtualMachineTemplate  = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateResources -MachineReference $virtualMachineReference @newTemplateResourcesParameters
+    $virtualMachineTemplate  = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateResources -MachineReference $virtualMachineReference @PSBoundParameters
+    $hybridMachineTemplate = New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateResources -MachineReference $hybridMachineReference @PSBoundParameters
 
     $template = [Ordered]@{
         '$schema' = 'https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#'
         contentVersion = '1.0.0.0'
         parameters = $parametersDefinition
         resources = @(
-            $hybridMachineTemplate,
-            $virtualMachineTemplate
+            $virtualMachineTemplate,
+            $hybridMachineTemplate
         )
     }
 
@@ -1380,9 +1387,25 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateReso
         $MachineReference,
 
         [Parameter(Mandatory = $true)]
+        [String]
+        $ConfigurationName,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ConfigurationVersion,
+
+        [Parameter(Mandatory = $true)]
         [ValidateSet('ApplyAndMonitor', 'ApplyAndAutoCorrect')]
         [String]
         $AssignmentType,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ContentUri,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $ContentHash,
 
         [Parameter()]
         [Hashtable[]]
@@ -1393,15 +1416,16 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplateReso
         condition = "[equals(toLower(parameters('type')), toLower('$MachineReference'))]"
         apiVersion = '2018-11-20'
         type = "$MachineReference/providers/guestConfigurationAssignments"
-        name = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('configurationName'))]"
+        name = "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]"
         location = "[parameters('location')]"
         properties = [Ordered]@{
             guestConfiguration = [Ordered]@{
-                name = "[parameters('configurationName')]"
-                contentUri = "[parameters('contentUri')]"
-                contentHash = "[parameters('contentHash')]"
-                version = "[parameters('configurationVersion')]"
+                name = $ConfigurationName
+                version = $ConfigurationVersion
                 assignmentType = $AssignmentType
+                contentUri = $ContentUri
+                contentHash = $ContentHash
+                contentType = 'Custom'
             }
         }
     }
@@ -1445,7 +1469,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentTemplatePara
         type = [Ordered]@{
             type = 'string'
         }
-        configurationName = [Ordered]@{
+        assignmentName = [Ordered]@{
             type = 'string'
         }
         contentUri = [Ordered]@{
@@ -1511,7 +1535,7 @@ function New-GuestConfigurationPolicyRuleActionDINEDetailsDeploymentParametersDe
         type = [Ordered]@{
             value = "[field('type')]"
         }
-        configurationName = [Ordered]@{
+        assignmentName = [Ordered]@{
             value = New-GuestConfigurationPolicyRuleGuestAssignmentName -ConfigurationName $ConfigurationName
         }
         contentUri = [Ordered]@{

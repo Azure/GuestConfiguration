@@ -9,12 +9,18 @@ BeforeDiscovery {
     $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
 }
 
-Describe 'New-GuestConfigurationPolicy' -ForEach @{
-    ProjectPath    = $projectPath
-    ProjectName    = $projectName
-    ImportedModule = $importedModule
-} {
+Describe 'New-GuestConfigurationPolicy' {
     BeforeAll {
+        $script:testDriveCreated = $false
+        # Pester is intermittently not creating the test drive path :(
+        if (-not (Test-Path -Path $TestDrive))
+        {
+            $null = New-Item -Path $TestDrive -ItemType 'Directory' -Force
+            $script:testDriveCreated = $true
+        }
+
+        Push-Location -Path $TestDrive
+
         $gcModule = Get-Module -Name 'GuestConfiguration'
         $psm1Path = $gcModule.Path
         $gcModuleRootPath = Split-Path -Path $psm1Path -Parent
@@ -276,43 +282,50 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
             else
             {
                 $fileContentJson.properties.policyRule.then.effect | Should -Be 'deployIfNotExists'
+                $fileContentJson.properties.policyRule.then.details.roleDefinitionIds.Count | Should -Be 1
+                $fileContentJson.properties.policyRule.then.details.roleDefinitionIds[0] | Should -Be '/providers/Microsoft.Authorization/roleDefinitions/088ab73d-1256-47ae-bea9-9de8e7131f31'
                 $fileContentJson.properties.policyRule.then.details.deployment | Should -Not -BeNullOrEmpty
                 $fileContentJson.properties.policyRule.then.details.deployment.properties.mode | Should -Be 'incremental'
-                $fileContentJson.properties.policyRule.then.details.deployment.parameters.vmName.value | Should -Be "[field('name')]"
-                $fileContentJson.properties.policyRule.then.details.deployment.parameters.location.value | Should -Be "[field('location')]"
-                $fileContentJson.properties.policyRule.then.details.deployment.parameters.type.value | Should -Be "[field('type')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.parameters.vmName.value | Should -Be "[field('name')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.parameters.location.value | Should -Be "[field('location')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.parameters.type.value | Should -Be "[field('type')]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.parameters.assignmentName.value | Should -Be  $expectedMAFormatConfigurationName
 
-                $fileContentJson.properties.policyRule.then.details.deployment.template.'$schema' | Should -Be 'https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#'
-                $fileContentJson.properties.policyRule.then.details.deployment.template.contentVersion | Should -Be '1.0.0.0'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.'$schema' | Should -Be 'https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.contentVersion | Should -Be '1.0.0.0'
 
-                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.vmName.type | Should -Be 'string'
-                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.location.type | Should -Be 'string'
-                $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.type.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.vmName.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.location.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.type.type | Should -Be 'string'
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.assignmentName.type | Should -Be 'string'
 
                 foreach ($parameter in $ExpectedParameters)
                 {
                     $parameterName = $parameter['Name']
-                    $fileContentJson.properties.policyRule.then.details.deployment.parameters.$parameterName | Should -Be "[parameters('$parameterName')]"
-                    $fileContentJson.properties.policyRule.then.details.deployment.template.parameters.$parameterName.type | Should -Be 'string'
+                    $fileContentJson.properties.policyRule.then.details.deployment.properties.parameters.$parameterName.value | Should -Be "[parameters('$parameterName')]"
+                    $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.$parameterName.type | Should -Be 'string'
                 }
 
-                $fileContentJson.properties.policyRule.then.details.deployment.template.resources.Count | Should -Be 2
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources.Count | Should -Be 2
 
-                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[0].condition | Should -Be "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
-                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[0].type | Should -Be "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[0].condition | Should -Be "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[0].type | Should -Be "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments"
 
-                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[1].condition | Should -Be "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
-                $fileContentJson.properties.policyRule.then.details.deployment.template.resources[1].type | Should -Be "Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[1].condition | Should -Be "[equals(toLower(parameters('type')), toLower('microsoft.hybridcompute/machines'))]"
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[1].type | Should -Be "Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments"
 
-                foreach ($deploymentResource in $fileContentJson.properties.policyRule.then.details.deployment.template.resources)
+                foreach ($deploymentResource in $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources)
                 {
                     $deploymentResource.apiVersion | Should -Be "2018-11-20"
-                    $deploymentResource.name | Should -Be "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', '$ExpectedConfigurationName')]"
+                    $deploymentResource.name | Should -Be "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]"
                     $deploymentResource.location | Should -Be "[parameters('location')]"
 
                     $deploymentResource.properties.guestConfiguration.name | Should -Be $ExpectedConfigurationName
                     $deploymentResource.properties.guestConfiguration.version | Should -Be $ExpectedConfigurationVersion
                     $deploymentResource.properties.guestConfiguration.assignmentType | Should -Be $ExpectedMode
+                    $deploymentResource.properties.guestConfiguration.contentType | Should -Be 'Custom'
+                    $deploymentResource.properties.guestConfiguration.contentUri | Should -Be $ExpectedContentUri
+                    $deploymentResource.properties.guestConfiguration.contentHash | Should -Be $ExpectedContentHash
 
                     if ($ExpectedParameters.Count -gt 0)
                     {
@@ -334,95 +347,99 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
         }
     }
 
-    # Test Data
-    BeforeDiscovery {
-        $policiesToTest = @(
-            @{
-                Platform = @('Windows', 'Linux')
-                DisplayName = 'MyFile Test Policy'
-                Description = 'This is a test policy for the MyFile package.'
-                ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
-                ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
-                ConfigurationName = 'MyFile'
-                ConfigurationVersion = '1.0.0'
-                ParameterSets = @(
-                    @(
-                        @{
-                            Name = 'FilePath'
-                            DisplayName = 'File Path'
-                            Description = 'A file path'
-                            ResourceType = 'MyFile'
-                            ResourceId = 'createFoobarTestFile'
-                            ResourcePropertyName = 'Path'
-                        }
-                    ),
-                    @(
-                        @{
-                            Name = 'FilePath'
-                            DisplayName = 'File Path'
-                            Description = 'A file path'
-                            ResourceType = 'MyFile'
-                            ResourceId = 'createFoobarTestFile'
-                            ResourcePropertyName = 'Path'
-                        },
-                        @{
-                            Name = 'FileState'
-                            DisplayName = 'File State'
-                            Description = 'Whether the file should be present or absent'
-                            ResourceType = 'MyFile'
-                            ResourceId = 'createFoobarTestFile'
-                            ResourcePropertyName = 'ensure'
-                            AllowedValues = @('Present', 'Absent')
-                            DefaultValue = 'Present'
-                        }
-                    )
-                )
-            },
-            @{
-                Platform = @('Windows')
-                DisplayName = 'Windows Service Test Policy'
-                Description = 'This is a test policy for the Windows Service package.'
-                ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
-                ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
-                ConfigurationName = 'AuditWindowsService'
-                ConfigurationVersion = '1.0.0'
-                ParameterSets = @(
-                    @(
-                        @{
-                            Name = 'ServiceName'
-                            DisplayName = 'Service Name'
-                            Description = 'A service name'
-                            ResourceType = 'Service'
-                            ResourceId = 'windowsService'
-                            ResourcePropertyName = 'Name'
-                        }
-                    ),
-                    @(
-                        @{
-                            Name = 'ServiceName'
-                            DisplayName = 'Service Name'
-                            Description = 'A service name'
-                            ResourceType = 'Service'
-                            ResourceId = 'windowsService'
-                            ResourcePropertyName = 'Name'
-                        },
-                        @{
-                            Name = 'ServiceState'
-                            DisplayName = 'Service State'
-                            Description = 'A service state'
-                            ResourceType = 'Service'
-                            ResourceId = 'windowsService'
-                            ResourcePropertyName = 'State'
-                            AllowedValues = @('Running', 'Stopped', 'Disabled')
-                            DefaultValue = 'Running'
-                        }
-                    )
-                )
-            }
-        )
+    AfterAll {
+        Pop-Location
+
+        if ($script:testDriveCreated)
+        {
+            $null = Remove-Item -Path $TestDrive -Recurse
+        }
     }
 
-    Context '<DisplayName>' -ForEach $policiesToTest {
+    Context '<DisplayName>' -ForEach @(
+        @{
+            Platform = @('Windows', 'Linux')
+            DisplayName = 'MyFile Test Policy'
+            Description = 'This is a test policy for the MyFile package at C:/pretend/path/here or \more\slashes\path'
+            ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
+            ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
+            ConfigurationName = 'MyFile'
+            ConfigurationVersion = '1.0.0'
+            ParameterSets = @(
+                @(
+                    @{
+                        Name = 'FilePath'
+                        DisplayName = 'File Path'
+                        Description = 'A file path'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'Path'
+                    }
+                ),
+                @(
+                    @{
+                        Name = 'FilePath'
+                        DisplayName = 'File Path'
+                        Description = 'A file path'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'Path'
+                    },
+                    @{
+                        Name = 'FileState'
+                        DisplayName = 'File State'
+                        Description = 'Whether the file should be present or absent'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'ensure'
+                        AllowedValues = @('Present', 'Absent')
+                        DefaultValue = 'Present'
+                    }
+                )
+            )
+        },
+        @{
+            Platform = @('Windows')
+            DisplayName = 'Windows Service Test Policy'
+            Description = 'This is a test policy for the Windows Service package.'
+            ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
+            ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
+            ConfigurationName = 'AuditWindowsService'
+            ConfigurationVersion = '1.0.0'
+            ParameterSets = @(
+                @(
+                    @{
+                        Name = 'ServiceName'
+                        DisplayName = 'Service Name'
+                        Description = 'A service name'
+                        ResourceType = 'Service'
+                        ResourceId = 'windowsService'
+                        ResourcePropertyName = 'Name'
+                    }
+                ),
+                @(
+                    @{
+                        Name = 'ServiceName'
+                        DisplayName = 'Service Name'
+                        Description = 'A service name'
+                        ResourceType = 'Service'
+                        ResourceId = 'windowsService'
+                        ResourcePropertyName = 'Name'
+                    },
+                    @{
+                        Name = 'ServiceState'
+                        DisplayName = 'Service State'
+                        Description = 'A service state'
+                        ResourceType = 'Service'
+                        ResourceId = 'windowsService'
+                        ResourcePropertyName = 'State'
+                        AllowedValues = @('Running', 'Stopped', 'Disabled')
+                        DefaultValue = 'Running'
+                    }
+                )
+            )
+        }
+    ) {
         Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and -not $IsWindows) {
             BeforeAll {
                 $platformString = $_
@@ -549,7 +566,13 @@ Describe 'New-GuestConfigurationPolicy' -ForEach @{
 
                         if ($OptionalParameters.ContainsKey('Path'))
                         {
-                            $filePath = Join-Path -Path $OptionalParameters['Path'] -ChildPath $expectedFileName
+                            $optionalPath = $OptionalParameters['Path']
+                            if ($optionalPath.StartsWith('.'))
+                            {
+                                $optionalPath = Join-Path -Path $TestDrive -ChildPath $optionalPath
+                            }
+
+                            $filePath = Join-Path -Path $optionalPath -ChildPath $expectedFileName
                             $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath)
                         }
 

@@ -1,0 +1,87 @@
+{
+    "effect": "deployIfNotExists",
+    "details": {
+        "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/088ab73d-1256-47ae-bea9-9de8e7131f31"
+        ],
+        "type": "Microsoft.GuestConfiguration/guestConfigurationAssignments",
+        "name": "<REPLACE>",
+        "existenceCondition": {
+            "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
+            "equals": "Compliant"
+        },
+        "deployment": {
+            "properties": {
+                "mode": "incremental",
+                "parameters": {
+                    "vmName": {
+                        "value": "[field('name')]"
+                    },
+                    "location": {
+                        "value": "[field('location')]"
+                    },
+                    "type": {
+                        "value": "[field('type')]"
+                    },
+                    "assignmentName": {
+                        "value": "<REPLACE>"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "vmName": {
+                            "type": "string"
+                        },
+                        "location": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        },
+                        "assignmentName": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]",
+                            "apiVersion": "2018-11-20",
+                            "type": "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments",
+                            "name": "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "guestConfiguration": {
+                                    "name": "<REPLACE>",
+                                    "version": "<REPLACE>",
+                                    "assignmentType": "<REPLACE>",
+                                    "contentUri": "<REPLACE>",
+                                    "contentHash": "<REPLACE>",
+                                    "contentType": "Custom"
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.HybridCompute/machines'))]",
+                            "apiVersion": "2018-11-20",
+                            "type": "Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments",
+                            "name": "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "guestConfiguration": {
+                                    "name": "<REPLACE>",
+                                    "version": "<REPLACE>",
+                                    "assignmentType": "<REPLACE>",
+                                    "contentUri": "<REPLACE>",
+                                    "contentHash": "<REPLACE>",
+                                    "contentType": "Custom"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "effect": "auditIfNotExists",
+    "details": {
+        "type": "Microsoft.GuestConfiguration/guestConfigurationAssignments",
+        "name": "<REPLACE>",
+        "existenceCondition": {
+            "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
+            "equals": "Compliant"
+        }
+    }
+}

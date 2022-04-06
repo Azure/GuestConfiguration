@@ -103,17 +103,19 @@ function New-GuestConfigurationPackage
 
     Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
 
-    $Configuration = [System.IO.Path]::GetFullPath($Configuration)
-    $Path = [System.IO.Path]::GetFullPath($Path)
+    $currentLocation = Get-Location
+
+    $Configuration = [System.IO.Path]::GetFullPath($Configuration, $currentLocation)
+    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
 
     if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
     {
-        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath)
+        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath, $currentLocation)
     }
 
     if (-not [String]::IsNullOrEmpty($FilesToInclude))
     {
-        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude)
+        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude, $currentLocation)
     }
 
     #-----VALIDATION-----

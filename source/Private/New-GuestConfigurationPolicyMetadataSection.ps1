@@ -5,6 +5,19 @@ function New-GuestConfigurationPolicyMetadataSection
     param
     (
         [Parameter(Mandatory = $true)]
+        [String]
+        $DisplayName,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $Description,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [String]
+        $PolicyVersion,
+
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]
         $ConfigurationName,
@@ -29,7 +42,15 @@ function New-GuestConfigurationPolicyMetadataSection
         $Parameter
     )
 
-    $guestConfigurationMetadata = [Ordered]@{
+    $templateFileName = '1-Metadata.json'
+    $propertiesSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
+
+    $propertiesSection.displayName = $DisplayName
+    $propertiesSection.description = $Description
+
+    $propertiesSection.metadata.version = $PolicyVersion
+
+    $propertiesSection.metadata.guestConfiguration = [Ordered]@{
         name = $ConfigurationName
         version = $ConfigurationVersion
         contentType = 'Custom'
@@ -39,15 +60,16 @@ function New-GuestConfigurationPolicyMetadataSection
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)
     {
-        $guestConfigurationMetadata['configurationParameter'] = @()
+        $propertiesSection.metadata.guestConfiguration.configurationParameter = [Ordered]@{}
 
         foreach ($currentParameter in $Parameter)
         {
-            $guestConfigurationMetadata['configurationParameter'] += [Ordered]@{
-                $currentParameter['Name'] = New-GuestConfigurationPolicyParameterReferenceString -Parameter $currentParameter
-            }
+            $parameterName = $currentParameter['Name']
+            $parameterReferenceString = New-GuestConfigurationPolicyParameterReferenceString -Parameter $currentParameter
+
+            $propertiesSection.metadata.guestConfiguration.configurationParameter.$parameterName = $parameterReferenceString
         }
     }
 
-    return $guestConfigurationMetadata
+    return $propertiesSection
 }

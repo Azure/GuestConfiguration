@@ -17,7 +17,7 @@ function New-GuestConfigurationPolicyParametersSection
     foreach ($currentParameter in $Parameter)
     {
         $parameterName = $currentParameter['Name']
-        $parametersSection.$parameterName = [Ordered]@{
+        $parametersSection.parameters.$parameterName = [Ordered]@{
             type = 'string'
             metadata = [Ordered]@{
                 displayName = $currentParameter['DisplayName']
@@ -27,10 +27,10 @@ function New-GuestConfigurationPolicyParametersSection
 
         foreach ($optionalField in $optionalFields)
         {
-            $fieldName = $optionalField.Substring(0, 1).ToLower() + $optionalField.Substring(1)
             if ($currentParameter.ContainsKey($optionalField))
             {
-                $parametersSection.$parameterName.$fieldName = $currentParameter[$optionalField]
+                $fieldName = $optionalField.Substring(0, 1).ToLower() + $optionalField.Substring(1)
+                $parametersSection.parameters.$parameterName.$fieldName = $currentParameter[$optionalField]
             }
         }
     }

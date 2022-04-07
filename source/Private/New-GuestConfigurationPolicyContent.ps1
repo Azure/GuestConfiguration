@@ -67,7 +67,7 @@ function New-GuestConfigurationPolicyContent
         Parameter = $Parameter
     }
 
-    $metadataSection = New-GuestConfigurationPolicyPropertiesSection @metadataSectionParameters
+    $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
 
     $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
 

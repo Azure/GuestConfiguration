@@ -46,23 +46,37 @@ function New-GuestConfigurationPolicySetActionSection
     {
         $parameterName = $currentParameter['Name']
         $setActionSection.details.deployment.properties.parameters.$parameterName = [Ordered]@{
-            value = "[parameter('$parameterName')]"
+            value = "[parameters('$parameterName')]"
         }
         $setActionSection.details.deployment.properties.template.parameters.$parameterName = [Ordered]@{
             type = "string"
         }
     }
 
-    $guestConfigruationMetadataSectionParameters = @{
-        ConfigurationName = $ConfigurationName
-        ConfigurationVersion = $ConfigurationVersion
-        ContentUri = $ContentUri
-        ContentHash = $ContentHash
-        Parameter = $Parameter
+    $guestConfigMetadataSection = [Ordered]@{
+        name = $ConfigurationName
+        version = $ConfigurationVersion
+        contentType = 'Custom'
+        contentUri = $ContentUri
+        contentHash = $ContentHash
+        assignmentType = $AssignmentType
     }
 
-    $guestConfigMetadataSection = New-GuestConfigurationPolicyMetadataSection @guestConfigruationMetadataSectionParameters
-    $guestConfigMetadataSection['assignmentType'] = $AssignmentType
+    if ($null -ne $Parameter -and $Parameter.Count -gt 0)
+    {
+        $guestConfigMetadataSection.configurationParameter = @()
+
+        foreach ($currentParameter in $Parameter)
+        {
+            $parameterName = $currentParameter['Name']
+            $parameterReferenceString = New-GuestConfigurationPolicyParameterReferenceString -Parameter $currentParameter
+
+            $guestConfigMetadataSection.configurationParameter += [Ordered]@{
+                name = $parameterReferenceString
+                value = "[parameters('$parameterName')]"
+            }
+        }
+    }
 
     $setActionSection.details.deployment.properties.template.resources[0].properties.guestConfiguration = $guestConfigMetadataSection
     $setActionSection.details.deployment.properties.template.resources[1].properties.guestConfiguration = $guestConfigMetadataSection

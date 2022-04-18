@@ -5,6 +5,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0-preview0004] - 2022-04-18
+
+### Added
+
+- Lots of test updates. Added new tests with Script resource.
+
+### Changed
+
+- Refactored the New-GuestConfigurationPolicy cmdlet
+  - Removed the GuestConfigPolicy "submodule"
+  - Added policy definition templates for easier updates
+  - Includes new multiple assignments naming format
+  - Updated images
+  - Stabilizing Set policies
+
+### Fixed
+
+- Fixed bug in Test-GuestConfigurationPackage/Get-GuestConfigurationPackageComplianceStatus in which the package path was not getting quoted causing a problem with spaces in the path.
+- Fixed the FrequencyMinutes parameter of New-GuestConfigurationPackage
+
+
+## [4.0.0-preview0003] - 2022-01-12
+
+### Changed
+
+- Update Test-GuestConfigurationPackage/Get-GuestConfigurationCompliance status to run completely within the module path instead of using Guest Configuration system paths that overlap with any Guest Configuration agent running on the system
+- Completely remove any old package folders before re-creating/updating the package via New-GuestConfiguraitonPackage
+
+## [4.0.0-preview0002] - 2021-11-24
+
+### Changed
+
 - New-GuestConfigurationPackage
   - Change to file type parameters instead of strings
   - Resolve all path parameters to full paths
@@ -14,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.0.0-preview0001] - 2021-11-24
 
-- Remove experimental Pester resource
+### Changed
+
 - Rewrite of New-GuestConfigurationPackage
   - Remove extra folder level created under Path
   - Remove any existing working folder before updating package
@@ -26,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validate module dependencies
   - Add nested module dependencies to package
   - Update tests
+
+### Removed
+
+- Remove experimental Pester resource
 
 ## [3.5.3]
 

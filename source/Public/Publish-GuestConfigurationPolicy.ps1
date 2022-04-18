@@ -27,22 +27,8 @@ function Publish-GuestConfigurationPolicy
     $rmContext = Get-AzContext
     Write-Verbose -Message "Publishing Guest Configuration policy using '$($rmContext.Name)' AzContext."
 
-    # Publish policies
-    $currentFiles = @(Get-ChildItem $Path | Where-Object -FilterScript {
-        $_.name -like "DeployIfNotExists.json" -or $_.name -like "AuditIfNotExists.json"
-    })
-
-    if ($currentFiles.Count -eq 0)
-    {
-        throw "No valid AuditIfNotExists.json or DeployIfNotExists.json files found at $Path"
-    }
-    elseif ($currentFiles.Count -gt 1)
-    {
-        throw "More than one valid json found at $Path"
-    }
-
-    $policyFile = $currentFiles[0]
-    $jsonDefinition = Get-Content -Path $policyFile | ConvertFrom-Json | ForEach-Object { $_ }
+    # Publish policy
+    $jsonDefinition = Get-Content -Path $Path | ConvertFrom-Json | ForEach-Object { $_ }
     $definitionContent = $jsonDefinition.Properties
 
     $newAzureRmPolicyDefinitionParameters = @{

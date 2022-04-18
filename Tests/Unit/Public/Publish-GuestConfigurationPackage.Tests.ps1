@@ -18,6 +18,7 @@ Describe 'Publish-GuestConfigurationPackage' -ForEach @{
     BeforeAll {
         # test Assets path
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
+        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
         # folder with the test pester file
         $pesterScriptsAsset = Join-Path -Path $testAssetsPath -ChildPath 'pesterScripts'
         # test drive output folder
@@ -28,7 +29,7 @@ Describe 'Publish-GuestConfigurationPackage' -ForEach @{
         $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
         $randomString = (get-date).ticks.tostring().Substring(12)
 
-        $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+        $mofPath = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
         $policyName = 'testPolicy'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
     }

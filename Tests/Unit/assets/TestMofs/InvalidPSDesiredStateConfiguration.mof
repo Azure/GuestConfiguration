@@ -1,0 +1,20 @@
+instance of WindowsPackageCab as $WindowsPackageCab1ref
+{
+    ModuleName = "PsDesiredStateConfiguration";
+    ResourceID = "[WindowsPackageCab]MyWindowsPackageCab";
+    SourceInfo = "::7::9::WindowsPackageCab";
+    ModuleVersion = "2.5.0";
+    ConfigurationName = "InvalidWindowsPackageCab";
+    Name = "PackageName";
+    Ensure = "Present";
+    SourcePath = "NotARealSourcePath";
+    LogPath = "NotARealLogPath";
+};
+
+instance of OMI_ConfigurationDocument
+{
+    Version="1.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+    Name="InvalidWindowsPackageCab";
+};

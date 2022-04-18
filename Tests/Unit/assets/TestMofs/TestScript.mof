@@ -13,7 +13,7 @@ ModuleVersion = "2.12.0.0";
  ResourceID = "[Script]MyTestScript";
  SourceInfo = "C:\\Users\\kakeim\\Clones\\GuestConfiguration\\Tests\\Unit\\assets\\TestConfigs\\TestScriptConfig.ps1::5::9::Script";
  TestScript = " return (Test-Path -Path 'C:\\Test-GC-Folder') ";
- GetScript = "\n                $fileExists = Test-Path -Path 'C:\\Test-GC-Folder'\n                return @{\n                    Path = 'C:\\Test-GC-Folder'\n                }\n            ";
+ GetScript = "\n                $fileExists = Test-Path -Path 'C:\\Test-GC-Folder'\n                return @{}\n";
 
  ConfigurationName = "TestScriptConfig";
 

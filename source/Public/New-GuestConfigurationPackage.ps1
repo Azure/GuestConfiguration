@@ -120,6 +120,11 @@ function New-GuestConfigurationPackage
 
     #-----VALIDATION-----
 
+    if ($FrequencyMinutes -lt 15)
+    {
+        throw "FrequencyMinutes must be 15 or greater. Guest Configuration cannot run packages more frequently than every 15 minutes."
+    }
+
     # Validate mof
     if (-not (Test-Path -Path $Configuration -PathType 'Leaf'))
     {
@@ -307,6 +312,11 @@ function New-GuestConfigurationPackage
     $metaconfig = @{
         Type = $Type
         Version = $Version
+    }
+
+    if ($FrequencyMinutes -gt 15)
+    {
+        $metaconfig['configurationModeFrequencyMins'] = $FrequencyMinutes
     }
 
     $metaconfigJson = $metaconfig | ConvertTo-Json

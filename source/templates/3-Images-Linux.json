@@ -136,7 +136,7 @@
                                     "anyOf": [
                                         {
                                             "field": "Microsoft.Compute/virtualMachines/osProfile.linuxConfiguration",
-                                            "exists": "true"
+                                            "exists": true
                                         },
                                         {
                                             "field": "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType",
@@ -148,7 +148,7 @@
                                     "anyOf": [
                                         {
                                             "field": "Microsoft.Compute/imagePublisher",
-                                            "exists": "false"
+                                            "exists": false
                                         },
                                         {
                                             "field": "Microsoft.Compute/imagePublisher",
@@ -179,7 +179,7 @@
             "allOf": [
                 {
                     "value": "[parameters('IncludeArcMachines')]",
-                    "equals": "true"
+                    "equals": true
                 },
                 {
                     "anyOf": [

@@ -18,7 +18,7 @@ function ConvertTo-OrderedHashtable
         foreach ($property in $InputObject.PSObject.Properties)
         {
             $propertyValue = ConvertTo-OrderedHashtable -InputObject $property.Value
-            if ($property.Value -is [System.Collections.IEnumerable])
+            if ($property.Value -is [System.Collections.IEnumerable] -and $property.Value -isnot [string])
             {
                 $output[$property.Name] = @( $propertyValue )
             }

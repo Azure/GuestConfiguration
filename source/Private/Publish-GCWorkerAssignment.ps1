@@ -17,12 +17,12 @@ function Publish-GCWorkerAssignment
     $PackagePath = Resolve-Path -Path $PackagePath
     $packageName = Split-Path -Path $PackagePath -LeafBase
 
-    if (-not ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar)))
+    if ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar))
     {
-        $PackagePath = $PackagePath + [System.IO.Path]::DirectorySeparatorChar
+        $PackagePath = $PackagePath.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
     }
 
-    $arguments = "-o publish_assignment -a $packageName -p $PackagePath"
+    $arguments = "-o publish_assignment -a $packageName -p `"$PackagePath`""
 
     Invoke-GCWorker -Arguments $arguments
 }

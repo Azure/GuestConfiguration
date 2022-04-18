@@ -17,12 +17,12 @@ function Set-GCWorkerSettings
     $PackagePath = Resolve-Path -Path $PackagePath
     $packageName = Split-Path -Path $PackagePath -LeafBase
 
-    if (-not ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar)))
+    if ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar))
     {
-        $PackagePath = $PackagePath + [System.IO.Path]::DirectorySeparatorChar
+        $PackagePath = $PackagePath.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
     }
 
-    $arguments = "-o set_agent_settings -a $packageName -p $PackagePath"
+    $arguments = "-o set_agent_settings -a $packageName -p `"$PackagePath`""
 
     Invoke-GCWorker -Arguments $arguments
 }

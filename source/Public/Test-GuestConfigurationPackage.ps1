@@ -33,7 +33,7 @@
         {
             ModuleName = "TestFileModule";
             ModuleVersion = "1.0.0.0";
-            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type and ID
+            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type (in the square brackets) and ID
             Path = "test.txt"; <--- Here is the name of the parameter that I want to change the value of
             Content = "default";
             Ensure = "Present";

@@ -410,7 +410,8 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testScript'
                 Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'TestScript.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Path = Join-Path -Path $testOutputPath -ChildPath 'My Package Path'
+                FrequencyMinutes = 45
                 Verbose = $true
                 Force = $true
             }

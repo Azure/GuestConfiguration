@@ -64,7 +64,7 @@
         The default value is Audit.
 
     .PARAMETER Tag
-        The name and value of a tags on which machines to apply the policy.
+        The tags that should be on machines to apply this policy on.
 
     .EXAMPLE
         New-GuestConfigurationPolicy `

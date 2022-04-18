@@ -1,4 +1,4 @@
-function Format-Json
+function Format-PolicyDefinitionJson
 {
     [CmdletBinding()]
     [OutputType([String])]

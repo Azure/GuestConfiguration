@@ -31,8 +31,9 @@ Describe 'Protect-GuestConfigurationPackage' -ForEach @{
 
         # test Assets path
         $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
+        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
         # Test Config Package MOF
-        $mofPath = Join-Path -Path $testAssetsPath -ChildPath 'DSC_Config.mof'
+        $mofPath = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
         $policyName = 'testPolicy'
         $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
         $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'

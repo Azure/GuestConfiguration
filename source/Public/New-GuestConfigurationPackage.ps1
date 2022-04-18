@@ -103,20 +103,27 @@ function New-GuestConfigurationPackage
 
     Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
 
-    $Configuration = [System.IO.Path]::GetFullPath($Configuration)
-    $Path = [System.IO.Path]::GetFullPath($Path)
+    $currentLocation = Get-Location
+
+    $Configuration = [System.IO.Path]::GetFullPath($Configuration, $currentLocation)
+    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
 
     if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
     {
-        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath)
+        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath, $currentLocation)
     }
 
     if (-not [String]::IsNullOrEmpty($FilesToInclude))
     {
-        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude)
+        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude, $currentLocation)
     }
 
     #-----VALIDATION-----
+
+    if ($FrequencyMinutes -lt 15)
+    {
+        throw "FrequencyMinutes must be 15 or greater. Guest Configuration cannot run packages more frequently than every 15 minutes."
+    }
 
     # Validate mof
     if (-not (Test-Path -Path $Configuration -PathType 'Leaf'))
@@ -305,6 +312,11 @@ function New-GuestConfigurationPackage
     $metaconfig = @{
         Type = $Type
         Version = $Version
+    }
+
+    if ($FrequencyMinutes -gt 15)
+    {
+        $metaconfig['configurationModeFrequencyMins'] = $FrequencyMinutes
     }
 
     $metaconfigJson = $metaconfig | ConvertTo-Json

@@ -1,0 +1,20 @@
+{
+    "displayName": "<REPLACE>",
+    "policyType": "Custom",
+    "mode": "Indexed",
+    "description": "<REPLACE>",
+    "metadata": {
+        "category": "Guest Configuration",
+        "version": "<REPLACE>",
+        "requiredProviders": [
+            "Microsoft.GuestConfiguration"
+        ],
+        "guestConfiguration": {
+            "name": "<REPLACE>",
+            "version": "<REPLACE>",
+            "contentType": "Custom",
+            "contentUri": "<REPLACE>",
+            "contentHash": "<REPLACE>"
+        }
+    }
+}

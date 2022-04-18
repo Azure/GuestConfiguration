@@ -41,10 +41,6 @@ Describe 'Publish-GuestConfigurationPolicy' -ForEach @{
 
         Mock Get-AzContext -MockWith { @{Name = 'Subscription'; Subscription = @{Id = 'Id' } } } -ModuleName GuestConfiguration -Verifiable
         Mock New-AzPolicyDefinition -Verifiable -ModuleName GuestConfiguration
-
-        inModuleScope -ModuleName GuestConfiguration {
-            Mock Get-AzPolicyDefinition -Verifiable -ModuleName GuestConfigurationPolicy
-        }
     }
 
     It 'Should be able to publish policies' {
@@ -53,8 +49,5 @@ Describe 'Publish-GuestConfigurationPolicy' -ForEach @{
         { $publishGCPolicyResult = $newGCPolicyResult | Publish-GuestConfigurationPolicy } | Should -Not -Throw
         Assert-MockCalled -ModuleName GuestConfiguration -CommandName Get-AzContext
         Assert-MockCalled -ModuleName GuestConfiguration -CommandName New-AzPolicyDefinition
-        InModuleScope -ModuleName GuestConfiguration {
-            Assert-MockCalled -ModuleName GuestConfigurationPolicy -CommandName Get-AzPolicyDefinition
-        }
     }
 }

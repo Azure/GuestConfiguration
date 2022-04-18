@@ -2,7 +2,6 @@ Set-StrictMode -Version latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module $PSScriptRoot/Modules/GuestConfigPath -Force
-Import-Module $PSScriptRoot/Modules/GuestConfigurationPolicy -Force
 Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
 
 if ($IsLinux -and (

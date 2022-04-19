@@ -44,7 +44,7 @@
 
         PSData = @{
 
-            Prerelease = 'preview0004'
+            Prerelease = 'preview0005'
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = 'GuestConfiguration', 'Azure', 'DSC'

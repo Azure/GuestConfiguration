@@ -87,37 +87,6 @@ extends:
               artifactName: 'out'
               downloadPath: '$(Build.SourcesDirectory)\output'
 
-          - task: PowerShell@2
-            name: 'Download_powershell'
-            inputs:
-              targetType: 'inline'
-              script: |
-                # Download powershell-install script.
-                Invoke-RestMethod -uri https://github.com/PowerShell/PowerShell/releases/download/v7.2.1/PowerShell-7.2.1-win-x64.zip -OutFile .\pscore.zip
-
-          - task: PowerShell@2
-            name: 'Install_powershell'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Output "Expand Archive"
-                Expand-Archive .\pscore.zip -DestinationPath .\pscore
-                Write-Output "Update environment variables."
-                foreach($scope in @('user','process','machine'))
-                {
-                  $val = [System.Environment]::GetEnvironmentVariable('PATH', $scope)
-                  $newpath = "$val;$(Build.SourcesDirectory)\pscore"
-                  Write-Output $newpath
-                  [System.Environment]::SetEnvironmentVariable('PATH', $newpath, [System.EnvironmentVariableTarget]::Machine)
-                }
-               
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Output "Building and package module."
-                .\pscore\pwsh.exe -c {.\build.ps1 -ResolveDependency -tasks pack}
-
           - task: Bash@3
             displayName: 'Initial set up for Ubuntu 16'
             inputs:

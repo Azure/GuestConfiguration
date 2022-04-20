@@ -109,7 +109,16 @@ extends:
                 echo "Copy GC agent"
                 mkdir -p '$(Build.SourcesDirectory)/source/gc_agents'
                 cp '$(Build.SourcesDirectory)/output/build/linux-x64/release/GC.zip' '$(Build.SourcesDirectory)/source/gc_agents/DSC_Linux.zip'
-                cp '$(Build.SourcesDirectory)/output/InGuestPolicyPackagex64.zip' '$(Build.SourcesDirectory)/source/gc_agents/DSC_Windows.zip'
+        
+          - task: PowerShell@2
+            name: copy
+            displayName: 'Extract and copy Windows agent'
+            inputs:
+              pwsh: true
+              script: |
+                $null = Expand-Archive -Path $(Build.SourcesDirectory)/output/InGuestPolicyPackagex64.zip -DestinationPath $(Build.SourcesDirectory)/output/Extracted
+                $null = Copy-Item -Path $(Build.SourcesDirectory)/output/Extracted/GC.zip -DestinationPath $(Build.SourcesDirectory)/source/gc_agents/DSC_Windows.zip
+
 
           - task: PowerShell@2
             name: package

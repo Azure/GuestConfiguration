@@ -8,7 +8,8 @@ function Get-GuestConfigurationPackageNameFromZip
         $Path
     )
 
-    $Path = [System.IO.Path]::GetFullPath($Path) # Get Absolute path as .Net method don't like relative paths.
+    # Get Absolute path as .Net method don't like relative paths
+    $Path = Resolve-RelativePath -Path $Path
 
     try
     {

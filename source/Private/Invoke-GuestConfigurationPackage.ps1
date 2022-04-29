@@ -23,7 +23,7 @@ function Invoke-GuestConfigurationPackage
         throw 'The Invoke-GuestConfigurationPackage cmdlet is not supported on MacOS'
     }
 
-    $Path = [System.IO.Path]::GetFullPath($Path)
+    $Path = Resolve-RelativePath -Path $Path
 
     #-----VALIDATE PACKAGE SETUP-----
 

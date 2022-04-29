@@ -16,7 +16,7 @@
     CompanyName = 'MicrosoftCorporation'
 
     # Copyright statement for this module
-    Copyright = '(c) 2021 Microsoft Corporation. All rights reserved.'
+    Copyright = '(c) 2022 Microsoft Corporation. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
@@ -28,16 +28,16 @@
     RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage', 'PSDesiredStateConfiguration')
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy', 'Publish-GuestConfigurationPolicy')
+    FunctionsToExport = @()
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport = @()
+    CmdletsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Protect-GuestConfigurationPackage', 'Publish-GuestConfigurationPackage', 'New-GuestConfigurationPolicy')
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
     AliasesToExport = @()
 
     # DSC resources to export from this module
-    DscResourcesToExport = @( 'ChefInSpecResource' )
+    DscResourcesToExport = @('ChefInSpecResource')
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
@@ -47,19 +47,19 @@
             Prerelease = 'prerelease1'
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = 'GuestConfiguration', 'Azure', 'DSC'
+            Tags = 'GuestConfiguration', 'Azure', 'DSC', 'Guest Configuration'
 
             # A URL to the license for this module.
-            LicenseUri = 'https://github.com/PowerShell/GuestConfiguration/blob/master/LICENSE'
+            LicenseUri = 'https://github.com/Azure/GuestConfiguration/blob/master/LICENSE'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/PowerShell/GuestConfiguration'
+            ProjectUri = 'https://github.com/Azure/GuestConfiguration'
 
             # A URL to an icon representing this module.
-            IconUri = 'https://github.com/PowerShell/GuestConfiguration/GuestConfigXS.png'
+            IconUri = 'https://github.com/Azure/GuestConfiguration/GuestConfigXS.png'
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'https://github.com/PowerShell/GuestConfiguration/changelog.md'
+            ReleaseNotes = 'https://github.com/Azure/GuestConfiguration/changelog.md'
 
             ExperimentalFeatures = @()
         } # End of PSData hashtable

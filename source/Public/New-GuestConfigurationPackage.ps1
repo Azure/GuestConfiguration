@@ -103,19 +103,17 @@ function New-GuestConfigurationPackage
 
     Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
 
-    $currentLocation = Get-Location
-
-    $Configuration = [System.IO.Path]::GetFullPath($Configuration, $currentLocation)
-    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
+    $Configuration = Resolve-RelativePath -Path $Configuration
+    $Path = Resolve-RelativePath -Path $Path
 
     if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
     {
-        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath, $currentLocation)
+        $ChefInspecProfilePath = Resolve-RelativePath -Path $ChefInspecProfilePath
     }
 
     if (-not [String]::IsNullOrEmpty($FilesToInclude))
     {
-        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude, $currentLocation)
+        $FilesToInclude = Resolve-RelativePath -Path $FilesToInclude
     }
 
     #-----VALIDATION-----
@@ -266,7 +264,7 @@ function New-GuestConfigurationPackage
     {
         if (-not $Force)
         {
-            throw "An item already exists at the package path '$packageRootPath'. Please remove it or use the Force parameter."
+            throw "A folder already exists at the package folder path '$packageRootPath'. Please remove it or use the Force parameter. With -Force the cmdlet will remove this folder for you."
         }
     }
 
@@ -277,7 +275,7 @@ function New-GuestConfigurationPackage
     {
         if (-not $Force)
         {
-            throw "An item already exists at the package destination path '$packageDestinationPath'. Please remove it or use the Force parameter."
+            throw "A file already exists at the package destination path '$packageDestinationPath'. Please remove it or use the Force parameter. With -Force the cmdlet will remove this file for you."
         }
     }
 
@@ -286,6 +284,16 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
+
+        if ($Configuration.FullName.Contains($packageRootPath))
+        {
+            Write-Warning -Message "You have elected to forcibly remove the existing package folder path '$packageRootPath', but the specificed source path for the configuration document is under this path at '$Configuration'. The configuration document at this source path will be changed to match package requirements."
+            $gcWorkerPath = Get-GCWorkerRootPath
+            $gcWorkerPackagePath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
+            $copiedMof = Copy-Item -Path $Configuration -Destination $gcWorkerPackagePath -Force
+            $Configuration = $copiedMof.FullName
+        }
+
         Write-Verbose -Message "Removing an existing item at the path '$packageRootPath'..."
         $null = Remove-Item -Path $packageRootPath -Recurse -Force
     }

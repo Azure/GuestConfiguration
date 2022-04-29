@@ -572,8 +572,9 @@ Describe 'New-GuestConfigurationPolicy' {
                                 $optionalPath = Join-Path -Path $TestDrive -ChildPath $optionalPath
                             }
 
+                            $currentLocation = Get-Location
                             $filePath = Join-Path -Path $optionalPath -ChildPath $expectedFileName
-                            $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath)
+                            $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath, $currentLocation)
                         }
 
                         if ($OptionalParameters.ContainsKey('Version'))

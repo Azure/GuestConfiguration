@@ -9,7 +9,8 @@ function Get-GuestConfigurationPackageMetadataFromZip
         $Path
     )
 
-    $Path = [System.IO.Path]::GetFullPath($Path) # Get Absolute path as .Net methods don't like relative paths.
+    # Get Absolute path as .Net methods don't like relative paths
+    $Path = Resolve-RelativePath -Path $Path
 
     try
     {

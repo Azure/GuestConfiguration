@@ -256,7 +256,31 @@ function New-GuestConfigurationPolicy
         if ($metaconfig.ContainsKey('Version'))
         {
             $packageVersion = $metaconfig['Version']
+            Write-Verbose -Message "Downloaded package has the version $packageVersion"
         }
+        else
+        {
+            Write-Warning -Message "Failed to determine the package version from the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+        }
+
+        if ($metaconfig.ContainsKey('Type'))
+        {
+            $packageType = $metaconfig['Type']
+            Write-Verbose -Message "Downloaded package has the type $packageType"
+
+            if ($packageType -eq 'Audit' -and $Mode -ne 'Audit')
+            {
+                throw 'The specified package has been marked as Audit-only. You cannot create an Apply policy with an Audit-only package. Please change the mode of the policy or the type of the package.'
+            }
+        }
+        else
+        {
+            Write-Warning -Message "Failed to determine the package type from the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+        }
+    }
+    else
+    {
+        Write-Warning -Message "Failed to find the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
     }
 
     # Determine paths
@@ -265,8 +289,7 @@ function New-GuestConfigurationPolicy
         $Path = Join-Path -Path $gcWorkerPath -ChildPath 'definitions'
     }
 
-    $currentLocation = Get-Location
-    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
+    $Path = Resolve-RelativePath -Path $Path
 
     if (-not (Test-Path -Path $Path))
     {

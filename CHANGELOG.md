@@ -5,6 +5,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- More messaging in New-GuestConfigurationPolicy around the package version and type
+
+### Changed
+
+- New-GuestConfigurationPolicy will now throw when you are trying to create an Apply policy with an Audit-only package.
+
+### Fixed
+
+- Test-GuestConfigurationPackage, Get-GuestConfigurationPackageComplianceStatus, and Start-GuestConfigurationPackageRemediation can now take relative paths to the package again
+
+### Removed
+
+- Publish-GuestConfigurationPolicy has been removed as it was just a wrapper for New-AzPolicyDefinition. Please use New-AzPolicyDefinition to publish your generated policy definition files instead.
+
 ## [4.0.0-preview0004] - 2022-04-18
 
 ### Added

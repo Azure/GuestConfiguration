@@ -5,104 +5,107 @@
         The goal is to simplify the number of steps by scoping to a specific
         task.
 
-        Generates a SAS token with a 3-year lifespan, to mitigate the risk
-        of a malicious person discovering the published content.
+        Generates a SAS token with read and list access to the blob with a limited lifespan.
 
         Requires a resource group, storage account, and container
         to be pre-staged. For details on how to pre-stage these things see the
         documentation for the Az Storage cmdlets.
         https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-powershell.
 
-    .Parameter Path
-        Location of the .zip file containing the Guest Configuration artifacts
+    .PARAMETER Path
+        The path of the Guest Configuration package to publish
 
-    .Parameter ResourceGroupName
-        The Azure resource group for the storage account
+    .PARAMETER ResourceGroupName
+        The name of the resource group that contains the Azure storage account you would like to publish to
 
-    .Parameter StorageAccountName
-        The name of the storage account for where the package will be published
-        Storage account names must be globally unique
+    .PARAMETER StorageAccountName
+        The name of the Azure storage account you would like to publish to
 
-    .Parameter StorageContainerName
-        Name of the storage container in Azure Storage account (default: "guestconfiguration")
+    .PARAMETER StorageContainerName
+        The name of the blob container in Azure storage account you would like to publish to
 
-    .Example
+    .PARAMETER SASExpirationInDays
+        The number of days until the generated SAS token expires.
+        The default value is (3 * 365) which is 3 years.
+
+    .PARAMETER Force
+        Indicates that this cmdlet overwrites an existing blob without prompting you for confirmation.
+
+    .EXAMPLE
         Publish-GuestConfigurationPackage -Path ./package.zip -ResourceGroupName 'resourcegroup' -StorageAccountName 'sa12345'
 
     .OUTPUTS
-        Return a publicly accessible URI containing a SAS token with a 3-year expiration.
+        The URI of the uploaded package with a SAS token to access it.
+        [PSCustomObject]@{
+            ContentUri = $uriWithSAS
+        }
 #>
 
 function Publish-GuestConfigurationPackage
 {
     [CmdletBinding()]
-    param (
-        [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+    param
+    (
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [System.String]
+        [System.IO.FileInfo]
         $Path,
 
-        [Parameter(Position = 1, Mandatory = $true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        [System.String]
-        $ResourceGroupName,
-
-        [Parameter(Position = 2, Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.String]
+        [String]
         $StorageAccountName,
 
-        [Parameter()]
-        [System.String]
-        $StorageContainerName = 'guestconfiguration',
+        [Parameter(Mandatory = $true)]
+        [String]
+        $StorageContainerName,
 
         [Parameter()]
-        [System.Management.Automation.SwitchParameter]
+        [int]
+        $SASExpirationInDays = (365 * 3),
+
+        [Parameter()]
+        [Switch]
         $Force
     )
 
-    # Get Storage Context
-    $Context = Get-AzStorageAccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName |
-        ForEach-Object { $_.Context }
+    # Test that path is valid
+    if (-not (Test-Path -Path $Path))
+    {
+        throw "Could not find a file at the path '$Path'"
+    }
+    $package = Get-Item -Path $Path
 
-    # Blob name from file name
-    $BlobName = (Get-Item -Path $Path -ErrorAction Stop).Name
+    # Get Storage Context
+    $storageAccountContext = New-AzStorageContext -StorageAccountName $StorageAccountName
 
     $setAzStorageBlobContentParams = @{
-        Context   = $Context
+        Context   = $storageAccountContext
         Container = $StorageContainerName
-        Blob      = $BlobName
+        Blob      = $package.Name
         File      = $Path
-    }
-
-    if ($true -eq $Force)
-    {
-        $setAzStorageBlobContentParams.Add('Force', $true)
+        Force     = $Force
     }
 
     # Upload file
     $null = Set-AzStorageBlobContent @setAzStorageBlobContentParams
 
     # Get url with SAS token
-    # THREE YEAR EXPIRATION
-    $StartTime = Get-Date
-
-    # Add permissions on just the one file and not the whole blob
-    # Put expiration time as a parameter
+    $startTime = Get-Date
     $newAzStorageBlobSASTokenParams = @{
-        Context    = $Context
+        Context    = $storageAccountContext
         Container  = $StorageContainerName
-        Blob       = $BlobName
-        StartTime  = $StartTime
-        ExpiryTime = $StartTime.AddYears('3')
+        Blob       = $package.Name
+        StartTime  = $startTime
+        ExpiryTime = $startTime.AddDays($SASExpirationInDays)
         Permission = 'rl'
         FullUri    = $true
     }
 
-    $SAS = New-AzStorageBlobSASToken @newAzStorageBlobSASTokenParams
+    $uriWithSAS = New-AzStorageBlobSASToken @newAzStorageBlobSASTokenParams
 
     # Output
     return [PSCustomObject]@{
-        ContentUri = $SAS
+        ContentUri = $uriWithSAS
     }
 }

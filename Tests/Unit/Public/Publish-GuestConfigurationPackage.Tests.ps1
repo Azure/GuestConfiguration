@@ -1,41 +1,27 @@
 BeforeDiscovery {
-    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
     $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
-
-    $IsNotAzureDevOps = [string]::IsNullOrEmpty($env:ADO)
-    $IsNotWindowsAndIsAzureDevOps = ($IsLinux -or $IsMacOS) -AND $env:ADO
 }
 
-Describe 'Publish-GuestConfigurationPackage' -ForEach @{
-    ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
-} {
-
+Describe 'Publish-GuestConfigurationPackage' {
     BeforeAll {
-        # test Assets path
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
-        # folder with the test pester file
-        $pesterScriptsAsset = Join-Path -Path $testAssetsPath -ChildPath 'pesterScripts'
-        # test drive output folder
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $pesterMofFilePath = Join-Path -Path $testOutputPath -ChildPath "PesterConfig.mof"
+        Set-StrictMode -Version 'latest'
 
-        $Date = Get-Date
-        $DateStamp = "$($Date.Hour)_$($Date.Minute)_$($Date.Second)_$($Date.Month)-$($Date.Day)-$($Date.Year)"
-        $randomString = (get-date).ticks.tostring().Substring(12)
-
-        $mofPath = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
-        $policyName = 'testPolicy'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
+        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
     }
 
-    It 'Should be able to publish packages and return a valid Uri' { # -Skip:($notReleaseBuild -or $IsNotWindowsAndIsAzureDevOps) {
-        mock -CommandName Set-AzStorageBlobContent -MockWith {
+    It 'Should be able to publish packages and return a valid Uri' {
+        $mockUri = 'https://this.is.my.uri/'
+
+        Mock -CommandName 'Set-AzStorageBlobContent' -Module 'GuestConfiguration' -MockWith {
             param ($Context, $Container, $Blob, $File, $Force)
 
             return @{
@@ -45,35 +31,31 @@ Describe 'Publish-GuestConfigurationPackage' -ForEach @{
                 File      = $File
                 Force     = $Force
             }
-        } -Verifiable -Module GuestConfiguration
-
-        mock -CommandName Get-AzStorageAccount -MockWith {
-            param ($ResourceGroupName, $StorageAccountName)
-
-        } -Verifiable -Module GuestConfiguration
-
-        mock -CommandName New-AzStorageBlobSasToken -MockWith {
-            param ($Context, $Container, $Blob, $StartTime, $ExpiryTime, $Permission, $FullUri)
-            return 'https://this.is.my.uri/'
-        } -Verifiable -Module GuestConfiguration
-
-        # Login-ToTestAzAccount
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        $publishGCPackageParameters = @{
-            Path               = $package.Path
-            ResourceGroupName  = "GC_Module_$DateStamp"
-            StorageAccountName = "sa$randomString"
         }
 
-        # New-PublishGCPackageParameters -Path $package.Path -DateStamp $DateStamp
-        $Uri = Publish-GuestConfigurationPackage @publishGCPackageParameters
+        Mock -CommandName 'New-AzStorageContext' -Module 'GuestConfiguration' -MockWith {
+            return (New-MockObject -Type 'Microsoft.WindowsAzure.Commands.Storage.AzureStorageContext')
+        }
 
-        Assert-MockCalled -CommandName Get-AzStorageAccount -Times 1 -ModuleName GuestConfiguration
-        Assert-MockCalled -CommandName New-AzStorageBlobSASToken -Times 1 -ModuleName GuestConfiguration
-        Assert-MockCalled  -CommandName Set-AzStorageBlobContent -Times 1 -ModuleName GuestConfiguration
-        $Uri.ContentUri | Should -Not -BeNullOrEmpty
-        $Uri.ContentUri | Should -BeOfType 'String'
-        $Uri.ContentUri | Should -Not -Contain '@'
-        # { Invoke-WebRequest -Uri $Uri.ContentUri -OutFile $TestDrive/downloadedPackage.zip } | Should -Not -Throw
+        Mock -CommandName 'New-AzStorageBlobSasToken' -Module 'GuestConfiguration' -MockWith {
+            param ($Context, $Container, $Blob, $StartTime, $ExpiryTime, $Permission, $FullUri)
+            return $mockUri
+        }
+
+        $testPackageName = 'TestFilePackage_1.0.0.0.zip'
+
+        $publishGCPackageParameters = @{
+            Path = Join-Path -Path $testPackagesFolderPath -ChildPath $testPackageName
+            StorageAccountName = 'storageaccountname'
+            StorageContainerName = 'storagecontainername'
+        }
+
+        $result = Publish-GuestConfigurationPackage @publishGCPackageParameters
+
+        Assert-MockCalled -CommandName 'New-AzStorageContext' -Module 'GuestConfiguration' -Times 1
+        Assert-MockCalled -CommandName 'New-AzStorageBlobSASToken' -Module 'GuestConfiguration' -Times 1
+        Assert-MockCalled  -CommandName 'Set-AzStorageBlobContent' -Module 'GuestConfiguration' -Times 1
+
+        $result.ContentUri | Should -Be $mockUri
     }
 }

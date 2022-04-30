@@ -1,72 +1,98 @@
-BeforeDiscovery {
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+param ()
 
-    $projectPath = "$PSScriptRoot/../../.." | Convert-Path
+BeforeDiscovery {
+    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
     $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
 
-    $IsRunningAsAdmin = $false
+    $isRunningAsAdmin = $false
 
     if ($IsWindows)
     {
-        $currentPrincipal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
-        $IsRunningAsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        $currentPrincipal = [Security.Principal.WindowsPrincipal]::New([Security.Principal.WindowsIdentity]::GetCurrent())
+        $isRunningAsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     }
 }
 
-Describe 'Protect-GuestConfigurationPackage' -ForEach @{
-    ProjectPath    = $projectPath
-    projectName    = $projectName
-    importedModule = $importedModule
-} {
-
+Describe 'Protect-GuestConfigurationPackage' {
     BeforeAll {
-        $testHelpersPath = Join-Path -Path $projectPath -ChildPath 'Tests/helpers'
-        Get-ChildItem -Path $testHelpersPath -Filter *.ps1 -Recurse | Foreach-Object {
-            # dot sourcing the helpers files
-            Write-Host -Object "`tImporting helper file $($_.Name)"
-            . $_.FullName
+        Set-StrictMode -Version 'latest'
+
+        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
+    }
+
+    Context 'Sign a Windows package using a test certificate' -Skip:(-not $IsWindows -or -not $isRunningAsAdmin) {
+        BeforeAll {
+            # Create a code signing cert
+            $myCert = New-SelfSignedCertificate -Type 'CodeSigningCert' -DnsName 'GCModuleTestOnly' -HashAlgorithm 'SHA256'
+
+            # Export the certificates
+            $myPwd = ConvertTo-SecureString -String 'Password1234' -Force -AsPlainText
+            $pfxCertPath = Join-Path -Path $TestDrive -ChildPath 'GCPrivateKey.pfx'
+            $myCert | Export-PfxCertificate -FilePath $pfxCertPath -Password $myPwd
+
+            $certFilePath = Join-Path -Path $TestDrive -ChildPath 'GCPublicKey.cer'
+            $myCert | Export-Certificate -FilePath $certFilePath -Force
+
+            # Import the certificate
+            $null = Import-PfxCertificate -FilePath $pfxCertPath -Password $myPwd -CertStoreLocation 'Cert:\LocalMachine\My'
+            $script:testCertificate = Get-ChildItem -Path 'Cert:\LocalMachine\My' | Where-Object { ($_.Subject -eq 'CN=GCModuleTestOnly') }
+
+            $testPackageName = 'TestFilePackage_1.0.0.0.zip'
+            $testPackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath $testPackageName
+
+            $expectedConfigurationName = 'TestFilePackage'
+            $expectedSignedPackageName = 'TestFilePackage_1.0.0.0_signed.zip'
+            $expectedSignedPackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath $expectedSignedPackageName
+
+            $extractionPath = Join-Path -Path $TestDrive -ChildPath 'ExtractedSignedPackage'
+            if (Test-Path -Path $extractionPath)
+            {
+                $null = Remove-Item -Path $extractionPath -Recurse -Force
+            }
+
+            $extractedCatFilePath = Join-Path -Path $extractionPath -ChildPath "$expectedConfigurationName.cat"
         }
 
-        # test Assets path
-        $testAssetsPath = Join-Path -Path $PSScriptRoot -ChildPath '../assets'
-        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
-        # Test Config Package MOF
-        $mofPath = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
-        $policyName = 'testPolicy'
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
-        $testPackagePath = Join-Path -Path $testOutputPath -ChildPath 'Package'
-        $signedPackageExtractionPath = Join-Path $testOutputPath -ChildPath 'SignedPackage'
-    }
+        AfterAll {
+            if (Test-Path -Path $expectedSignedPackagePath)
+            {
+                $null = Remove-Item -Path $expectedSignedPackagePath -Force
+            }
 
-    It 'Signed package should exist at output path' -Skip:($IsLinux -or $IsMacOS -or -not $IsRunningAsAdmin) {
-        $package = New-GuestConfigurationPackage -Configuration $mofPath -Name $policyName -Path $testPackagePath -Force
-        New-TestCertificate
-        $certificatePath = "Cert:\LocalMachine\My" # only have access when running elevated
-        $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-        $protectPackageResult = Protect-GuestConfigurationPackage -Path $package.Path -Certificate $certificate
-        Test-Path -Path $protectPackageResult.Path | Should -BeTrue
-    }
+            if ($null -ne $script:testCertificate)
+            {
+                $null = $script:testCertificate | Remove-Item -Force
+            }
+        }
 
-    It 'Signed package should be extractable' -Skip:($IsLinux -or $IsMacOS -or -not $IsRunningAsAdmin) {
-        $signedFileName = $policyName + "_signed.zip"
-        $package = Get-Item "$testPackagePath/$signedFileName"
-        # Set up type needed for package extraction
-        $null = Add-Type -AssemblyName System.IO.Compression.FileSystem
-        { [System.IO.Compression.ZipFile]::ExtractToDirectory($package.FullName, $signedPackageExtractionPath) } | Should -Not -Throw
-    }
+        It 'Should be able to sign the package and get expected result' {
+            $result = Protect-GuestConfigurationPackage -Path $testPackagePath -Certificate $script:testCertificate
 
-    It '.cat file should exist in the extracted package' -Skip:($IsLinux -or $IsMacOS -or -not $IsRunningAsAdmin) {
-        $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
-        Test-Path -Path $catFilePath | Should -BeTrue
-    }
+            $result.Name | Should -Be $expectedConfigurationName
+            $result.Path | Should -Be $expectedSignedPackagePath
+            Test-Path -Path $result.Path | Should -BeTrue
+        }
 
-    It 'Extracted .cat file thumbprint should match certificate thumbprint' -Skip:($IsLinux -or $IsMacOS -or -not $IsRunningAsAdmin) {
-        $certificatePath = "Cert:\LocalMachine\My"
-        $certificate = Get-ChildItem -Path $certificatePath | Where-Object { ($_.Subject -eq "CN=testcert") } | Select-Object -First 1
-        $catFilePath = Join-Path -Path $signedPackageExtractionPath -ChildPath "$policyName.cat"
-        $authenticodeSignature = Get-AuthenticodeSignature -FilePath $catFilePath
-        $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $certificate.Thumbprint
+        It 'Signed package should be extractable' {
+            { $null = Expand-Archive -Path $expectedSignedPackagePath -DestinationPath $extractionPath -Force } | Should -Not -Throw
+        }
+
+        It '.cat file should exist in the extracted package' {
+            Test-Path -Path $extractedCatFilePath | Should -BeTrue
+        }
+
+        It 'Extracted .cat file thumbprint should match certificate thumbprint' {
+            $authenticodeSignature = Get-AuthenticodeSignature -FilePath $extractedCatFilePath
+            $authenticodeSignature.SignerCertificate.Thumbprint | Should -Be $script:testCertificate.Thumbprint
+        }
     }
 }

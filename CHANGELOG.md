@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - More messaging in New-GuestConfigurationPolicy around the package version and type
 - Added the SASExpirationInDays parameter to Publish-GuestConfigurationPackage so the customer can control the expiration time of their generated SAS token.
+- Added examples and more help text to Protect-GuestConfigurationPackage and updated the tests
 
 ### Changed
 

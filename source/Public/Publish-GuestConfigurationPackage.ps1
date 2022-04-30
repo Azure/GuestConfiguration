@@ -70,10 +70,13 @@ function Publish-GuestConfigurationPackage
     )
 
     # Test that path is valid
-    if (-not (Test-Path -Path $Path))
+    $Path = Resolve-Path -Path $Path
+
+    if (-not (Test-Path $Path -PathType 'Leaf'))
     {
         throw "Could not find a file at the path '$Path'"
     }
+
     $package = Get-Item -Path $Path
 
     # Get Storage Context

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Module now works with PowerShell 5.1 on Windows
 - New-GuestConfigurationPolicy will now throw when you are trying to create an Apply policy with an Audit-only package.
 - Publish-GuestConfigurationPackage now authenticates via New-AzStorageContext
 - Publish-GuestConfigurationPackage now requires the StorageContainerName parameter
@@ -24,7 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Publish-GuestConfigurationPolicy has been removed as it was just a wrapper for New-AzPolicyDefinition. Please use New-AzPolicyDefinition to publish your generated policy definition files instead.
+- Removed Publish-GuestConfigurationPackage as it was just a wrapper for Az storage cmdlets. Please use Az cmdlets if you would like to upload your package to Az storage instead.
 - Removed the ResourceGroupName parameter from Publish-GuestConfigurationPackage as it is no longer needed.
+- Removed the internal submodule GuestConfigPath and other functions that weren't used anymore (no impact on functionality)
 
 ## [4.0.0-preview0004] - 2022-04-18
 
@@ -45,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed bug in Test-GuestConfigurationPackage/Get-GuestConfigurationPackageComplianceStatus in which the package path was not getting quoted causing a problem with spaces in the path.
 - Fixed the FrequencyMinutes parameter of New-GuestConfigurationPackage
-
 
 ## [4.0.0-preview0003] - 2022-01-12
 
@@ -210,6 +212,7 @@ rather than integer
 ## [1.20.0-prerelease] - 2020-04-30
 
 ### Added
+
 - Support for custom Policy categories
 - Adds support for additional Linux distributions
 - Support Arc machines

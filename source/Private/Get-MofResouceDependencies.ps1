@@ -1,4 +1,4 @@
-function Get-ResouceDependenciesFromMof
+function Get-MofResouceDependencies
 {
     [CmdletBinding()]
     [OutputType([Hashtable[]])]

@@ -186,7 +186,7 @@ function New-GuestConfigurationPolicy
     {
         foreach ($requiredParameterProperty in $requiredParameterProperties)
         {
-            if (-not ($parameterInfo.ContainsKey($requiredParameterProperty)))
+            if (-not ($parameterInfo.Keys -contains $requiredParameterProperty))
             {
                 $requiredParameterPropertyString = $requiredParameterProperties -join ', '
                 throw "One of the specified policy parameters is missing the mandatory property '$requiredParameterProperty'. The mandatory properties for parameters are: $requiredParameterPropertyString"
@@ -213,6 +213,10 @@ function New-GuestConfigurationPolicy
 
     $null = Invoke-WebRequest -Uri $ContentUri -OutFile $packageFileDownloadPath
 
+    if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
+    {
+        $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
+    }
     $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
@@ -251,9 +255,9 @@ function New-GuestConfigurationPolicy
 
     if (Test-Path -Path $metaconfigFilePath)
     {
-        $metaconfig = Get-Content -Path $metaconfigFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $metaconfig = Get-Content -Path $metaconfigFilePath -Raw | ConvertFrom-Json | ConvertTo-OrderedHashtable
 
-        if ($metaconfig.ContainsKey('Version'))
+        if ($metaconfig.Keys -contains 'Version')
         {
             $packageVersion = $metaconfig['Version']
             Write-Verbose -Message "Downloaded package has the version $packageVersion"
@@ -263,7 +267,7 @@ function New-GuestConfigurationPolicy
             Write-Warning -Message "Failed to determine the package version from the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
         }
 
-        if ($metaconfig.ContainsKey('Type'))
+        if ($metaconfig.Keys -contains 'Type')
         {
             $packageType = $metaconfig['Type']
             Write-Verbose -Message "Downloaded package has the type $packageType"

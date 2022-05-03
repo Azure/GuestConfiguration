@@ -137,7 +137,7 @@ function New-GuestConfigurationPackage
     }
 
     # Validate dependencies
-    $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $Configuration )
+    $resourceDependencies = @( Get-MofResouceDependencies -MofFilePath $Configuration )
 
     if ($resourceDependencies.Count -le 0)
     {

@@ -89,7 +89,7 @@ function Invoke-GuestConfigurationPackage
     $mofFilePath = Join-Path -Path $packageInstallPath -ChildPath $mofFile.Name
 
     # Validate dependencies
-    $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $mofFilePath )
+    $resourceDependencies = @( Get-MofResouceDependencies -MofFilePath $mofFilePath )
 
     if ($resourceDependencies.Count -le 0)
     {
@@ -193,7 +193,7 @@ function Invoke-GuestConfigurationPackage
         $propertiesToUpdate['configurationMode'] = 'ApplyAndMonitor'
     }
 
-    Set-MetaconfigProperty -MetaconfigPath $metaconfigPath -Property $propertiesToUpdate
+    Set-GuestConfigurationPackageMetaconfigProperty -MetaconfigPath $metaconfigPath -Property $propertiesToUpdate
 
     # Update package configuration parameters
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)

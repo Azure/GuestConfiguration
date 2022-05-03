@@ -7,14 +7,10 @@ BeforeDiscovery {
 
     $projectModule = Get-Module -Name $projectName
     $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $importedModule = Import-Module -Name $projectName -Force -PassThru -ErrorAction 'Stop'
+    $null = Import-Module -Name $projectName -Force
 }
 
-Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
-    ProjectPath    = $projectPath
-    ProjectName    = $projectName
-    ImportedModule = $importedModule
-} {
+Describe 'Start-GuestConfigurationPackageRemediation' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 

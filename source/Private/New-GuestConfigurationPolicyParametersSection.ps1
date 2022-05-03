@@ -27,7 +27,7 @@ function New-GuestConfigurationPolicyParametersSection
 
         foreach ($optionalField in $optionalFields)
         {
-            if ($currentParameter.ContainsKey($optionalField))
+            if ($currentParameter.Keys -contains $optionalField)
             {
                 $fieldName = $optionalField.Substring(0, 1).ToLower() + $optionalField.Substring(1)
                 $parametersSection.parameters.$parameterName.$fieldName = $currentParameter[$optionalField]

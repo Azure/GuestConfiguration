@@ -93,11 +93,13 @@ function Protect-GuestConfigurationPackage
         $PublicGpgKeyPath
     )
 
-    if ($PSCmdlet.ParameterSetName -eq 'GpgKeys' -and !$IsLinux)
+    $os = Get-OSPlatform
+
+    if ($PSCmdlet.ParameterSetName -eq 'GpgKeys' -and $os -ine 'Linux')
     {
         throw 'GPG key signing is only supported on Linux.'
     }
-    elseif ($PSCmdlet.ParameterSetName -eq 'Certificate' -and !$IsWindows)
+    elseif ($PSCmdlet.ParameterSetName -eq 'Certificate' -and $os -ine 'Windows')
     {
         throw 'Certificate signing is only supported on Windows.'
     }

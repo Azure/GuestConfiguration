@@ -9,11 +9,17 @@ BeforeDiscovery {
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
+    $null = Import-Module $projectName -Force
 
     $isRunningAsAdmin = $false
 
-    if ($IsWindows)
+    $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
+    $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
+    $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
+    $null = Import-Module -Name $osFunctionScriptPath -Force
+    $script:os = Get-OSPlatform
+
+    if ($script:os -ieq 'Windows')
     {
         $currentPrincipal = [Security.Principal.WindowsPrincipal]::New([Security.Principal.WindowsIdentity]::GetCurrent())
         $isRunningAsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -26,10 +32,10 @@ Describe 'Protect-GuestConfigurationPackage' {
 
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
-        $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
+        $script:testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
     }
 
-    Context 'Sign a Windows package using a test certificate' -Skip:(-not $IsWindows -or -not $isRunningAsAdmin) {
+    Context 'Sign a Windows package using a test certificate' -Skip:($script:os -ine 'Windows' -or -not $isRunningAsAdmin) {
         BeforeAll {
             # Create a code signing cert
             $myCert = New-SelfSignedCertificate -Type 'CodeSigningCert' -DnsName 'GCModuleTestOnly' -HashAlgorithm 'SHA256'
@@ -47,11 +53,11 @@ Describe 'Protect-GuestConfigurationPackage' {
             $script:testCertificate = Get-ChildItem -Path 'Cert:\LocalMachine\My' | Where-Object { ($_.Subject -eq 'CN=GCModuleTestOnly') }
 
             $testPackageName = 'TestFilePackage_1.0.0.0.zip'
-            $testPackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath $testPackageName
+            $testPackagePath = Join-Path -Path $script:testPackagesFolderPath -ChildPath $testPackageName
 
             $expectedConfigurationName = 'TestFilePackage'
             $expectedSignedPackageName = 'TestFilePackage_1.0.0.0_signed.zip'
-            $expectedSignedPackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath $expectedSignedPackageName
+            $expectedSignedPackagePath = Join-Path -Path $script:testPackagesFolderPath -ChildPath $expectedSignedPackageName
 
             $extractionPath = Join-Path -Path $TestDrive -ChildPath 'ExtractedSignedPackage'
             if (Test-Path -Path $extractionPath)

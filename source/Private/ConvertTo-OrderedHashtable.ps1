@@ -3,7 +3,7 @@ function ConvertTo-OrderedHashtable
     [CmdletBinding()]
     param
     (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         $InputObject
     )
 

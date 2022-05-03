@@ -1,10 +1,9 @@
 @{
-
     # Script module or binary module file associated with this manifest.
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    moduleVersion = '4.0.0'
+    ModuleVersion = '4.0.0'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -19,13 +18,13 @@
     Copyright = '(c) 2022 Microsoft Corporation. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
+    Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist in content authoring for Azure Guest Configuration. The cmdlets will help build and publish a content package, wich can then be used in cross-platform configuration management solutions.'
 
     # Minimum version of the Windows PowerShell engine required by this module
-    PowerShellVersion = '6.2.0'
+    PowerShellVersion = '5.1'
 
     # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules = @('Az.Accounts','Az.Resources','Az.Storage', 'PSDesiredStateConfiguration')
+    RequiredModules = @('Az.Accounts', 'Az.Resources', 'Az.Storage')
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @()
@@ -41,13 +40,11 @@
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
-
         PSData = @{
-
-            Prerelease = 'prerelease1'
+            Prerelease = 'preview0006'
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = 'GuestConfiguration', 'Azure', 'DSC', 'Guest Configuration'
+            Tags = @('GuestConfiguration', 'Azure', 'DSC', 'Guest Configuration')
 
             # A URL to the license for this module.
             LicenseUri = 'https://github.com/Azure/GuestConfiguration/blob/master/LICENSE'
@@ -59,7 +56,7 @@
             IconUri = 'https://github.com/Azure/GuestConfiguration/GuestConfigXS.png'
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'https://github.com/Azure/GuestConfiguration/changelog.md'
+            ReleaseNotes = 'https://github.com/Azure/GuestConfiguration/CHANGELOG.md'
 
             ExperimentalFeatures = @()
         } # End of PSData hashtable

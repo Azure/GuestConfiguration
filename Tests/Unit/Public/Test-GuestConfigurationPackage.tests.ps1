@@ -7,30 +7,37 @@ BeforeDiscovery {
 
     $projectModule = Get-Module -Name $projectName
     $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $importedModule = Import-Module -Name $projectName -Force -PassThru -ErrorAction 'Stop'
+    $null = Import-Module -Name $projectName -Force
+
+    $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
+    $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
+    $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
+    $null = Import-Module -Name $osFunctionScriptPath -Force
+    $script:os = Get-OSPlatform
 }
 
-Describe 'Test-GuestConfigurationPackage' -ForEach @{
-    ProjectPath    = $projectPath
-    ProjectName    = $projectName
-    ImportedModule = $importedModule
-} {
+Describe 'Test-GuestConfigurationPackage' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
+        if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
+        {
+            $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
+        }
+
         $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
-        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
+        $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+        $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
     }
 
-    Context 'Windows TimeZone package' -Skip:(-not $IsWindows) {
+    Context 'Windows TimeZone package' -Skip:($script:os -ine 'Windows') {
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testWindowsTimeZone'
-                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'DSC_Config.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 Force = $true
             }
 
@@ -111,13 +118,13 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
     }
 
     Context 'Linux native InSpec path check package' {
-        It 'Validate that the resource compliance results are as expected on Linux' -Skip:(-not $IsLinux) {
+        It 'Validate that the resource compliance results are as expected on Linux' -Skip:($script:os -ine 'Linux') {
             $inSpecTestAssetsPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
 
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testLinuxNativeInSpec'
                 Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 ChefInspecProfilePath = $inSpecTestAssetsPath
                 Force = $true
             }
@@ -141,12 +148,12 @@ Describe 'Test-GuestConfigurationPackage' -ForEach @{
         }
     }
 
-    Context 'Windows Script package' -Skip:(-not $IsWindows) {
+    Context 'Windows Script package' -Skip:($script:os -ine 'Windows') {
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testScript'
-                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'TestScript.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestScript.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 Force = $true
             }
 

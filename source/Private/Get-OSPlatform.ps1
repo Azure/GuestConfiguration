@@ -1,7 +1,7 @@
 function Get-OSPlatform
 {
     [CmdletBinding()]
-    [OutputType([System.String])]
+    [OutputType([String])]
     param ()
 
     $platform = 'Windows'

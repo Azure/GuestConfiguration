@@ -33,7 +33,9 @@ function Install-GCWorker
 
         $binFolderSourcePath = Join-Path -Path $PSScriptRoot -ChildPath 'bin'
 
-        if ($IsWindows)
+        $os = Get-OSPlatform
+
+        if ($os -ieq 'Windows')
         {
             $windowsPackageSourcePath = Join-Path -Path $binFolderSourcePath -ChildPath 'DSC_Windows.zip'
             $null = Expand-Archive -Path $windowsPackageSourcePath -DestinationPath $binFolderDestinationPath

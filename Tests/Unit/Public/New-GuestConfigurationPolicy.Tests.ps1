@@ -6,7 +6,13 @@ BeforeDiscovery {
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
 
     Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
+    $null = Import-Module $projectName -Force
+
+    $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
+    $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
+    $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
+    $null = Import-Module -Name $osFunctionScriptPath -Force
+    $script:os = Get-OSPlatform
 }
 
 Describe 'New-GuestConfigurationPolicy' {
@@ -91,7 +97,7 @@ Describe 'New-GuestConfigurationPolicy' {
             $fileContent = Get-Content -Path $ExpectedFilePath -Raw
             $fileContent | Should -Not -BeNullOrEmpty
 
-            $fileContentJson = $fileContent | ConvertFrom-Json -Depth 100
+            $fileContentJson = $fileContent | ConvertFrom-Json
             $fileContentJson | Should -Not -BeNullOrEmpty
             $fileContentJson.properties | Should -Not -BeNullOrEmpty
 
@@ -440,7 +446,7 @@ Describe 'New-GuestConfigurationPolicy' {
             )
         }
     ) {
-        Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and -not $IsWindows) {
+        Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and $script:os -ine 'Windows') {
             BeforeAll {
                 $platformString = $_
 
@@ -572,9 +578,8 @@ Describe 'New-GuestConfigurationPolicy' {
                                 $optionalPath = Join-Path -Path $TestDrive -ChildPath $optionalPath
                             }
 
-                            $currentLocation = Get-Location
                             $filePath = Join-Path -Path $optionalPath -ChildPath $expectedFileName
-                            $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath, $currentLocation)
+                            $assertionParameters['ExpectedFilePath'] = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($filePath)
                         }
 
                         if ($OptionalParameters.ContainsKey('Version'))

@@ -28,5 +28,4 @@
 
     ComputerManagementDsc         = '8.2.0' # this is what the test MOF requires.
     PSDscResources                = '2.12.0.0' # required for tests only
-    'Microsoft.PowerShell.Utility'  = 'latest' # required for PS 5.1
 }

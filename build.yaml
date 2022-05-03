@@ -116,7 +116,7 @@ Pester:
   Configuration:
     Run:
       Path:
-        - tests/Unit
+        - tests
       ExcludePath:
     Filter:
       Tag:

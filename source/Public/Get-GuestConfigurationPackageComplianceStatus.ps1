@@ -86,11 +86,6 @@ function Get-GuestConfigurationPackageComplianceStatus
         $Parameter = @()
     )
 
-    if ($IsMacOS)
-    {
-        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
-    }
-
     $invokeParameters = @{
         Path = $Path
     }

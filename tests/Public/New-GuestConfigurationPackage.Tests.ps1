@@ -1,6 +1,5 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
 
     $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
@@ -19,8 +18,8 @@ Describe 'New-GuestConfigurationPackage' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
         $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
@@ -68,7 +67,7 @@ Describe 'New-GuestConfigurationPackage' {
             Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -78,7 +77,7 @@ Describe 'New-GuestConfigurationPackage' {
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the ComputerManagementDsc module dependency' {
@@ -311,7 +310,7 @@ Describe 'New-GuestConfigurationPackage' {
             $gitHubPath.Value | Should -Be "$($newGuestConfigurationPackageParameters.Name)/Modules/$inspecProfileName/"
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -321,7 +320,7 @@ Describe 'New-GuestConfigurationPackage' {
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the native InSpec resource folder' {
@@ -445,7 +444,7 @@ Describe 'New-GuestConfigurationPackage' {
             Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -455,7 +454,7 @@ Describe 'New-GuestConfigurationPackage' {
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the PSDscResources module dependency' {

@@ -1,7 +1,6 @@
-
 <#
     .SYNOPSIS
-        Signs a Guest Configuration package using either acertificate on Windows or GPG keys on Linux.
+        Signs a Guest Configuration package using either a certificate on Windows or GPG keys on Linux.
 
     .PARAMETER Path
         The path of the Guest Configuration package to sign
@@ -9,6 +8,8 @@
     .PARAMETER Certificate
         The 'Code Signing' certificate to sign the package with.
         This is only supported on Windows.
+
+        See examples for how to generate a test certificate.
 
     .PARAMETER PrivateGpgKeyPath
         The private GPG key path to sign the package with.
@@ -70,7 +71,8 @@
 function Protect-GuestConfigurationPackage
 {
     [CmdletBinding()]
-    param (
+    param
+    (
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Certificate")]
         [Parameter(Position = 0, Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "GpgKeys")]
         [ValidateNotNullOrEmpty()]

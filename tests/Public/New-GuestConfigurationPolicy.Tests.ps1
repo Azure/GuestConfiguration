@@ -1,6 +1,5 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
 
     $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
@@ -551,13 +550,13 @@ Describe 'New-GuestConfigurationPolicy' {
                     @{ OptionalParameters = @{ PolicyId = [Guid]::NewGuid() }},
                     @{ OptionalParameters = @{ Path = './relativepath' }},
                     @{ OptionalParameters = @{ Path = './path with spaces' }},
-                    @{ OptionalParameters = @{ Version = '1.1.0' }},
+                    @{ OptionalParameters = @{ PolicyVersion = '1.1.0' }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond' } }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond'; County = 'King' } }},
                     @{ OptionalParameters = @{
                         PolicyId = [Guid]::NewGuid()
                         Path = './path with spaces'
-                        Version = '1.1.0'
+                        PolicyVersion = '1.1.0'
                         Tag = @{ Location = 'Redmond'; County = 'King'}
                     }}
                 ) {
@@ -582,9 +581,9 @@ Describe 'New-GuestConfigurationPolicy' {
                             $assertionParameters['ExpectedFilePath'] = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($filePath)
                         }
 
-                        if ($OptionalParameters.ContainsKey('Version'))
+                        if ($OptionalParameters.ContainsKey('PolicyVersion'))
                         {
-                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['Version']
+                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['PolicyVersion']
                         }
 
                         if ($OptionalParameters.ContainsKey('Tag'))

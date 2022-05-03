@@ -25,11 +25,8 @@
     'DscResource.AnalyzerRules'   = 'latest'
     'xDscResourceDesigner'        = 'latest'
     'DscResource.DocGenerator'    = 'latest'
-    'Az.Accounts'                 = 'latest'
-    'Az.Resources'                = 'latest'
-    'Az.Storage'                  = 'latest'
 
     ComputerManagementDsc         = '8.2.0' # this is what the test MOF requires.
     PSDscResources                = '2.12.0.0' # required for tests only
-    'Microsoft.PowerShell.Utility'  = 'latest'
+    'Microsoft.PowerShell.Utility'  = 'latest' # required for PS 5.1
 }

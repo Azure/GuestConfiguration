@@ -14,7 +14,7 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter(Mandatory = $true)]
         [String]
-        $Version,
+        $PolicyVersion,
 
         [Parameter(Mandatory = $true)]
         [String]
@@ -59,7 +59,7 @@ function New-GuestConfigurationPolicyContent
     $metadataSectionParameters = @{
         DisplayName = $DisplayName
         Description = $Description
-        PolicyVersion = $Version
+        PolicyVersion = $PolicyVersion
         ConfigurationName = $ConfigurationName
         ConfigurationVersion = $ConfigurationVersion
         ContentUri = $ContentUri

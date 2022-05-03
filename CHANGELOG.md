@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More messaging in New-GuestConfigurationPolicy around the package version and type
 - Added the SASExpirationInDays parameter to Publish-GuestConfigurationPackage so the customer can control the expiration time of their generated SAS token.
 - Added examples and more help text to Protect-GuestConfigurationPackage and updated the tests
+- Added the ContentVersion parameter to New-GuestConfigurationPolicy to validate the downloaded package version before putting it into the policy definition.
 
 ### Changed
 
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New-GuestConfigurationPolicy will now throw when you are trying to create an Apply policy with an Audit-only package.
 - Publish-GuestConfigurationPackage now authenticates via New-AzStorageContext
 - Publish-GuestConfigurationPackage now requires the StorageContainerName parameter
+- Changed the 'Version' parameter to 'PolicyVersion' for New-GuestConfigurationPolicy
 
 ### Fixed
 
@@ -28,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed Publish-GuestConfigurationPackage as it was just a wrapper for Az storage cmdlets. Please use Az cmdlets if you would like to upload your package to Az storage instead.
 - Removed the ResourceGroupName parameter from Publish-GuestConfigurationPackage as it is no longer needed.
 - Removed the internal submodule GuestConfigPath and other functions that weren't used anymore (no impact on functionality)
+- Removed dependencies on Az cmdlets and PSDesiredStateConfiguraiton module
+
+## [4.0.0-preview0005] - 2022-04-19
+
+### Fixed
+
+- Fixed the GC worker included in the module (for invoking packages)
 
 ## [4.0.0-preview0004] - 2022-04-18
 

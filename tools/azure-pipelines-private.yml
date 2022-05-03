@@ -136,7 +136,7 @@ stages:
             displayName: 'Run Unit Test'
             inputs:
               filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests/Unit'"
+              arguments: "-Tasks test -PesterScript 'Tests'"
               pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -216,11 +216,11 @@ stages:
               script: |
                 $ProgressPreference = 'SilentlyContinue'
                 if ($IsWindows) {
-                  ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
+                  ./build.ps1 -Tasks 'test' -PesterScript 'Tests'
                 } elseif ($IsLinux) {
                     sudo pwsh-preview {
                         $ProgressPreference = 'SilentlyContinue'
-                        ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
+                        ./build.ps1 -Tasks 'test' -PesterScript 'Tests'
                     }
                 }
                 $Error[0..2] | ConvertTo-Json

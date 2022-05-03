@@ -1,6 +1,5 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
 
     $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
@@ -20,8 +19,8 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
         $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'

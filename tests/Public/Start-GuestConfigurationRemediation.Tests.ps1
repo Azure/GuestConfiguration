@@ -1,6 +1,5 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
 
     $projectPath = Split-Path -Path $testsFolderPath -Parent
     $projectName = Get-SamplerProjectName -BuildRoot $projectPath
@@ -14,8 +13,8 @@ Describe 'Start-GuestConfigurationPackageRemediation' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
 
         $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
         $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_1.0.0.0.zip'

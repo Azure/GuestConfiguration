@@ -12,6 +12,7 @@
     .PARAMETER Version
         The semantic version of the Guest Configuration package.
         This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
+        The default value is '1.0.0'.
 
     .PARAMETER Type
         Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
@@ -71,7 +72,7 @@ function New-GuestConfigurationPackage
         [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Version = '0.0.0',
+        $Version = '1.0.0',
 
         [Parameter()]
         [ValidateSet('Audit', 'AuditAndSet')]
@@ -341,7 +342,7 @@ function New-GuestConfigurationPackage
     # Edit the native Chef InSpec resource parameters in the mof if needed
     if ($usingInSpecResource)
     {
-        Edit-ChefInSpecMofContent -PackageName $Name -MofPath $mofFilePath
+        Edit-GuestConfigurationPackageMofChefInSpecContent -PackageName $Name -MofPath $mofFilePath
     }
 
     # Copy resource dependencies

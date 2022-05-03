@@ -68,7 +68,7 @@
         Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
 
     .OUTPUTS
-        None.
+        The result of the package invocation.
 #>
 
 function Start-GuestConfigurationPackageRemediation
@@ -85,11 +85,6 @@ function Start-GuestConfigurationPackageRemediation
         [Hashtable[]]
         $Parameter = @()
     )
-
-    if ($IsMacOS)
-    {
-        throw 'The Start-GuestConfigurationPackageRemediation cmdlet is not supported on MacOS'
-    }
 
     $invokeParameters = @{
         Path = $Path

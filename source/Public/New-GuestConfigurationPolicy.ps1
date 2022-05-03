@@ -15,15 +15,20 @@
         The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
         Example: https://github.com/azure/auditservice/release/AuditService.zip
 
+    .PARAMETER ContentVersion
+        The version of the Guest Configuration package (.zip) to run via the created policy.
+        If specified, the version of the package downloaded via the content URI must match this value.
+        By default, this will match the version in the package downloaded via the content URI.
+
     .PARAMETER PolicyId
         The unique ID of the policy definition.
         If you are trying to update an existing policy definition, then this ID must match the 'name' field in the existing defintiion.
         This field is normally a GUID.
         The default value is a new GUID.
 
-    .PARAMETER Version
+    .PARAMETER PolicyVersion
         The version of the policy definition.
-        If you are trying to update an existing policy definition, then this version must be greater than the value in the 'metadata.version' field in the existing defintiion.
+        If you are updating an existing policy definition, then this version must be greater than the value in the 'metadata.version' field in the existing defintiion.
         Note: This is NOT the version of the Guest Configuration package.
         The default value is '1.0.0'.
 
@@ -37,7 +42,7 @@
 
     .PARAMETER Parameter
         The parameters to expose on the policy.
-        All parameters passed to the policy must be single strings.
+        All parameters passed to the policy must be single string values.
 
         Example:
             $policyParameters = @(
@@ -50,6 +55,16 @@
                     ResourcePropertyName = 'Name'                              # Required
                     DefaultValue = 'winrm'                                     # Optional
                     AllowedValues = @('wscsvc', 'WSearch', 'wcncsvc', 'winrm') # Optional
+                },
+                @{
+                    Name = 'ServiceState'                                       # Required
+                    DisplayName = 'Windows Service State'                       # Required
+                    Description = 'State of the windows service to be audited.' # Optional
+                    ResourceType = 'Service'                                    # Required
+                    ResourceId = 'windowsService'                               # Required
+                    ResourcePropertyName = 'State'                              # Required
+                    DefaultValue = 'Running'                                    # Optional
+                    AllowedValues = @('Running', 'Disabled')                    # Optional
                 }
             )
 
@@ -71,9 +86,9 @@
             -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
             -DisplayName 'Monitor Windows Service Policy.' `
             -Description 'Policy to monitor service on Windows machine.' `
-            -Version 1.0.0.0
-            -Path ./git/custom_policy
-            -Tag @{Owner = 'WebTeam'}
+            -PolicyVersion 1.1.0 `
+            -Path ./git/custom_policy `
+            -Tag @{ Owner = 'WebTeam' }
 
         $PolicyParameterInfo = @(
             @{
@@ -91,12 +106,15 @@
         New-GuestConfigurationPolicy -ContentUri 'https://github.com/azure/auditservice/release/AuditService.zip' `
             -DisplayName 'Monitor Windows Service Policy.' `
             -Description 'Policy to monitor service on Windows machine.' `
-            -Version 1.0.0.0
+            -PolicyId $myPolicyGuid `
+            -PolicyVersion 2.4.0 `
             -Path ./policyDefinitions `
             -Parameter $PolicyParameterInfo
 
     .OUTPUTS
-        Return name and path of the Guest Configuration policy definitions.
+        Returns the name and path of the Guest Configuration policy definition.
+        This output can then be piped into New-AzPolicyDefinition.
+
         @{
             PSTypeName = 'GuestConfiguration.Policy'
             Name = $policyName
@@ -126,6 +144,10 @@ function New-GuestConfigurationPolicy
         $ContentUri,
 
         [Parameter()]
+        [System.Version]
+        $ContentVersion,
+
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.Guid]
         $PolicyId = [System.Guid]::NewGuid(),
@@ -133,7 +155,7 @@ function New-GuestConfigurationPolicy
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [System.Version]
-        $Version = '1.0.0',
+        $PolicyVersion = '1.0.0',
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -191,6 +213,12 @@ function New-GuestConfigurationPolicy
                 $requiredParameterPropertyString = $requiredParameterProperties -join ', '
                 throw "One of the specified policy parameters is missing the mandatory property '$requiredParameterProperty'. The mandatory properties for parameters are: $requiredParameterPropertyString"
             }
+
+            if ($parameterInfo[$requiredParameterProperty] -isnot [string])
+            {
+                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
+                throw "The property '$requiredParameterProperty' of one of the specified parameters is not a string. All parameter property values must be strings."
+            }
         }
     }
 
@@ -220,17 +248,8 @@ function New-GuestConfigurationPolicy
     $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
-    $packageFolderName = 'temp'
-    $packagePath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageFolderName
-
-    if (Test-Path -Path $packagePath)
-    {
-        $null = Remove-Item -Path $packagePath -Recurse -Force
-    }
-
+    $packagePath = Reset-GCWorkerTempPath
     $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
-
-    # Validate package?
 
     # Get configuration name
     $mofFilePattern = '*.mof'
@@ -261,10 +280,22 @@ function New-GuestConfigurationPolicy
         {
             $packageVersion = $metaconfig['Version']
             Write-Verbose -Message "Downloaded package has the version $packageVersion"
+
+            if ($null -ne $ContentVersion -and $ContentVersion -ne $packageVersion)
+            {
+                throw "Downloaded package version ($packageVersion) does not match specfied content version ($ContentVersion)."
+            }
         }
         else
         {
-            Write-Warning -Message "Failed to determine the package version from the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+            if ($null -eq $ContentVersion)
+            {
+                Write-Warning -Message "Failed to determine the package version from the metaconfig file '$metaconfigFileName' in the downloaded package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+            }
+            else
+            {
+                throw "Failed to determine the package version from the metaconfig file '$metaconfigFileName' in the downloaded package. Package version does not match specfied content version ($ContentVersion). Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+            }
         }
 
         if ($metaconfig.Keys -contains 'Type')
@@ -321,7 +352,7 @@ function New-GuestConfigurationPolicy
     $policyDefinitionContentParameters = @{
         DisplayName = $DisplayName
         Description = $Description
-        Version = $Version
+        PolicyVersion = $PolicyVersion
         ConfigurationName = $packageName
         ConfigurationVersion = $packageVersion
         ContentUri = $ContentUri

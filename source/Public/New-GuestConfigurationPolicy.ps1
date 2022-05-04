@@ -248,7 +248,7 @@ function New-GuestConfigurationPolicy
     $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
-    $packagePath = Reset-GCWorkerTempPath
+    $packagePath = Reset-GCWorkerTempDirectory
     $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
 
     # Get configuration name

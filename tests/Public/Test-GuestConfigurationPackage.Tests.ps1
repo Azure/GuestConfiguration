@@ -113,7 +113,7 @@ Describe 'Test-GuestConfigurationPackage' {
         }
 
         # This may be having a problem running after the remediation assignment has been published on Windows
-        Context 'No parameters' -Skip($os -ieq 'Windows') {
+        Context 'No parameters' -Skip:($os -ieq 'Windows') {
             BeforeAll {
                 $testFilePath = "$($env:SystemDrive)test.txt"
                 $expectedContent = 'default'

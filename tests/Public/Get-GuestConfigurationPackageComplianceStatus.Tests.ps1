@@ -144,6 +144,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
             }
 
             It 'Should return the expected result object when compliance status is true' {
+                $null = New-Item -Path $testFilePath -Force
                 $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
 
                 $result = Get-GuestConfigurationPackageComplianceStatus -Path $script:testFilePackagePath
@@ -203,6 +204,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
             }
 
             It 'Should return the expected result object when compliance is true' {
+                $null = New-Item -Path $testFilePath -Force
                 $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
 
                 $result = Get-GuestConfigurationPackageComplianceStatus -Path $script:testFilePackagePath -Parameter $parameters

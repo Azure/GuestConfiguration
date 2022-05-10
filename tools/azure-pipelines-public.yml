@@ -136,18 +136,12 @@ stages:
               script: |
                 ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false
-                Import-Module -Name PSDesiredStateConfiguration
-                Get-Module PSDesiredStateConfiguration
-                Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                Uninstall-AzureRm
           - task: PowerShell@2
             name: test
             displayName: 'Run Unit Test'
             inputs:
               filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests/Unit'"
+              arguments: "-Tasks test -PesterScript 'tests'"
               pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -207,16 +201,8 @@ stages:
               targetType: inline
               continueOnError: true
               script: |
-                pwsh-preview -c 'Enable-ExperimentalFeature -Name PSSubsystemPluginModel'
-                pwsh-preview -c { ./build.ps1 -Tasks noop
+                ./build.ps1 -Tasks noop
                 Import-Module GuestConfiguration
-                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-                Install-Module -Name PSDesiredStateConfiguration -AllowPrerelease -Confirm:$false -Force
-                Import-Module -Name PSDesiredStateConfiguration -Force
-                Get-Module PSDesiredStateConfiguration -ListAvailable
-                Enable-ExperimentalFeature -Name PSDesiredStateConfiguration.InvokeDscResource
-                Uninstall-AzureRm
-                }
           - task: PowerShell@2
             name: test
             displayName: 'Run Unit Test'
@@ -226,16 +212,7 @@ stages:
               continueOnError: true
               script: |
                 $ProgressPreference = 'SilentlyContinue'
-                if ($IsWindows) {
-                  ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
-                } elseif ($IsLinux) {
-                    sudo pwsh-preview {
-                        $ProgressPreference = 'SilentlyContinue'
-                        $VerbosePreference = 'Continue'
-                        $PesterPreference.Output.Verbosity = 'Diagnostic'
-                        ./build.ps1 -Tasks 'test' -PesterScript 'Tests/Unit'
-                    }
-                }
+                ./build.ps1 -Tasks 'test' -PesterScript 'tests'
                 $Error[0..2] | ConvertTo-Json
                 Write-Host '----------------------------------------'
           - task: PublishTestResults@2

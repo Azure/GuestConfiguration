@@ -21,22 +21,22 @@ function Set-GuestConfigurationPackageParameters
 
     foreach ($parameterInfo in $Parameter)
     {
-        if (-not $parameterInfo.ContainsKey('ResourceType'))
+        if ($parameterInfo.Keys -notcontains 'ResourceType')
         {
             throw "Policy parameter is missing a mandatory property 'ResourceType'. Please make sure that configuration resource type is specified in configuration parameter."
         }
 
-        if (-not $parameterInfo.ContainsKey('ResourceId'))
+        if ($parameterInfo.Keys -notcontains 'ResourceId')
         {
             throw "Policy parameter is missing a mandatory property 'ResourceId'. Please make sure that configuration resource Id is specified in configuration parameter."
         }
 
-        if (-not $parameterInfo.ContainsKey('ResourcePropertyName'))
+        if ($parameterInfo.Keys -notcontains 'ResourcePropertyName')
         {
             throw "Policy parameter is missing a mandatory property 'ResourcePropertyName'. Please make sure that configuration resource property name is specified in configuration parameter."
         }
 
-        if (-not $parameterInfo.ContainsKey('ResourcePropertyValue'))
+        if ($parameterInfo.Keys -notcontains 'ResourcePropertyValue')
         {
             throw "Policy parameter is missing a mandatory property 'ResourcePropertyValue'. Please make sure that configuration resource property value is specified in configuration parameter."
         }

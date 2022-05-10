@@ -12,17 +12,6 @@ Encoding: UTF8
 VersionedOutputDirectory: true
 
 ####################################################
-#      ModuleBuilder Submodules Configuration      #
-####################################################
-
-NestedModule:
-  GuestConfigPath:
-    AddToManifest: false
-    VersionedOutputDirectory: false
-    prefix: prefix.ps1
-    # Verbose: true
-
-####################################################
 #       Sampler Pipeline Configuration             #
 ####################################################
 BuildWorkflow:
@@ -38,35 +27,54 @@ BuildWorkflow:
       $localLinuxAgent =  './source/gc_agents/DSC_Linux.zip'
       $localWindowsAgent = './source/gc_agents/DSC_Windows.zip'
       $GitHubPATPath = 'GHPAT.local.txt'
+
       if ($env:GitHubToken)
       {
+          Write-Verbose -Message "Using environment GitHub token" -Verbose
           $GHPAT = $env:GitHubToken
       }
       elseif (Test-Path -Path $GitHubPATPath)
       {
-        $GHPAT = (gc -raw $GitHubPATPath).Trim()
+          Write-Verbose -Message "Using file GitHub token" -Verbose
+          $GHPAT = (gc -raw $GitHubPATPath).Trim()
       }
-      elseif ((Test-Path $localLinuxAgent) -or (Test-Path $localWindowsAgent))
+      elseif ((Test-Path $localLinuxAgent) -and (Test-Path $localWindowsAgent))
       {
-        Write-Warning "Using local versions of the agent available in './source/gc_agents'"
+          Write-Warning "Using local versions of the agent available in './source/gc_agents'"
       }
       else
       {
-        Write-Warning -Message "Unable to download GC Agents."
-        return
+          Write-Warning -Message "Unable to download GC Agents."
+          return
       }
+
       if (-not (Test-Path $localWindowsAgent))
       {
-          $Windows = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Windows-1.29.36.0).assets.Where{$_.Name -match 'GCService'}.id
-          Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Windows -Path $localWindowsAgent -Force
+          Write-Verbose -Message "Attempting to retrieve Windows agent release from GitHub" -Verbose
+
+          $windowsReleaseTag = 'Windows-1.29.36.0'
+          $windowsRelease = Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag $windowsReleaseTag
+          $windowsReleaseAssetId = $windowsRelease.assets.Where{ $_.Name.Contains('GCService') }.id
+
+          Write-Verbose -Message "Attempting to retrieve Windows agent release asset from GitHub" -Verbose
+          $null = Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $windowsReleaseAssetId -Path $localWindowsAgent -Force
       }
       if ( -not (Test-Path $localLinuxAgent))
       {
-          $Linux = (Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag Linux-1.26.28).assets.Where{$_.Name -match 'GC.zip'}.id
-          Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $Linux -Path $localLinuxAgent
+          Write-Verbose -Message "Attempting to retrieve Linux agent release from GitHub" -Verbose
+          $linuxReleaseTag = 'Linux-1.26.28'
+          $linuxRelease = Get-GitHubRelease -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Tag $linuxReleaseTag
+          $linuxReleaseAssetId = $linuxRelease.assets.Where{$_.Name.Contains('GC.zip')}.id
+
+          Write-Verbose -Message "Attempting to retrieve Linux agent release asset from GitHub" -Verbose
+          $null = Get-GitHubReleaseAsset -OwnerName PowerShell -RepositoryName DesiredStateConfiguration -AccessToken $GHPAT -Asset $linuxReleaseAssetId -Path $localLinuxAgent
       }
-      Copy-Item -Path $localLinuxAgent -Destination $binPath
-      Copy-Item -Path $localWindowsAgent -Destination $binPath
+
+      Write-Verbose -Message "Copying agents to destination folder" -Verbose
+      $null = Copy-Item -Path $localLinuxAgent -Destination $binPath
+      $null = Copy-Item -Path $localWindowsAgent -Destination $binPath
+
+      Write-Verbose -Message "Finished retrieving GC agents" -Verbose
     }
 
   build:
@@ -108,7 +116,7 @@ Pester:
   Configuration:
     Run:
       Path:
-        - tests/Unit
+        - tests
       ExcludePath:
     Filter:
       Tag:

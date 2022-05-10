@@ -14,8 +14,8 @@ function Set-GCWorkerSettings
         throw "No Guest Configuration package found at the path '$PackagePath'"
     }
 
-    $PackagePath = Resolve-Path -Path $PackagePath
-    $packageName = Split-Path -Path $PackagePath -LeafBase
+    $PackagePath = Resolve-RelativePath -Path $PackagePath
+    $packageName = [System.IO.Path]::GetFileNameWithoutExtension($PackagePath)
 
     if ($PackagePath.EndsWith([System.IO.Path]::DirectorySeparatorChar))
     {

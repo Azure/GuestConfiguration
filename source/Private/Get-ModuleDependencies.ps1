@@ -21,7 +21,7 @@ function Get-ModuleDependencies
 
     if ($ModuleName -ieq 'PSDesiredStateConfiguration')
     {
-        throw "Found a dependency on the PSDesiredStateConfiguration module, but we cannot copy these resources into the Guest Configuration package. Please switch these resources to using the PSDscResources module instead."
+        throw "Found a dependency on resources from the PSDesiredStateConfiguration module, but we cannot copy these resources into the Guest Configuration package. Please switch these resources to using the PSDscResources module instead."
     }
 
     $getModuleParameters = @{

@@ -1,9 +1,8 @@
 Tests:
-  - Tests/*.Tests.ps1
+  - tests/*.Tests.ps1
 
 Release:
  - helpers/*
  - DscResources/*
  - GuestConfiguration.psm1
  - GuestConfiguration.psd1
- 

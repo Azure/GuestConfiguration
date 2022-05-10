@@ -4,9 +4,10 @@
     {
       "file": [
         "\\README.md",
-        "\\Tests\\helpers\\New-SelfSignedCertificateEx.ps1"
+        "\\tests\\Public\\Protect-GuestConfigurationPackage.Tests.ps1",
+        "\\source\\Public\\Protect-GuestConfigurationPackage.ps1"
       ],
-      "_justification": "Not an actual secretes, those are sample creds to show usage."
+      "_justification": "Not actual secrets, those are sample creds to show usage."
     }
   ]
 }

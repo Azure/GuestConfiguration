@@ -1,12 +1,13 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $null = Import-Module -Name 'GuestConfiguration' -Force
 
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
     $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
+    $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
+    $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
+    $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
+    $null = Import-Module -Name $osFunctionScriptPath -Force
+    $script:os = Get-OSPlatform
 }
 
 Describe 'New-GuestConfigurationPolicy' {
@@ -91,7 +92,7 @@ Describe 'New-GuestConfigurationPolicy' {
             $fileContent = Get-Content -Path $ExpectedFilePath -Raw
             $fileContent | Should -Not -BeNullOrEmpty
 
-            $fileContentJson = $fileContent | ConvertFrom-Json -Depth 100
+            $fileContentJson = $fileContent | ConvertFrom-Json
             $fileContentJson | Should -Not -BeNullOrEmpty
             $fileContentJson.properties | Should -Not -BeNullOrEmpty
 
@@ -440,7 +441,7 @@ Describe 'New-GuestConfigurationPolicy' {
             )
         }
     ) {
-        Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and -not $IsWindows) {
+        Context '<platformString>' -ForEach @($Platform) -Skip:($_ -ieq 'Windows' -and $script:os -ine 'Windows') {
             BeforeAll {
                 $platformString = $_
 
@@ -545,13 +546,13 @@ Describe 'New-GuestConfigurationPolicy' {
                     @{ OptionalParameters = @{ PolicyId = [Guid]::NewGuid() }},
                     @{ OptionalParameters = @{ Path = './relativepath' }},
                     @{ OptionalParameters = @{ Path = './path with spaces' }},
-                    @{ OptionalParameters = @{ Version = '1.1.0' }},
+                    @{ OptionalParameters = @{ PolicyVersion = '1.1.0' }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond' } }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond'; County = 'King' } }},
                     @{ OptionalParameters = @{
                         PolicyId = [Guid]::NewGuid()
                         Path = './path with spaces'
-                        Version = '1.1.0'
+                        PolicyVersion = '1.1.0'
                         Tag = @{ Location = 'Redmond'; County = 'King'}
                     }}
                 ) {
@@ -573,12 +574,12 @@ Describe 'New-GuestConfigurationPolicy' {
                             }
 
                             $filePath = Join-Path -Path $optionalPath -ChildPath $expectedFileName
-                            $assertionParameters['ExpectedFilePath'] = [System.IO.Path]::GetFullPath($filePath)
+                            $assertionParameters['ExpectedFilePath'] = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($filePath)
                         }
 
-                        if ($OptionalParameters.ContainsKey('Version'))
+                        if ($OptionalParameters.ContainsKey('PolicyVersion'))
                         {
-                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['Version']
+                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['PolicyVersion']
                         }
 
                         if ($OptionalParameters.ContainsKey('Tag'))

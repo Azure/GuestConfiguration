@@ -1,5 +1,5 @@
 
-function Edit-ChefInSpecMofContent
+function Edit-GuestConfigurationPackageMofChefInSpecContent
 {
     [CmdletBinding()]
     param

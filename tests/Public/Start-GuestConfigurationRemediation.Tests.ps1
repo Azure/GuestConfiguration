@@ -1,25 +1,13 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
-
-    $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    $projectModule = Get-Module -Name $projectName
-    $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $importedModule = Import-Module -Name $projectName -Force -PassThru -ErrorAction 'Stop'
+    $null = Import-Module -Name 'GuestConfiguration' -Force
 }
 
-Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
-    ProjectPath    = $projectPath
-    ProjectName    = $projectName
-    ImportedModule = $importedModule
-} {
+Describe 'Start-GuestConfigurationPackageRemediation' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
+        $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
 
         $testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
         $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_1.0.0.0.zip'
@@ -57,7 +45,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' -ForEach @{
         }
 
         It 'Set should run without throwing' {
-            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Verbose } | Should -Not -Throw
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath } | Should -Not -Throw
         }
 
         It 'Test file should exist at expected path' {

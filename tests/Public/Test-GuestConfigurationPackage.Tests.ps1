@@ -207,7 +207,7 @@ Describe 'Test-GuestConfigurationPackage' {
                 $null = New-Item -Path $testFilePath -Force
                 $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
 
-                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters
+                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters -Verbose
 
                 $result.assignmentName | Should -Be 'TestFilePackage'
                 $result.complianceStatus | Should -BeTrue

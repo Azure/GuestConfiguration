@@ -119,6 +119,8 @@ Describe 'Test-GuestConfigurationPackage' {
             }
 
             AfterAll {
+                Start-Sleep -Seconds 1
+
                 if (Test-Path -Path $testFilePath)
                 {
                     $null = Remove-Item -Path $testFilePath -Force
@@ -130,6 +132,8 @@ Describe 'Test-GuestConfigurationPackage' {
                 {
                     $null = Remove-Item -Path $testFilePath -Force
                 }
+
+                Start-Sleep -Seconds 1
 
                 $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath
 
@@ -146,6 +150,8 @@ Describe 'Test-GuestConfigurationPackage' {
             It 'Should return the expected result object when compliance status is true' {
                 $null = New-Item -Path $testFilePath -Force
                 $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
+
+                Start-Sleep -Seconds 1
 
                 $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Verbose
 
@@ -179,6 +185,8 @@ Describe 'Test-GuestConfigurationPackage' {
             }
 
             AfterAll {
+                Start-Sleep -Seconds 1
+
                 if (Test-Path -Path $testFilePath)
                 {
                     $null = Remove-Item -Path $testFilePath -Force
@@ -190,6 +198,8 @@ Describe 'Test-GuestConfigurationPackage' {
                 {
                     $null = Remove-Item -Path $testFilePath -Force
                 }
+
+                Start-Sleep -Seconds 1
 
                 $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters
 
@@ -206,6 +216,8 @@ Describe 'Test-GuestConfigurationPackage' {
             It 'Should return the expected result object when compliance is true' {
                 $null = New-Item -Path $testFilePath -Force
                 $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
+
+                Start-Sleep -Seconds 1
 
                 $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters -Verbose
 

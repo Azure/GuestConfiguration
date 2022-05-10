@@ -112,7 +112,8 @@ Describe 'Test-GuestConfigurationPackage' {
             $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_1.0.0.0.zip'
         }
 
-        Context 'No parameters' {
+        # This may be having a problem running after the remediation assignment has been published on Windows
+        Context 'No parameters' -Skip($os -ieq 'Windows') {
             BeforeAll {
                 $testFilePath = "$($env:SystemDrive)test.txt"
                 $expectedContent = 'default'

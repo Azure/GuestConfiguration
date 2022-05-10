@@ -1,12 +1,5 @@
 BeforeDiscovery {
-    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-
-    $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    $projectModule = Get-Module -Name $projectName
-    $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $null = Import-Module $projectName -Force
+    $null = Import-Module -Name 'GuestConfiguration' -Force
 }
 
 Describe 'GuestConfiguration module validation' {
@@ -14,8 +7,8 @@ Describe 'GuestConfiguration module validation' {
         $module = Get-Module -Name 'GuestConfiguration'
         $modulePath = $module.ModuleBase
 
-        $binPath = Join-Path -Path $modulePath -ChildPath 'bin'
-        $dscResourcesPath = Join-Path -Path $modulePath -ChildPath 'DscResources'
+        $script:binPath = Join-Path -Path $modulePath -ChildPath 'bin'
+        $script:dscResourcesPath = Join-Path -Path $modulePath -ChildPath 'DscResources'
     }
 
     It 'Should contain a valid module manifest' {
@@ -26,25 +19,25 @@ Describe 'GuestConfiguration module validation' {
     }
 
     It 'Should contain a bin folder' {
-        Test-Path -Path $binPath -PathType 'Container' | Should -BeTrue
+        Test-Path -Path $script:binPath -PathType 'Container' | Should -BeTrue
     }
 
     It 'Should contain the Linux agent binaries' {
-        $linuxAgentPath = Join-Path -Path $binPath -ChildPath 'DSC_Linux.zip'
+        $linuxAgentPath = Join-Path -Path $script:binPath -ChildPath 'DSC_Linux.zip'
         Test-Path -Path $linuxAgentPath -PathType 'Leaf' | Should -BeTrue
     }
 
     It 'Should contain the Windows agent binaries' {
-        $windowsAgentPath = Join-Path -Path $binPath -ChildPath 'DSC_Windows.zip'
+        $windowsAgentPath = Join-Path -Path $script:binPath -ChildPath 'DSC_Windows.zip'
         Test-Path -Path $windowsAgentPath -PathType 'Leaf' | Should -BeTrue
     }
 
     It 'Should contain a DscResources folder' {
-        Test-Path -Path $dscResourcesPath -PathType 'Container' | Should -BeTrue
+        Test-Path -Path $script:dscResourcesPath -PathType 'Container' | Should -BeTrue
     }
 
     It 'Should contain the native InSpec resource' {
-        $inSpecResourcePath = Join-Path -Path $dscResourcesPath -ChildPath 'MSFT_ChefInSpecResource'
+        $inSpecResourcePath = Join-Path -Path $script:dscResourcesPath -ChildPath 'MSFT_ChefInSpecResource'
         Test-Path -Path $inSpecResourcePath -PathType 'Container' | Should -BeTrue
 
         $inSpecResourceLibraryPath = Join-Path -Path $inSpecResourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'

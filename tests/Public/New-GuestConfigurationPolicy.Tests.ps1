@@ -1,12 +1,8 @@
 BeforeDiscovery {
+    $null = Import-Module -Name 'GuestConfiguration' -Force
+
     $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-
     $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $null = Import-Module $projectName -Force
-
     $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
     $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
     $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'

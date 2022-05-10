@@ -1,7 +1,8 @@
 
 <#
     .SYNOPSIS
-        Creates a policy definition to run code on machines through Azure Guest Configuration and Azure Policy.
+        Creates a policy definition to monitor and remediate settings on machines through
+        Azure Guest Configuration and Azure Policy.
 
     .PARAMETER DisplayName
         The display name of the policy to create.
@@ -20,17 +21,23 @@
         If specified, the version of the package downloaded via the content URI must match this value.
         By default, this will match the version in the package downloaded via the content URI.
 
+        Note: This is NOT the version of the policy definition.
+        You can define the policy definition version via the PolicyVersion parameter.
+
     .PARAMETER PolicyId
-        The unique ID of the policy definition.
-        If you are trying to update an existing policy definition, then this ID must match the 'name' field in the existing defintiion.
-        This field is normally a GUID.
+        The unique GUID of the policy definition.
+        If you are trying to update an existing policy definition, then this ID must match the 'name'
+        field in the existing defintiion.
         The default value is a new GUID.
 
     .PARAMETER PolicyVersion
         The version of the policy definition.
-        If you are updating an existing policy definition, then this version must be greater than the value in the 'metadata.version' field in the existing defintiion.
-        Note: This is NOT the version of the Guest Configuration package.
+        If you are updating an existing policy definition, then this version must be greater than
+        the value in the 'metadata.version' field in the existing defintiion.
         The default value is '1.0.0'.
+
+        Note: This is NOT the version of the Guest Configuration package.
+        You can define the Guest Configuration package version via the ContentVersion parameter.
 
     .PARAMETER Path
         The path to the folder under which to create the new policy definition file.
@@ -69,17 +76,25 @@
             )
 
     .PARAMETER Mode
-        Defines the modification mode under which this policy should run code from the package to modify the machine.
+        Defines the mode under which this policy should run the package on the machine.
 
         Allowed modes:
             Audit: Monitors the machine only. Will not make modifications to the machine.
-            ApplyAndMonitor: Modifies the machine once if it does not match the expected state. Then monitors the machine only until another remediation task is triggered via Azure Policy. Will make modifications to the machine.
-            ApplyAndAutoCorrect: Modifies the machine any time it does not match the expected state. You will need trigger a remediation task via Azure Policy to start modifications the first time. Will make modifications to the machine.
+            ApplyAndMonitor: Modifies the machine once if it does not match the expected state.
+              Then monitors the machine only until another remediation task is triggered via Azure Policy.
+              Will make modifications to the machine.
+            ApplyAndAutoCorrect: Modifies the machine any time it does not match the expected state.
+              You will need trigger a remediation task via Azure Policy to start modifications the first time.
+              Will make modifications to the machine.
 
         The default value is Audit.
 
+        If the package has been created as Audit-only, you cannot create an Apply policy with that package.
+        The package will need to be re-created in AuditAndSet mode.
+
     .PARAMETER Tag
-        The tags that should be on machines to apply this policy on.
+        A hashtable of the tags that should be on machines to apply this policy on.
+        If this is specified, the created policy will only be applied to machines with all the specified tags.
 
     .EXAMPLE
         New-GuestConfigurationPolicy `
@@ -90,6 +105,7 @@
             -Path ./git/custom_policy `
             -Tag @{ Owner = 'WebTeam' }
 
+    .EXAMPLE
         $PolicyParameterInfo = @(
             @{
                 Name = 'ServiceName'                                       # Policy parameter name (mandatory)

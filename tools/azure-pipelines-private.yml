@@ -129,7 +129,7 @@ stages:
             displayName: 'Run Unit Test'
             inputs:
               filePath: './build.ps1'
-              arguments: "-Tasks test -PesterScript 'Tests'"
+              arguments: "-Tasks test -PesterScript 'tests'"
               pwsh: true
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
@@ -199,7 +199,7 @@ stages:
               targetType: inline
               continueOnError: true
               script: |
-                ./build.ps1 -Tasks 'test' -PesterScript 'Tests'
+                ./build.ps1 -Tasks 'test' -PesterScript 'tests'
                 $Error[0..2] | ConvertTo-Json
                 Write-Host '----------------------------------------'
           - task: PublishTestResults@2

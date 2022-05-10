@@ -2,26 +2,21 @@
 param ()
 
 BeforeDiscovery {
+    $null = Import-Module -Name 'GuestConfiguration' -Force
+
     $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-
     $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $null = Import-Module $projectName -Force
-
-    $isRunningAsAdmin = $false
-
     $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
     $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
     $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
     $null = Import-Module -Name $osFunctionScriptPath -Force
     $script:os = Get-OSPlatform
 
+    $script:isRunningAsAdmin = $false
     if ($script:os -ieq 'Windows')
     {
         $currentPrincipal = [Security.Principal.WindowsPrincipal]::New([Security.Principal.WindowsIdentity]::GetCurrent())
-        $isRunningAsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        $script:isRunningAsAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     }
 }
 
@@ -34,7 +29,7 @@ Describe 'Protect-GuestConfigurationPackage' {
         $script:testPackagesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestPackages'
     }
 
-    Context 'Sign a Windows package using a test certificate' -Skip:($script:os -ine 'Windows' -or -not $isRunningAsAdmin) {
+    Context 'Sign a Windows package using a test certificate' -Skip:($script:os -ine 'Windows' -or -not $script:isRunningAsAdmin) {
         BeforeAll {
             # Create a code signing cert
             $myCert = New-SelfSignedCertificate -Type 'CodeSigningCert' -DnsName 'GCModuleTestOnly' -HashAlgorithm 'SHA256'

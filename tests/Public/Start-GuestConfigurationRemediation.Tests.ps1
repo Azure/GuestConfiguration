@@ -1,12 +1,5 @@
 BeforeDiscovery {
-    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-
-    $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    $projectModule = Get-Module -Name $projectName
-    $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $null = Import-Module -Name $projectName -Force
+    $null = Import-Module -Name 'GuestConfiguration' -Force
 }
 
 Describe 'Start-GuestConfigurationPackageRemediation' {
@@ -52,7 +45,7 @@ Describe 'Start-GuestConfigurationPackageRemediation' {
         }
 
         It 'Set should run without throwing' {
-            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath -Verbose } | Should -Not -Throw
+            { Start-GuestConfigurationPackageRemediation -Path $script:testFilePackagePath } | Should -Not -Throw
         }
 
         It 'Test file should exist at expected path' {

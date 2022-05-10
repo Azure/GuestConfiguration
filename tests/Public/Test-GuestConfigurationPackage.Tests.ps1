@@ -1,13 +1,8 @@
 BeforeDiscovery {
+    $null = Import-Module -Name 'GuestConfiguration' -Force
+
     $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-
     $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    $projectModule = Get-Module -Name $projectName
-    $null = $projectModule | Remove-Module -Force -ErrorAction 'SilentlyContinue'
-    $null = Import-Module -Name $projectName -Force
-
     $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
     $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
     $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
@@ -19,19 +14,14 @@ Describe 'Test-GuestConfigurationPackage' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
-        {
-            $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
-        }
-
         $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
+        $script:testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
         $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
     }
 
-    Context 'Windows TimeZone package' -Skip:($script:os -ine 'Windows') {
+    Context 'Windows TimeZone package' -Skip:($os -ine 'Windows') {
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testWindowsTimeZone'
@@ -47,7 +37,7 @@ Describe 'Test-GuestConfigurationPackage' {
         }
 
         It 'Should return the expected output with compliance status as false with no parameters' {
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Verbose
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $false
@@ -67,7 +57,7 @@ Describe 'Test-GuestConfigurationPackage' {
                 ResourcePropertyValue = $currentTimeZone.Id
             }
 
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue -Verbose
+            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Parameter $parameterValue
 
             $testPackageResult | Should -Not -Be $null
             $testPackageResult.complianceStatus | Should -Be $true
@@ -116,69 +106,113 @@ Describe 'Test-GuestConfigurationPackage' {
         }
     }
 
-    Context 'Linux native InSpec path check package' {
-        It 'Validate that the resource compliance results are as expected on Linux' -Skip:($script:os -ine 'Linux') {
-            $inSpecTestAssetsPath = Join-Path -Path $testAssetsPath -ChildPath 'InspecConfig'
-
-            $newGuestConfigurationPackageParameters = @{
-                Name = 'testLinuxNativeInSpec'
-                Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
-                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
-                ChefInspecProfilePath = $inSpecTestAssetsPath
-                Force = $true
-            }
-
-            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
-
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -ErrorAction 'Stop' -Verbose -Debug
-
-            $testPackageResult | Should -Not -Be $null
-            $testPackageResult.complianceStatus | Should -Be $true
-
-            $testPackageResult.resources.Count | Should -Be 1
-            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'GuestConfiguration'
-            $testPackageResult.resources[0].complianceStatus | Should -Be $true
-            $testPackageResult.resources[0].properties.ConfigurationName | Should -Be 'DSCConfig'
-        }
-
-        It 'Should not have installed Guest Configuration under the system path' {
-            $systemGuestConfigurationPath = '/var/lib/GuestConfig'
-            Test-Path -Path $systemGuestConfigurationPath | Should -BeFalse
-        }
-    }
-
-    Context 'Windows Script package' -Skip:($script:os -ine 'Windows') {
+    Context 'Cross-platform TestFile package' {
         BeforeAll {
-            $newGuestConfigurationPackageParameters = @{
-                Name = 'testScript'
-                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestScript.mof'
-                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
-                Force = $true
+            $testPackagesFolderPath = Join-Path -Path $script:testAssetsPath -ChildPath 'TestPackages'
+            $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_1.0.0.0.zip'
+        }
+
+        Context 'No parameters' {
+            BeforeAll {
+                $testFilePath = "$($env:SystemDrive)test.txt"
+                $expectedContent = 'default'
             }
 
-            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
-            $packageHash = Get-FileHash -Path $package.Path
+            AfterAll {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
+            }
+
+            It 'Should return the expected result object when compliance status is false' {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
+
+                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeFalse
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeFalse
+                $result.resources[0].Reasons.Count | Should -Be 1
+                $result.resources[0].Reasons[0].Code | Should -Not -BeNullOrEmpty
+                $result.resources[0].Reasons[0].Phrase | Should -Not -BeNullOrEmpty
+            }
+
+            It 'Should return the expected result object when compliance status is true' {
+                $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
+
+                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeTrue
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeTrue
+            }
         }
 
-        It 'Should return the expected output with compliance status as false with no parameters' {
-            $testPackageResult = Test-GuestConfigurationPackage -Path $package.Path -Verbose
+        Context 'With parameters' {
+            BeforeAll {
+                $testFilePath = Join-Path -Path $TestDrive -ChildPath 'Hogwarts.txt'
+                $expectedContent = 'Harry Potter'
 
-            $testPackageResult | Should -Not -Be $null
-            $testPackageResult.complianceStatus | Should -Be $false
+                $parameters = @(
+                    @{
+                        ResourceType = 'TestFile'
+                        ResourceId = 'MyTestFile'
+                        ResourcePropertyName = 'Path'
+                        ResourcePropertyValue = $testFilePath
+                    },
+                    @{
+                        ResourceType = 'TestFile'
+                        ResourceId = 'MyTestFile'
+                        ResourcePropertyName = 'Content'
+                        ResourcePropertyValue = $expectedContent
+                    }
+                )
+            }
 
-            $testPackageResult.resources.Count | Should -Be 1
-            $testPackageResult.resources[0].properties.ModuleName | Should -Be 'PSDscResources'
-            $testPackageResult.resources[0].complianceStatus | Should -Be $false
-        }
+            AfterAll {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
+            }
 
-        It 'Should not have installed Guest Configuration under the system path' {
-            $systemGuestConfigurationPath = 'C:\ProgramData\GuestConfig'
-            Test-Path -Path $systemGuestConfigurationPath | Should -BeFalse
-        }
+            It 'Should return the expected result object when compliance is false' {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
 
-        It 'Package should not have changed after running all tests' {
-            $currentPackageHash = Get-FileHash -Path $package.Path
-            $currentPackageHash.Hash | Should -Be $packageHash.Hash
+                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeFalse
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeFalse
+                $result.resources[0].Reasons.Count | Should -Be 1
+                $result.resources[0].Reasons[0].Code | Should -Not -BeNullOrEmpty
+                $result.resources[0].Reasons[0].Phrase | Should -Not -BeNullOrEmpty
+            }
+
+            It 'Should return the expected result object when compliance is true' {
+                $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
+
+                $result = Test-GuestConfigurationPackage -Path $script:testFilePackagePath -Parameter $parameters
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeTrue
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeTrue
+            }
         }
     }
 }

@@ -1,13 +1,16 @@
 <#
     .SYNOPSIS
-        Signs a Guest Configuration package using either a certificate on Windows or GPG keys on Linux.
+        Signs a Guest Configuration package using either a certificate on Windows
+        or GPG keys on Linux.
 
     .PARAMETER Path
-        The path of the Guest Configuration package to sign
+        The path of the Guest Configuration package to sign.
 
     .PARAMETER Certificate
         The 'Code Signing' certificate to sign the package with.
         This is only supported on Windows.
+
+        This certificate will need to be installed on machines running this package.
 
         See examples for how to generate a test certificate.
 
@@ -21,16 +24,13 @@
         The public GPG key path to sign the package with.
         This is only supported on Linux.
 
-        This key will need to be installed on any machines that this package should run on at the path:
+        This key will need to be installed on any machines running this package at the path:
             /usr/local/share/ca-certificates/gc/pub_keyring.gpg
 
         See examples for how to generate this key.
 
     .EXAMPLE
-        $cert = Get-ChildItem -Path Cert:/CurrentUser/AuthRoot -Recurse | Where-Object {($_.Thumbprint -eq "0563b8630d62d75abbc8ab1e4bdfb5a899b65d43")}
-        Protect-GuestConfigurationPackage -Path ./custom_policy/WindowsTLS.zip -Certificate $cert
-
-    .EXAMPLE
+        # Windows
         # Please note that self-signed certs should not be used in production, only testing
 
         # Create a code signing cert
@@ -49,6 +49,7 @@
         Protect-GuestConfigurationPackage -Path C:\demo\AuditWindowsService.zip -Certificate $certToSignThePackage -Verbose
 
     .EXAMPLE
+        # Linux
         # Generate gpg key
         gpg --gen-key
 

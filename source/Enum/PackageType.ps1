@@ -1,5 +1,0 @@
-enum PackageType
-{
-    Audit
-    AuditAndSet
-}

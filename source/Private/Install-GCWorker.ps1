@@ -110,7 +110,7 @@ function Install-GCWorker
 
     if (-not (Test-Path -Path $logsFolderPath -PathType 'Container'))
     {
-        Write-Verbose -Message "Creating the logs folder at '$logsFolderPath'" -Verbose
+        Write-Verbose -Message "Creating the logs folder at '$logsFolderPath'"
         $null = New-Item -Path $logsFolderPath -ItemType 'Directory'
     }
 }

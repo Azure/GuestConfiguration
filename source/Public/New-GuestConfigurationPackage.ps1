@@ -11,38 +11,51 @@
 
     .PARAMETER Version
         The semantic version of the Guest Configuration package.
-        This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
         The default value is '1.0.0'.
 
     .PARAMETER Type
-        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
-        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
+        Sets a tag in the metaconfig data of the package specifying whether or not this package is
+        Audit-only or can support Set/Apply functionality.
 
-        Audit indicates that the package will not set the state of the machine and may only monitor settings.
-        AuditAndSet indicates that the package may be used for setting the state of the machine.
+        Audit indicates that the package will only monitor settings and cannot set the state of
+        the machine.
+        AuditAndSet indicates that the package can be used for both monitoring and setting the
+        state of the machine.
 
-        By default this tag is set to Audit.
+        The default value is Audit.
+
+    .PARAMETER FrequencyMinutes
+        The frequency at which Guest Configuration should run this package in minutes.
+        The default value is 15.
+        15 is also the mimimum value.
+        Guest Configuration cannot run a package less-frequently than every 15 minutes.
 
     .PARAMETER Path
         The path to a folder to output the package under.
-        By default the package will be created under the current working directory (Get-Item -Path $(Get-Location)).
+        By default the package will be created under the current working directory.
 
     .PARAMETER ChefInspecProfilePath
         The path to a folder containing Chef InSpec profiles to include with the package.
 
-        The compiled DSC configuration (.mof) provided must include a reference to the native Chef InSpec resource
-        with the reference name of the resources matching the name of the profile folder to use.
-        If the compiled DSC configuration (.mof) provided includes a reference to the native Chef InSpec resource,
-        then specifying a Chef InSpec profile to include with this parameter is required.
+        The compiled DSC configuration (.mof) provided must include a reference to the native Chef
+        InSpec resource with the reference name of the resources matching the name of the profile
+        folder to use.
+
+        If the compiled DSC configuration (.mof) provided includes a reference to the native Chef
+        InSpec resource, then specifying a Chef InSpec profile to include with this parameter is
+        required.
 
     .PARAMETER FilesToInclude
         The path to a file or folder to include under the Modules path within the package.
 
     .PARAMETER Force
-        If present, this function will overwrite any existing package files.
+        If present, this function will overwrite any existing package files at the output path.
 
     .EXAMPLE
-        New-GuestConfigurationPackage -Name 'WindowsTLS' -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
+        New-GuestConfigurationPackage `
+            -Name 'WindowsTLS' `
+            -Configuration ./custom_policy/WindowsTLS/localhost.mof `
+            -Path ./git/repository/release/policy/WindowsTLS
 
     .OUTPUTS
         Returns a PSCustomObject with the name and path of the new Guest Configuration package.

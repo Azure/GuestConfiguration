@@ -2,6 +2,7 @@
 <#
     .SYNOPSIS
         Applies the given Guest Configuration package file (.zip) to the current machine.
+        This will modify your local machine.
 
     .PARAMETER Path
         The path to the Guest Configuration package file (.zip) to apply.
@@ -26,7 +27,8 @@
         )
 
         Technical Example:
-        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof) file in the package before running it.
+        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof)
+        file in the package before running it.
         If your compiled DSC configuration (.mof) file looked like this:
 
         instance of TestFile as $TestFile1ref
@@ -68,7 +70,16 @@
         Start-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
 
     .OUTPUTS
-        The result of the package invocation.
+        Returns a PSCustomObject with the report properties from running the package.
+        Here is an example output:
+            additionalProperties : {}
+            assignmentName       : TestFilePackage
+            complianceStatus     : True
+            endTime              : 5/9/2022 11:42:12 PM
+            jobId                : 18df23b4-cd22-4c26-b4b7-85b91873ec41
+            operationtype        : Consistency
+            resources            : {@{complianceStatus=True; properties=; reasons=System.Object[]}}
+            startTime            : 5/9/2022 11:42:10 PM
 #>
 
 function Start-GuestConfigurationPackageRemediation

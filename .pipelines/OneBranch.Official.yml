@@ -118,7 +118,7 @@ extends:
               pwsh: true
               script: |
                 $null = Expand-Archive -Path $(Build.SourcesDirectory)/output/InGuestPolicyPackagex64.zip -DestinationPath $(Build.SourcesDirectory)/output/Extracted
-                $null = Copy-Item -Path $(Build.SourcesDirectory)/output/Extracted/GC.zip -DestinationPath $(Build.SourcesDirectory)/source/gc_agents/DSC_Windows.zip
+                $null = Copy-Item -Path $(Build.SourcesDirectory)/output/Extracted/GC.zip -Destination $(Build.SourcesDirectory)/source/gc_agents/DSC_Windows.zip
 
 
           - task: PowerShell@2

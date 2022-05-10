@@ -159,7 +159,7 @@ Describe 'Test-GuestConfigurationPackage' {
 
         Context 'With parameters' {
             BeforeAll {
-                $testFilePath = Join-Path -Path $TestDrive -ChildPath 'Hogwarts.txt'
+                $testFilePath = Join-Path -Path $TestDrive -ChildPath 'Hogwarts2.txt'
                 $expectedContent = 'Harry Potter'
 
                 $parameters = @(

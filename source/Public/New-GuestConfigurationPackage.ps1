@@ -11,37 +11,51 @@
 
     .PARAMETER Version
         The semantic version of the Guest Configuration package.
-        This is a tag for you to keep track of your pacakges; it is not currently used by Guest Configuration or Azure Policy.
+        The default value is '1.0.0'.
 
     .PARAMETER Type
-        Sets a tag in the metaconfig data of the package specifying whether or not this package can support Set functionality or not.
-        This tag is currently used only for verfication by this module and does not affect the functionality of the package.
+        Sets a tag in the metaconfig data of the package specifying whether or not this package is
+        Audit-only or can support Set/Apply functionality.
 
-        Audit indicates that the package will not set the state of the machine and may only monitor settings.
-        AuditAndSet indicates that the package may be used for setting the state of the machine.
+        Audit indicates that the package will only monitor settings and cannot set the state of
+        the machine.
+        AuditAndSet indicates that the package can be used for both monitoring and setting the
+        state of the machine.
 
-        By default this tag is set to Audit.
+        The default value is Audit.
+
+    .PARAMETER FrequencyMinutes
+        The frequency at which Guest Configuration should run this package in minutes.
+        The default value is 15.
+        15 is also the mimimum value.
+        Guest Configuration cannot run a package less-frequently than every 15 minutes.
 
     .PARAMETER Path
         The path to a folder to output the package under.
-        By default the package will be created under the current working directory (Get-Item -Path $(Get-Location)).
+        By default the package will be created under the current working directory.
 
     .PARAMETER ChefInspecProfilePath
         The path to a folder containing Chef InSpec profiles to include with the package.
 
-        The compiled DSC configuration (.mof) provided must include a reference to the native Chef InSpec resource
-        with the reference name of the resources matching the name of the profile folder to use.
-        If the compiled DSC configuration (.mof) provided includes a reference to the native Chef InSpec resource,
-        then specifying a Chef InSpec profile to include with this parameter is required.
+        The compiled DSC configuration (.mof) provided must include a reference to the native Chef
+        InSpec resource with the reference name of the resources matching the name of the profile
+        folder to use.
+
+        If the compiled DSC configuration (.mof) provided includes a reference to the native Chef
+        InSpec resource, then specifying a Chef InSpec profile to include with this parameter is
+        required.
 
     .PARAMETER FilesToInclude
         The path to a file or folder to include under the Modules path within the package.
 
     .PARAMETER Force
-        If present, this function will overwrite any existing package files.
+        If present, this function will overwrite any existing package files at the output path.
 
     .EXAMPLE
-        New-GuestConfigurationPackage -Name 'WindowsTLS' -Configuration ./custom_policy/WindowsTLS/localhost.mof -Path ./git/repository/release/policy/WindowsTLS
+        New-GuestConfigurationPackage `
+            -Name 'WindowsTLS' `
+            -Configuration ./custom_policy/WindowsTLS/localhost.mof `
+            -Path ./git/repository/release/policy/WindowsTLS
 
     .OUTPUTS
         Returns a PSCustomObject with the name and path of the new Guest Configuration package.
@@ -71,7 +85,7 @@ function New-GuestConfigurationPackage
         [Parameter(Position = 2, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.String]
-        $Version = '0.0.0',
+        $Version = '1.0.0',
 
         [Parameter()]
         [ValidateSet('Audit', 'AuditAndSet')]
@@ -103,19 +117,17 @@ function New-GuestConfigurationPackage
 
     Write-Verbose -Message 'Starting New-GuestConfigurationPackage'
 
-    $currentLocation = Get-Location
-
-    $Configuration = [System.IO.Path]::GetFullPath($Configuration, $currentLocation)
-    $Path = [System.IO.Path]::GetFullPath($Path, $currentLocation)
+    $Configuration = Resolve-RelativePath -Path $Configuration
+    $Path = Resolve-RelativePath -Path $Path
 
     if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
     {
-        $ChefInspecProfilePath = [System.IO.Path]::GetFullPath($ChefInspecProfilePath, $currentLocation)
+        $ChefInspecProfilePath = Resolve-RelativePath -Path $ChefInspecProfilePath
     }
 
     if (-not [String]::IsNullOrEmpty($FilesToInclude))
     {
-        $FilesToInclude = [System.IO.Path]::GetFullPath($FilesToInclude, $currentLocation)
+        $FilesToInclude = Resolve-RelativePath -Path $FilesToInclude
     }
 
     #-----VALIDATION-----
@@ -139,7 +151,7 @@ function New-GuestConfigurationPackage
     }
 
     # Validate dependencies
-    $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $Configuration )
+    $resourceDependencies = @( Get-MofResouceDependencies -MofFilePath $Configuration )
 
     if ($resourceDependencies.Count -le 0)
     {
@@ -266,7 +278,7 @@ function New-GuestConfigurationPackage
     {
         if (-not $Force)
         {
-            throw "An item already exists at the package path '$packageRootPath'. Please remove it or use the Force parameter."
+            throw "A folder already exists at the package folder path '$packageRootPath'. Please remove it or use the Force parameter. With -Force the cmdlet will remove this folder for you."
         }
     }
 
@@ -277,7 +289,7 @@ function New-GuestConfigurationPackage
     {
         if (-not $Force)
         {
-            throw "An item already exists at the package destination path '$packageDestinationPath'. Please remove it or use the Force parameter."
+            throw "A file already exists at the package destination path '$packageDestinationPath'. Please remove it or use the Force parameter. With -Force the cmdlet will remove this file for you."
         }
     }
 
@@ -286,6 +298,16 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
+
+        if ($Configuration.FullName.Contains($packageRootPath))
+        {
+            Write-Warning -Message "You have elected to forcibly remove the existing package folder path '$packageRootPath', but the specificed source path for the configuration document is under this path at '$Configuration'. The configuration document at this source path will be changed to match package requirements."
+            $gcWorkerPath = Get-GCWorkerRootPath
+            $gcWorkerPackagePath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
+            $copiedMof = Copy-Item -Path $Configuration -Destination $gcWorkerPackagePath -Force
+            $Configuration = $copiedMof.FullName
+        }
+
         Write-Verbose -Message "Removing an existing item at the path '$packageRootPath'..."
         $null = Remove-Item -Path $packageRootPath -Recurse -Force
     }
@@ -333,7 +355,7 @@ function New-GuestConfigurationPackage
     # Edit the native Chef InSpec resource parameters in the mof if needed
     if ($usingInSpecResource)
     {
-        Edit-ChefInSpecMofContent -PackageName $Name -MofPath $mofFilePath
+        Edit-GuestConfigurationPackageMofChefInSpecContent -PackageName $Name -MofPath $mofFilePath
     }
 
     # Copy resource dependencies

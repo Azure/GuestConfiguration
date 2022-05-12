@@ -33,7 +33,9 @@ function Install-GCWorker
 
         $binFolderSourcePath = Join-Path -Path $PSScriptRoot -ChildPath 'bin'
 
-        if ($IsWindows)
+        $os = Get-OSPlatform
+
+        if ($os -ieq 'Windows')
         {
             $windowsPackageSourcePath = Join-Path -Path $binFolderSourcePath -ChildPath 'DSC_Windows.zip'
             $null = Expand-Archive -Path $windowsPackageSourcePath -DestinationPath $binFolderDestinationPath
@@ -108,7 +110,7 @@ function Install-GCWorker
 
     if (-not (Test-Path -Path $logsFolderPath -PathType 'Container'))
     {
-        Write-Verbose -Message "Creating the logs folder at '$logsFolderPath'" -Verbose
+        Write-Verbose -Message "Creating the logs folder at '$logsFolderPath'"
         $null = New-Item -Path $logsFolderPath -ItemType 'Directory'
     }
 }

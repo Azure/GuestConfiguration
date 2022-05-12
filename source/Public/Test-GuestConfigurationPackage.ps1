@@ -1,10 +1,10 @@
-
 <#
     .SYNOPSIS
-        Tests whether or not the given Guest Configuration package is compliant on the current machine.
+        Runs the given Guest Configuration package to retrieve the compliance status of the package
+        on the current machine.
 
     .PARAMETER Path
-        The path to the Guest Configuration package file (.zip) to test.
+        The path to the Guest Configuration package file (.zip) to run.
 
     .PARAMETER Parameter
         A list of hashtables describing the parameters to use when running the package.
@@ -26,14 +26,15 @@
         )
 
         Technical Example:
-        The Guest Configuration agent will replace parameter values in the compiled DSC configuration (.mof) file in the package before running it.
+        The Guest Configuration agent will replace parameter values in the compiled DSC
+        configuration (.mof) file in the package before running it.
         If your compiled DSC configuration (.mof) file looked like this:
 
         instance of TestFile as $TestFile1ref
         {
             ModuleName = "TestFileModule";
             ModuleVersion = "1.0.0.0";
-            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type (in the square brackets) and ID
+            ResourceID = "[TestFile]MyTestFile";  <--- This is both the resource type and ID
             Path = "test.txt"; <--- Here is the name of the parameter that I want to change the value of
             Content = "default";
             Ensure = "Present";
@@ -62,12 +63,24 @@
                 ResourceId = 'windowsService'
                 ResourcePropertyName = 'Name'
                 ResourcePropertyValue = 'winrm'
-            })
+            }
+        )
 
-        Test-GuestConfigurationPackage -Path ./custom_policy/AuditWindowsService.zip -Parameter $Parameter
+        Test-GuestConfigurationPackage `
+            -Path ./custom_policy/AuditWindowsService.zip `
+            -Parameter $Parameter
 
     .OUTPUTS
-        Returns a PSCustomObject with the compliance details.
+        Returns a PSCustomObject with the report properties from running the package.
+        Here is an example output:
+            additionalProperties : {}
+            assignmentName       : TestFilePackage
+            complianceStatus     : False
+            endTime              : 5/9/2022 11:42:12 PM
+            jobId                : 18df23b4-cd22-4c26-b4b7-85b91873ec41
+            operationtype        : Consistency
+            resources            : {@{complianceStatus=False; properties=; reasons=System.Object[]}}
+            startTime            : 5/9/2022 11:42:10 PM
 #>
 
 function Test-GuestConfigurationPackage
@@ -85,11 +98,6 @@ function Test-GuestConfigurationPackage
         [Hashtable[]]
         $Parameter = @()
     )
-
-    if ($IsMacOS)
-    {
-        throw 'The Test-GuestConfigurationPackage cmdlet is not supported on MacOS'
-    }
 
     $invokeParameters = @{
         Path = $Path

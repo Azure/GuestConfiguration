@@ -1,4 +1,4 @@
-function Get-ResouceDependenciesFromMof
+function Get-MofResouceDependencies
 {
     [CmdletBinding()]
     [OutputType([Hashtable[]])]
@@ -9,7 +9,7 @@ function Get-ResouceDependenciesFromMof
         $MofFilePath
     )
 
-    $MofFilePath = [System.IO.Path]::GetFullPath($MofFilePath)
+    $MofFilePath = Resolve-RelativePath -Path $MofFilePath
 
     $resourceDependencies = @()
     $reservedResourceNames = @('OMI_ConfigurationDocument')

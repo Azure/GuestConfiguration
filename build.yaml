@@ -12,17 +12,6 @@ Encoding: UTF8
 VersionedOutputDirectory: true
 
 ####################################################
-#      ModuleBuilder Submodules Configuration      #
-####################################################
-
-NestedModule:
-  GuestConfigPath:
-    AddToManifest: false
-    VersionedOutputDirectory: false
-    prefix: prefix.ps1
-    # Verbose: true
-
-####################################################
 #       Sampler Pipeline Configuration             #
 ####################################################
 BuildWorkflow:
@@ -127,7 +116,7 @@ Pester:
   Configuration:
     Run:
       Path:
-        - tests/Unit
+        - tests
       ExcludePath:
     Filter:
       Tag:

@@ -1,36 +1,32 @@
 BeforeDiscovery {
-    $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-    $testsFolderPath = Split-Path -Path $unitTestsFolderPath -Parent
+    $null = Import-Module -Name 'GuestConfiguration' -Force
 
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
     $projectPath = Split-Path -Path $testsFolderPath -Parent
-    $projectName = Get-SamplerProjectName -BuildRoot $projectPath
-
-    Get-Module $projectName | Remove-Module -Force -ErrorAction SilentlyContinue
-    $importedModule = Import-Module $projectName -Force -PassThru -ErrorAction 'Stop'
+    $sourcePath = Join-Path -Path $projectPath -ChildPath 'source'
+    $privateFunctionsPath = Join-Path -Path $sourcePath -ChildPath 'Private'
+    $osFunctionScriptPath = Join-Path -Path $privateFunctionsPath -ChildPath 'Get-OSPlatform.ps1'
+    $null = Import-Module -Name $osFunctionScriptPath -Force
+    $script:os = Get-OSPlatform
 }
 
-Describe 'New-GuestConfigurationPackage' -ForEach @{
-    ProjectPath    = $projectPath
-    ProjectName    = $projectName
-    ImportedModule = $importedModule
-} {
+Describe 'New-GuestConfigurationPackage' {
     BeforeAll {
         Set-StrictMode -Version 'latest'
 
-        $unitTestsFolderPath = Split-Path -Path $PSScriptRoot -Parent
-        $testAssetsPath = Join-Path -Path $unitTestsFolderPath -ChildPath 'assets'
-        $testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
+        $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+        $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
+        $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
 
-        $testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+        $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
     }
 
-    Context 'Windows package with community PowerShell TimeZone resource' -skip:(-not $IsWindows) {
+    Context 'Windows package with community PowerShell TimeZone resource' -skip:($script:os -ine 'Windows') {
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testWindowsTimeZone'
-                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'DSC_Config.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
-                Verbose = $true
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'DSC_Config.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 Force = $true
             }
 
@@ -38,7 +34,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
 
             $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
-            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
+            $expandedPackagePath = Join-Path -Path $script:testOutputPath -ChildPath $expandedPackageName
 
             $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
 
@@ -67,7 +63,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -77,7 +73,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the ComputerManagementDsc module dependency' {
@@ -216,20 +212,19 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $null = New-GuestConfigurationPackage @itSpecificParameters
 
-            $itSpecificExpandedPackagePath = "$expandedPackagePath-RelativeConfigurationPath"
+            $itSpecificExpandedPackagePath = "$expandedPackagePath-Relative"
             $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $itSpecificExpandedPackagePath -Force
 
             Test-Path -Path $itSpecificExpandedPackagePath -PathType 'Container' | Should -BeTrue
         }
     }
 
-    Context 'Windows package with PSDesiredStateConfiguration resource' -skip:(-not $IsWindows) {
+    Context 'Windows package with PSDesiredStateConfiguration resource' -skip:($script:os -ine 'Windows') {
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testInvalidPSDesiredStateConfiguration'
-                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'InvalidPSDesiredStateConfiguration.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
-                Verbose = $true
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'InvalidPSDesiredStateConfiguration.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 Force = $true
             }
 
@@ -253,9 +248,8 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testLinuxNativeInSpec'
                 Configuration = Join-Path -Path $inSpecTestAssetsPath -ChildPath 'InSpec_Config.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'Package'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
                 ChefInspecProfilePath = $inSpecTestAssetsPath
-                Verbose = $true
                 Force = $true
             }
 
@@ -263,7 +257,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
 
             $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
-            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
+            $expandedPackagePath = Join-Path -Path $script:testOutputPath -ChildPath $expandedPackageName
 
             $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
             $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
@@ -312,7 +306,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $gitHubPath.Value | Should -Be "$($newGuestConfigurationPackageParameters.Name)/Modules/$inspecProfileName/"
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -322,7 +316,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the native InSpec resource folder' {
@@ -409,10 +403,9 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
         BeforeAll {
             $newGuestConfigurationPackageParameters = @{
                 Name = 'testScript'
-                Configuration = Join-Path -Path $testMofsFolderPath -ChildPath 'TestScript.mof'
-                Path = Join-Path -Path $testOutputPath -ChildPath 'My Package Path'
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestScript.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'My Package Path'
                 FrequencyMinutes = 45
-                Verbose = $true
                 Force = $true
             }
 
@@ -420,7 +413,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
 
             $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
-            $expandedPackagePath = Join-Path -Path $testOutputPath -ChildPath $expandedPackageName
+            $expandedPackagePath = Join-Path -Path $script:testOutputPath -ChildPath $expandedPackageName
 
             $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
         }
@@ -447,7 +440,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
             Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
         }
 
-        It 'Metaconfig should exist with default Type (Audit) and Version (0.0.0) in expanded package' {
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
             $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
             $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
             Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
@@ -457,7 +450,7 @@ Describe 'New-GuestConfigurationPackage' -ForEach @{
 
             $metaconfigJson | Should -Not -BeNullOrEmpty
             $metaconfigJson.Type | Should -Be 'Audit'
-            $metaconfigJson.Version | Should -Be '0.0.0'
+            $metaconfigJson.Version | Should -Be '1.0.0'
         }
 
         It 'Expanded package should include the PSDscResources module dependency' {

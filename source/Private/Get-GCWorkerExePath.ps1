@@ -7,7 +7,9 @@ function Get-GCWorkerExePath
     $gcWorkerFolderPath = Get-GCWorkerRootPath
     $binFolderPath = Join-Path -Path $gcWorkerFolderPath -ChildPath 'GC'
 
-    if ($IsWindows)
+    $os = Get-OSPlatform
+
+    if ($os -ieq 'Windows')
     {
         $gcWorkerExeName = 'gc_worker.exe'
     }

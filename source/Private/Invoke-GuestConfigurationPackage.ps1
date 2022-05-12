@@ -18,14 +18,35 @@ function Invoke-GuestConfigurationPackage
         $Apply
     )
 
-    if ($IsMacOS)
+    $os = Get-OSPlatform
+    if ($os -ieq 'MacOS')
     {
-        throw 'The Invoke-GuestConfigurationPackage cmdlet is not supported on MacOS'
+        throw 'This cmdlet is not supported on MacOS.'
     }
 
-    $Path = [System.IO.Path]::GetFullPath($Path)
+    #-----VALIDATE PARAMETERS-----
+    $requiredParameterProperties = @('ResourceType', 'ResourceId', 'ResourcePropertyName', 'ResourcePropertyValue')
+
+    foreach ($parameterInfo in $Parameter)
+    {
+        foreach ($requiredParameterProperty in $requiredParameterProperties)
+        {
+            if (-not ($parameterInfo.Keys -contains $requiredParameterProperty))
+            {
+                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
+                throw "One of the specified parameters is missing the mandatory property '$requiredParameterProperty'. The mandatory properties for parameters are: $requiredParameterPropertyString"
+            }
+
+            if ($parameterInfo[$requiredParameterProperty] -isnot [string])
+            {
+                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
+                throw "The property '$requiredParameterProperty' of one of the specified parameters is not a string. All parameter property values must be strings."
+            }
+        }
+    }
 
     #-----VALIDATE PACKAGE SETUP-----
+    $Path = Resolve-RelativePath -Path $Path
 
     if (-not (Test-Path -Path $Path -PathType 'Leaf'))
     {
@@ -89,7 +110,7 @@ function Invoke-GuestConfigurationPackage
     $mofFilePath = Join-Path -Path $packageInstallPath -ChildPath $mofFile.Name
 
     # Validate dependencies
-    $resourceDependencies = @( Get-ResouceDependenciesFromMof -MofFilePath $mofFilePath )
+    $resourceDependencies = @( Get-MofResouceDependencies -MofFilePath $mofFilePath )
 
     if ($resourceDependencies.Count -le 0)
     {
@@ -193,7 +214,7 @@ function Invoke-GuestConfigurationPackage
         $propertiesToUpdate['configurationMode'] = 'ApplyAndMonitor'
     }
 
-    Set-MetaconfigProperty -MetaconfigPath $metaconfigPath -Property $propertiesToUpdate
+    Set-GuestConfigurationPackageMetaconfigProperty -MetaconfigPath $metaconfigPath -Property $propertiesToUpdate
 
     # Update package configuration parameters
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)

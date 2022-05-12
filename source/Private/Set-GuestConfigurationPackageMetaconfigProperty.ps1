@@ -1,4 +1,4 @@
-function Set-MetaconfigProperty
+function Set-GuestConfigurationPackageMetaconfigProperty
 {
     [CmdletBinding()]
     [OutputType([Hashtable])]
@@ -14,7 +14,7 @@ function Set-MetaconfigProperty
     )
 
     $metaconfigContent = Get-Content -Path $MetaconfigPath -Raw
-    $metaconfig = $metaconfigContent | ConvertFrom-Json -AsHashtable
+    $metaconfig = $metaconfigContent | ConvertFrom-Json | ConvertTo-OrderedHashtable
 
     foreach ($propertyName in $Property.Keys)
     {

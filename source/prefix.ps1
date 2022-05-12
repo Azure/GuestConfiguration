@@ -1,25 +1,5 @@
-Set-StrictMode -Version latest
-$ErrorActionPreference = 'Stop'
-
-Import-Module $PSScriptRoot/Modules/GuestConfigPath -Force
-Import-LocalizedData -BaseDirectory $PSScriptRoot -FileName GuestConfiguration.psd1 -BindingVariable GuestConfigurationManifest
-
-if ($IsLinux -and (
-    $PSVersionTable.PSVersion.Major -lt 7 -or
-    ($PSVersionTable.PSVersion.Major -eq 7 -and $PSVersionTable.PSVersion.Minor -lt 2)
-    ))
-{
-    throw 'The Linux agent requires at least PowerShell v7.2.preview.6 to support the DSC subsystem.'
-}
-
 $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture
-if (($currentCulture.Name -eq 'en-US-POSIX') -and ($(Get-OSPlatform) -eq 'Linux'))
+if ($currentCulture.Name -eq 'en-US-POSIX')
 {
-    Write-Warning "'$($currentCulture.Name)' Culture is not supported, changing it to 'en-US'"
-    # Set Culture info to en-US
-    [System.Globalization.CultureInfo]::CurrentUICulture = [System.Globalization.CultureInfo]::new('en-US')
-    [System.Globalization.CultureInfo]::CurrentCulture = [System.Globalization.CultureInfo]::new('en-US')
+    throw "'$($currentCulture.Name)' culture is not supported, please change to 'en-US'"
 }
-
-#inject version info to GuestConfigPath.psm1
-InitReleaseVersionInfo $GuestConfigurationManifest.moduleVersion

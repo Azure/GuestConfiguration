@@ -73,6 +73,7 @@ extends:
               project: 'b32aa71e-8ed2-41b2-9d77-5bc261222004'
               pipeline: '254966'
               buildVersionToDownload: 'latest'
+              allowPartiallySucceededBuilds: true
               downloadType: 'single'
               artifactName: 'drop_linux_build_multibuild'
               downloadPath: '$(Build.SourcesDirectory)\output'
@@ -83,6 +84,7 @@ extends:
               project: 'b32aa71e-8ed2-41b2-9d77-5bc261222004'
               pipeline: '236428'
               buildVersionToDownload: 'latest'
+              allowPartiallySucceededBuilds: true
               downloadType: 'single'
               artifactName: 'out'
               downloadPath: '$(Build.SourcesDirectory)\output'

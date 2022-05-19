@@ -65,6 +65,7 @@ extends:
               project: 'b32aa71e-8ed2-41b2-9d77-5bc261222004'
               pipeline: '254966'
               buildVersionToDownload: 'latest'
+              allowPartiallySucceededBuilds: true
               downloadType: 'single'
               artifactName: 'drop_linux_build_multibuild'
               downloadPath: '$(Build.SourcesDirectory)\output'
@@ -75,6 +76,7 @@ extends:
               project: 'b32aa71e-8ed2-41b2-9d77-5bc261222004'
               pipeline: '236428'
               buildVersionToDownload: 'latest'
+              allowPartiallySucceededBuilds: true
               downloadType: 'single'
               artifactName: 'out'
               downloadPath: '$(Build.SourcesDirectory)\output'
@@ -102,14 +104,14 @@ extends:
                   Write-Output $newpath
                   [System.Environment]::SetEnvironmentVariable('PATH', $newpath, [System.EnvironmentVariableTarget]::Machine)
                 }
-               
+
           - task: PowerShell@2
             inputs:
               targetType: 'inline'
               script: |
                 Write-Output "Building and package module."
                 .\pscore\pwsh.exe -c {.\build.ps1 -ResolveDependency -tasks pack}
-                
+
 # https://aka.ms/obpipelines/cloudtest
 # uncomment this section and edit parameters to enable CloudTest
     # - stage: cloudtest

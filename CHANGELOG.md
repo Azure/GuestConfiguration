@@ -5,6 +5,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0-preview0007] - 2022-05-19
+
+### Changed
+
+- On New-GuestConfigurationPolicy, PolicyId and PolicyVersion are now mandatory parameters
+- New-GuestConfigurationPolicy now outputs the definition file to the current working directory by default
+- Start-GuestConfigurationPackageRemediation will now throw an error if you try to apply/remediate an Audit-only package
+- On New-GuestConfigurationPackage, the FilesToInclude parameter is now a string array that can take in multiple file/folder paths to include under the Modules path in the package
+
+### Fixed
+
+- Fixed another bug when you try to create a package under the same path that your source .mof file is at
+- Fixed the cmdlet help
+- Fixed the policy definition unicode single quotes when using New-GuestConfigurationPolicy with PS 5.1
+
+### Removed
+
+- Removed Test-GuestConfigurationPackage and its tests as this cmdlet was an exact copy of Get-GuestConfigurationPackageComplianceStatus
+
+## [4.0.0-preview0006] - 2022-05-10
+
+### Added
+
+- Added more messaging in New-GuestConfigurationPolicy around the package version and type
+- Added examples and more help text to Protect-GuestConfigurationPackage and updated the tests
+- Added the 'ContentVersion' parameter to New-GuestConfigurationPolicy to validate the downloaded package version before putting it into the policy definition
+
+### Changed
+
+- Module now works with PowerShell 5.1 on Windows. Also confirmed that the module works with PS 7.1.3 on Windows and PS 7.2.3 (latest) on both Windows and Linux.
+- New-GuestConfigurationPolicy will now throw when you are trying to create an Apply policy with an Audit-only package
+- Changed the 'Version' parameter to 'PolicyVersion' for New-GuestConfigurationPolicy
+- Test-GuestConfigurationPackage, Get-GuestConfigurationPackageComplianceStatus, and Start-GuestConfigurationPackageRemediation will now validate that parameters passed in have the correct properties and are all strings
+
+### Fixed
+
+- Test-GuestConfigurationPackage, Get-GuestConfigurationPackageComplianceStatus, and Start-GuestConfigurationPackageRemediation can now take relative paths to the package again
+- Fixed a bug when you try to create a package under the same path that your source .mof file is at
+
+### Removed
+
+- Removed dependencies on the Az and PSDesiredStateConfiguration modules
+- Removed Publish-GuestConfigurationPolicy as it was just a wrapper for New-AzPolicyDefinition. Please use New-AzPolicyDefinition to publish your generated policy definition files instead.
+- Removed Publish-GuestConfigurationPackage as it was just a wrapper for Az storage cmdlets. Please use Az cmdlets if you would like to upload your package to Az storage instead.
+- Removed the internal submodule GuestConfigPath and other functions that weren't used anymore (no impact on functionality)
+
+## [4.0.0-preview0005] - 2022-04-19
+
+### Fixed
+
+- Fixed the GC worker included in the module (for invoking packages)
+
 ## [4.0.0-preview0004] - 2022-04-18
 
 ### Added
@@ -24,7 +76,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed bug in Test-GuestConfigurationPackage/Get-GuestConfigurationPackageComplianceStatus in which the package path was not getting quoted causing a problem with spaces in the path.
 - Fixed the FrequencyMinutes parameter of New-GuestConfigurationPackage
-
 
 ## [4.0.0-preview0003] - 2022-01-12
 
@@ -88,13 +139,13 @@ rather than integer
 
 ### Added
 
-- Added `Install-GuestConfigurationPackage`.
-- Updated `New-GuestConfigurationPackage` to support PackageType.
-- Updated `New-GuestConfigurationPolicy` to support AssignmentType (Audit, ApplyAndMonitor, ApplyAndCorrect) and creation of DeployIfNotExists.json
-- Added `Get-GuestConfigurationPackageName`
-- Added `Get-GuestConfigurationPackageNameFromZip`
-- Updated `New-GuestConfigurationPolicy` to include guestconfig object in metadata for DINE policies. The included configurationParameter matches the pattern of AINEs.
-- Added more tests to `New-GuestConfigurationPolicy.Tests` to cover metadata scenario.
+- Added 'Install-GuestConfigurationPackage'.
+- Updated 'New-GuestConfigurationPackage' to support PackageType.
+- Updated 'New-GuestConfigurationPolicy' to support AssignmentType (Audit, ApplyAndMonitor, ApplyAndCorrect) and creation of DeployIfNotExists.json
+- Added 'Get-GuestConfigurationPackageName'
+- Added 'Get-GuestConfigurationPackageNameFromZip'
+- Updated 'New-GuestConfigurationPolicy' to include guestconfig object in metadata for DINE policies. The included configurationParameter matches the pattern of AINEs.
+- Added more tests to 'New-GuestConfigurationPolicy.Tests' to cover metadata scenario.
 - Added dependency on PSDesiredStateConfiguration. 
 
 ### Changed
@@ -104,10 +155,10 @@ rather than integer
 - Changed how meta config are written to different files, and read from both
 - Install PSDesiredStateConfiguration V3 onto Ubuntu machine
 - Remove testing inspec on Linux machines, as we will no longer be supporting that scenario
-- Fixed `New-GuestConfigurationPolicy` to create arrays for configurationParameter when no parameters are passed in
+- Fixed 'New-GuestConfigurationPolicy' to create arrays for configurationParameter when no parameters are passed in
 - No longer using -Package as a valid parameter for any commands
-- Require policyId parameter for `New-GuestConfigurationPolicy`
-- Removed ability to pass in package name for `Install-GuestConfigurationPackage`
+- Require policyId parameter for 'New-GuestConfigurationPolicy'
+- Removed ability to pass in package name for 'Install-GuestConfigurationPackage'
  
 ## [3.2.0] - 2021-02-23
 
@@ -189,6 +240,7 @@ rather than integer
 ## [1.20.0-prerelease] - 2020-04-30
 
 ### Added
+
 - Support for custom Policy categories
 - Adds support for additional Linux distributions
 - Support Arc machines

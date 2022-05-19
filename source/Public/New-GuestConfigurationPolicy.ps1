@@ -110,10 +110,10 @@
             @{
                 Name = 'ServiceName'                                       # Policy parameter name (mandatory)
                 DisplayName = 'windows service name.'                      # Policy parameter display name (mandatory)
-                Description = "Name of the windows service to be audited." # Policy parameter description (optional)
-                ResourceType = "Service"                                   # dsc configuration resource type (mandatory)
-                ResourceId = 'windowsService'                              # dsc configuration resource property name (mandatory)
-                ResourcePropertyName = "Name"                              # dsc configuration resource property name (mandatory)
+                Description = "Name of the windows service to be audited." # Policy parameter description (mandatory)
+                ResourceType = "Service"                                   # configuration resource type (mandatory)
+                ResourceId = 'windowsService'                              # configuration resource property name (mandatory)
+                ResourcePropertyName = "Name"                              # configuration resource property name (mandatory)
                 DefaultValue = 'winrm'                                     # Policy parameter default value (optional)
                 AllowedValues = @('wscsvc','WSearch','wcncsvc','winrm')    # Policy parameter allowed values (optional)
             }
@@ -375,11 +375,11 @@ function New-GuestConfigurationPolicy
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 
     # Convert definition hashtable to JSON
-    $policyDefinitionContentJson = ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100
+    $policyDefinitionContentJson = (ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100).Replace('\u0027', "'")
     $formattedPolicyDefinitionContentJson = Format-PolicyDefinitionJson -Json $policyDefinitionContentJson
 
     # Write JSON to file
-    $null = Set-Content -Path $filePath -Value $formattedPolicyDefinitionContentJson -Force
+    $null = Set-Content -Path $filePath -Value $formattedPolicyDefinitionContentJson -Encoding 'UTF8' -Force
 
     # Return policy information
     $result = [PSCustomObject]@{
@@ -390,8 +390,4 @@ function New-GuestConfigurationPolicy
     }
 
     return $result
-
-    # Check if the package is signed (nothing is using this right now)
-    # $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
-    # (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 }

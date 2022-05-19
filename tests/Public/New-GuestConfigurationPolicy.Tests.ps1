@@ -86,6 +86,7 @@ Describe 'New-GuestConfigurationPolicy' {
             Test-Path -Path $ExpectedFilePath -PathType 'Leaf' | Should -BeTrue
             $fileContent = Get-Content -Path $ExpectedFilePath -Raw
             $fileContent | Should -Not -BeNullOrEmpty
+            $fileContent.Contains('\u0027') | Should -BeFalse
 
             $fileContentJson = $fileContent | ConvertFrom-Json
             $fileContentJson | Should -Not -BeNullOrEmpty

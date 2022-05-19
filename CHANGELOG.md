@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0-preview0007] - 2022-05-19
+
 ### Changed
 
 - On New-GuestConfigurationPolicy, PolicyId and PolicyVersion are now mandatory parameters
@@ -16,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed another bug when you try to create a package under the same path that your source .mof file is at
 - Fixed the cmdlet help
+- Fixed the policy definition unicode single quotes when using New-GuestConfigurationPolicy with PS 5.1
 
 ### Removed
 

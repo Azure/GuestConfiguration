@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Runs the given Guest Configuration package to retrieve the compliance status of the package
@@ -82,7 +83,6 @@
             resources            : {@{complianceStatus=False; properties=; reasons=System.Object[]}}
             startTime            : 5/9/2022 11:42:10 PM
 #>
-
 function Test-GuestConfigurationPackage
 {
     [CmdletBinding()]

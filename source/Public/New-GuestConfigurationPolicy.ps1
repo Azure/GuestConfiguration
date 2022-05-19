@@ -28,7 +28,8 @@
         The unique GUID of the policy definition.
         If you are trying to update an existing policy definition, then this ID must match the 'name'
         field in the existing defintiion.
-        The default value is a new GUID.
+
+        You can run [System.Guid]::NewGuid() to generate a new GUID.
 
     .PARAMETER PolicyVersion
         The version of the policy definition.
@@ -56,7 +57,7 @@
                 @{
                     Name = 'ServiceName'                                       # Required
                     DisplayName = 'Windows Service Name'                       # Required
-                    Description = 'Name of the windows service to be audited.' # Optional
+                    Description = 'Name of the windows service to be audited.' # Required
                     ResourceType = 'Service'                                   # Required
                     ResourceId = 'windowsService'                              # Required
                     ResourcePropertyName = 'Name'                              # Required
@@ -66,7 +67,7 @@
                 @{
                     Name = 'ServiceState'                                       # Required
                     DisplayName = 'Windows Service State'                       # Required
-                    Description = 'State of the windows service to be audited.' # Optional
+                    Description = 'State of the windows service to be audited.' # Required
                     ResourceType = 'Service'                                    # Required
                     ResourceId = 'windowsService'                               # Required
                     ResourcePropertyName = 'State'                              # Required
@@ -137,7 +138,6 @@
             Path = $Path
         }
 #>
-
 function New-GuestConfigurationPolicy
 {
     [CmdletBinding()]
@@ -163,10 +163,10 @@ function New-GuestConfigurationPolicy
         [System.Version]
         $ContentVersion,
 
-        [Parameter()]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Guid]
-        $PolicyId = [System.Guid]::NewGuid(),
+        $PolicyId,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]

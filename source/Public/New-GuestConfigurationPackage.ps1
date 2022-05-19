@@ -46,7 +46,7 @@
         required.
 
     .PARAMETER FilesToInclude
-        The path to a file or folder to include under the Modules path within the package.
+        The path to files or folders to include under the Modules path within the package.
 
     .PARAMETER Force
         If present, this function will overwrite any existing package files at the output path.
@@ -107,7 +107,7 @@ function New-GuestConfigurationPackage
         $ChefInspecProfilePath,
 
         [Parameter()]
-        [System.IO.FileInfo]
+        [String[]]
         $FilesToInclude,
 
         [Parameter()]
@@ -125,9 +125,12 @@ function New-GuestConfigurationPackage
         $ChefInspecProfilePath = Resolve-RelativePath -Path $ChefInspecProfilePath
     }
 
-    if (-not [String]::IsNullOrEmpty($FilesToInclude))
+    if ($null -ne $FilesToInclude -and $FilesToInclude.Count -gt 0)
     {
-        $FilesToInclude = Resolve-RelativePath -Path $FilesToInclude
+        foreach ($file in $FilesToInclude)
+        {
+            $FilesToInclude = Resolve-RelativePath -Path $FilesToInclude
+        }
     }
 
     #-----VALIDATION-----
@@ -298,13 +301,11 @@ function New-GuestConfigurationPackage
     # Clear the root package folder
     if (Test-Path -Path $packageRootPath)
     {
-
         if ($Configuration.FullName.Contains($packageRootPath))
         {
             Write-Warning -Message "You have elected to forcibly remove the existing package folder path '$packageRootPath', but the specificed source path for the configuration document is under this path at '$Configuration'. The configuration document at this source path will be changed to match package requirements."
-            $gcWorkerPath = Get-GCWorkerRootPath
-            $gcWorkerPackagePath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
-            $copiedMof = Copy-Item -Path $Configuration -Destination $gcWorkerPackagePath -Force
+            $gcWorkerTempPath = Reset-GCWorkerTempDirectory
+            $copiedMof = Copy-Item -Path $Configuration -Destination $gcWorkerTempPath -Force
             $Configuration = $copiedMof.FullName
         }
 

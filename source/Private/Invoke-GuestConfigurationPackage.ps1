@@ -77,6 +77,8 @@ function Invoke-GuestConfigurationPackage
 
     $null = Expand-Archive -Path $Path -DestinationPath $packageInstallPath -Force
 
+    # Find and validate the metaconfig file
+
     # Find and validate the mof file
     $mofFilePattern = '*.mof'
     $mofChildItems = @( Get-ChildItem -Path $packageInstallPath -Filter $mofFilePattern -File )

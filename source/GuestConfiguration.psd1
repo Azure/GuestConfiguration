@@ -30,7 +30,7 @@
     FunctionsToExport = @()
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport = @('New-GuestConfigurationPackage', 'Test-GuestConfigurationPackage', 'Get-GuestConfigurationPackageComplianceStatus', 'Protect-GuestConfigurationPackage', 'Start-GuestConfigurationPackageRemediation', 'New-GuestConfigurationPolicy')
+    CmdletsToExport = @('New-GuestConfigurationPackage', 'Get-GuestConfigurationPackageComplianceStatus', 'Protect-GuestConfigurationPackage', 'Start-GuestConfigurationPackageRemediation', 'New-GuestConfigurationPolicy')
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
     AliasesToExport = @()
@@ -41,10 +41,10 @@
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
         PSData = @{
-            Prerelease = 'preview0006'
+            Prerelease = 'preview0007'
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = @('GuestConfiguration', 'Azure', 'DSC', 'Guest Configuration')
+            Tags = @('GuestConfiguration', 'Azure', 'DSC')
 
             # A URL to the license for this module.
             LicenseUri = 'https://github.com/Azure/GuestConfiguration/blob/master/LICENSE'

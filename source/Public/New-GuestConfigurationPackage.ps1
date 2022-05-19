@@ -46,7 +46,9 @@
         required.
 
     .PARAMETER FilesToInclude
-        The path to files or folders to include under the Modules path within the package.
+        The path(s) to any extra files or folders to include under the Modules path within the package.
+        Please note, any files added here may not be accessible by custom modules.
+        Files needed for custom modules need to be included within those modules.
 
     .PARAMETER Force
         If present, this function will overwrite any existing package files at the output path.
@@ -123,14 +125,6 @@ function New-GuestConfigurationPackage
     if (-not [String]::IsNullOrEmpty($ChefInspecProfilePath))
     {
         $ChefInspecProfilePath = Resolve-RelativePath -Path $ChefInspecProfilePath
-    }
-
-    if ($null -ne $FilesToInclude -and $FilesToInclude.Count -gt 0)
-    {
-        foreach ($file in $FilesToInclude)
-        {
-            $FilesToInclude = Resolve-RelativePath -Path $FilesToInclude
-        }
     }
 
     #-----VALIDATION-----
@@ -266,11 +260,12 @@ function New-GuestConfigurationPackage
     }
 
     # Check extra files if needed
-    if (-not [string]::IsNullOrEmpty($FilesToInclude))
+    foreach ($file in $FilesToInclude)
     {
-        if (-not (Test-Path -Path $FilesToInclude))
+        $filePath = Resolve-RelativePath -Path $file
+        if (-not (Test-Path -Path $filePath))
         {
-            throw "The item to include from the path '$FilesToInclude' does not exist. Please update or remove the FilesToInclude parameter."
+            throw "The item to include from the path '$filePath' does not exist. Please update or remove the FilesToInclude parameter."
         }
     }
 
@@ -402,17 +397,19 @@ function New-GuestConfigurationPackage
     }
 
     # Copy extra files
-    if (-not [string]::IsNullOrEmpty($FilesToInclude))
+    foreach ($file in $FilesToInclude)
     {
-        if (Test-Path $FilesToInclude -PathType 'Leaf')
+        $filePath = Resolve-RelativePath -Path $file
+
+        if (Test-Path -Path $filePath -PathType 'Leaf')
         {
-            Write-Verbose -Message "Copying the custom file to include from the path '$FilesToInclude' to the package path '$modulesFolderPath'..."
-            $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath
+            Write-Verbose -Message "Copying the custom file to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
+            $null = Copy-Item -Path $filePath -Destination $modulesFolderPath
         }
         else
         {
-            Write-Verbose -Message "Copying the custom folder to include from the path '$FilesToInclude' to the package path '$modulesFolderPath'..."
-            $null = Copy-Item -Path $FilesToInclude -Destination $modulesFolderPath -Container -Recurse
+            Write-Verbose -Message "Copying the custom folder to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
+            $null = Copy-Item -Path $filePath -Destination $modulesFolderPath -Container -Recurse
         }
     }
 

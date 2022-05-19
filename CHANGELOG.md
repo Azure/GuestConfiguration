@@ -5,6 +5,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- On New-GuestConfigurationPolicy, PolicyId and PolicyVersion are now mandatory parameters
+- Start-GuestConfigurationPackageRemediation will now throw an error if you try to apply/remediate an Audit-only package
+- On New-GuestConfigurationPackage, the FilesToInclude parameter is now a string array that can take in multiple file/folder paths to include under the Modules path in the package
+
+### Fixed
+
+- Fixed another bug when you try to create a package under the same path that your source .mof file is at
+- Fixed the cmdlet help
+
+### Removed
+
+- Removed Test-GuestConfigurationPackage and its tests as this cmdlet was an exact copy of Get-GuestConfigurationPackageComplianceStatus
+
+## [4.0.0-preview0006] - 2022-05-10
+
 ### Added
 
 - Added more messaging in New-GuestConfigurationPolicy around the package version and type

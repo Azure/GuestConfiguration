@@ -12,18 +12,6 @@
         The description of the policy to create.
         The display name has a maximum length of 512 characters.
 
-    .PARAMETER ContentUri
-        The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
-        Example: https://github.com/azure/auditservice/release/AuditService.zip
-
-    .PARAMETER ContentVersion
-        The version of the Guest Configuration package (.zip) to run via the created policy.
-        If specified, the version of the package downloaded via the content URI must match this value.
-        By default, this will match the version in the package downloaded via the content URI.
-
-        Note: This is NOT the version of the policy definition.
-        You can define the policy definition version via the PolicyVersion parameter.
-
     .PARAMETER PolicyId
         The unique GUID of the policy definition.
         If you are trying to update an existing policy definition, then this ID must match the 'name'
@@ -33,12 +21,23 @@
 
     .PARAMETER PolicyVersion
         The version of the policy definition.
-        If you are updating an existing policy definition, then this version must be greater than
-        the value in the 'metadata.version' field in the existing defintiion.
-        The default value is '1.0.0'.
+        If you are updating an existing policy definition, then this version should be greater than
+        the value in the 'metadata.version' field in the existing definition.
 
         Note: This is NOT the version of the Guest Configuration package.
-        You can define the Guest Configuration package version via the ContentVersion parameter.
+        You can validate the Guest Configuration package version via the ContentVersion parameter.
+
+    .PARAMETER ContentUri
+        The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
+        Example: https://github.com/azure/auditservice/release/AuditService.zip
+
+    .PARAMETER ContentVersion
+        If specified, the version of the Guest Configuration package (.zip) downloaded via the
+        content URI must match this value.
+        This is for validation only.
+
+        Note: This is NOT the version of the policy definition.
+        You can define the policy definition version via the PolicyVersion parameter.
 
     .PARAMETER Path
         The path to the folder under which to create the new policy definition file.
@@ -154,6 +153,16 @@ function New-GuestConfigurationPolicy
         [System.String]
         $Description,
 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Guid]
+        $PolicyId,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Version]
+        $PolicyVersion,
+
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Uri]
@@ -162,16 +171,6 @@ function New-GuestConfigurationPolicy
         [Parameter()]
         [System.Version]
         $ContentVersion,
-
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [System.Guid]
-        $PolicyId,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [System.Version]
-        $PolicyVersion = '1.0.0',
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -239,16 +238,10 @@ function New-GuestConfigurationPolicy
     }
 
     # Download package
-    $gcWorkerPath = Get-GCWorkerRootPath
-    $gcWorkerPackagesFolderPath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
-
-    if (-not (Test-Path -Path $gcWorkerPackagesFolderPath))
-    {
-        $null = New-Item -Path $gcWorkerPackagesFolderPath -ItemType 'Directory' -Force
-    }
+    $tempPath = Reset-GCWorkerTempDirectory
 
     $packageFileDownloadName = 'temp.zip'
-    $packageFileDownloadPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageFileDownloadName
+    $packageFileDownloadPath = Join-Path -Path $tempPath -ChildPath $packageFileDownloadName
 
     if (Test-Path -Path $packageFileDownloadPath)
     {
@@ -264,7 +257,7 @@ function New-GuestConfigurationPolicy
     $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
-    $packagePath = Reset-GCWorkerTempDirectory
+    $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
     $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
 
     # Get configuration name

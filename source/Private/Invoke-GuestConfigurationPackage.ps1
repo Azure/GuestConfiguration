@@ -77,8 +77,6 @@ function Invoke-GuestConfigurationPackage
 
     $null = Expand-Archive -Path $Path -DestinationPath $packageInstallPath -Force
 
-    # Find and validate the metaconfig file
-
     # Find and validate the mof file
     $mofFilePattern = '*.mof'
     $mofChildItems = @( Get-ChildItem -Path $packageInstallPath -Filter $mofFilePattern -File )
@@ -94,6 +92,40 @@ function Invoke-GuestConfigurationPackage
 
     $mofFile = $mofChildItems[0]
     $packageName = $mofFile.BaseName
+
+    # Get package version
+    $metaconfigFileName = "{0}.metaconfig.json" -f $packageName
+    $metaconfigFilePath = Join-Path -Path $packageInstallPath -ChildPath $metaconfigFileName
+
+    if (Test-Path -Path $metaconfigFilePath)
+    {
+        $metaconfig = Get-Content -Path $metaconfigFilePath -Raw | ConvertFrom-Json | ConvertTo-OrderedHashtable
+
+        if ($metaconfig.Keys -contains 'Version')
+        {
+            $packageVersion = $metaconfig['Version']
+            Write-Verbose -Message "Package has the version $packageVersion"
+        }
+
+        if ($metaconfig.Keys -contains 'Type')
+        {
+            $packageType = $metaconfig['Type']
+            Write-Verbose -Message "Package has the type $packageType"
+
+            if ($packageType -eq 'Audit' -and $Apply)
+            {
+                throw 'The specified package has been marked as Audit-only. You cannot apply/remediate an Audit-only package. Please change the type of the package to "AuditAndSet" with New-GuestConfigurationPackage if you would like to apply/remediate with this package.'
+            }
+        }
+        else
+        {
+            Write-Warning -Message "Failed to determine the package type from the metaconfig file '$metaconfigFileName' in the package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+        }
+    }
+    else
+    {
+        Write-Warning -Message "Failed to find the metaconfig file '$metaconfigFileName' in the package. Please use the latest version of the New-GuestConfigurationPackage cmdlet to construct your package."
+    }
 
     # Rename the package install folder to match what the GC worker expects if needed
     if ($packageName -ne $packageInstallFolderName)

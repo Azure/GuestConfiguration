@@ -1,3 +1,4 @@
+
 <#
     .SYNOPSIS
         Signs a Guest Configuration package using either a certificate on Windows
@@ -68,7 +69,6 @@
             Path = $signedPackageFilePath
         }
 #>
-
 function Protect-GuestConfigurationPackage
 {
     [CmdletBinding()]

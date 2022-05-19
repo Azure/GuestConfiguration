@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - On New-GuestConfigurationPolicy, PolicyId and PolicyVersion are now mandatory parameters
+- New-GuestConfigurationPolicy now outputs the definition file to the current working directory by default
 - Start-GuestConfigurationPackageRemediation will now throw an error if you try to apply/remediate an Audit-only package
 - On New-GuestConfigurationPackage, the FilesToInclude parameter is now a string array that can take in multiple file/folder paths to include under the Modules path in the package
 

@@ -330,7 +330,7 @@ function New-GuestConfigurationPolicy
     # Determine paths
     if ([String]::IsNullOrEmpty($Path))
     {
-        $Path = Join-Path -Path $gcWorkerPath -ChildPath 'definitions'
+        $Path = Get-Location
     }
 
     $Path = Resolve-RelativePath -Path $Path

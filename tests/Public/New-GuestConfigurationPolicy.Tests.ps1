@@ -21,12 +21,7 @@ Describe 'New-GuestConfigurationPolicy' {
         }
 
         Push-Location -Path $TestDrive
-
-        $gcModule = Get-Module -Name 'GuestConfiguration'
-        $psm1Path = $gcModule.Path
-        $gcModuleRootPath = Split-Path -Path $psm1Path -Parent
-        $gcWorkerRoot = Join-Path -Path $gcModuleRootPath -ChildPath 'gcworker'
-        $defaultDefinitionsPath = Join-Path -Path $gcWorkerRoot -ChildPath 'definitions'
+        $defaultDefinitionsPath = Get-Location
 
         function Assert-GuestConfigurationPolicyDefinitionFileValid
         {
@@ -362,6 +357,8 @@ Describe 'New-GuestConfigurationPolicy' {
             Platform = @('Windows', 'Linux')
             DisplayName = 'MyFile Test Policy'
             Description = 'This is a test policy for the MyFile package at C:/pretend/path/here or \more\slashes\path'
+            PolicyId = [Guid]::NewGuid()
+            PolicyVersion = '1.0.0'
             ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
             ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
             ConfigurationName = 'MyFile'
@@ -403,6 +400,8 @@ Describe 'New-GuestConfigurationPolicy' {
             Platform = @('Windows')
             DisplayName = 'Windows Service Test Policy'
             Description = 'This is a test policy for the Windows Service package.'
+            PolicyId = [Guid]::NewGuid()
+            PolicyVersion = '1.1.0'
             ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/amits/custompolicy/new_gc_policy/AuditWindowsService.zip'
             ContentHash = 'D421E3C8BB2298AEC5CFD95607B91241B7D5A2C88D54262ED304CA1FD01370F3'
             ConfigurationName = 'AuditWindowsService'
@@ -450,13 +449,16 @@ Describe 'New-GuestConfigurationPolicy' {
                     DisplayName = $DisplayName
                     Description = $Description
                     ContentUri = $ContentUri
+                    PolicyId = $PolicyId
+                    PolicyVersion = $PolicyVersion
                 }
 
                 $expectedFileName = '{0}_AuditIfNotExists.json' -f $ConfigurationName
 
                 $baseAssertionParameters = @{
                     ExpectedDisplayName = $DisplayName
-                    ExpectedPolicyVersion = '1.0.0'
+                    ExpectedPolicyVersion = $PolicyVersion
+                    ExpectedPolicyId = $PolicyId
                     ExpectedDescription = $Description
                     ExpectedContentUri = $ContentUri
                     ExpectedContentHash = $ContentHash
@@ -543,27 +545,18 @@ Describe 'New-GuestConfigurationPolicy' {
 
                 # Optional Parameters
                 Context 'Optional parameters: <OptionalParameters.Keys>' -ForEach @(
-                    @{ OptionalParameters = @{ PolicyId = [Guid]::NewGuid() }},
                     @{ OptionalParameters = @{ Path = './relativepath' }},
                     @{ OptionalParameters = @{ Path = './path with spaces' }},
-                    @{ OptionalParameters = @{ PolicyVersion = '1.1.0' }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond' } }},
                     @{ OptionalParameters = @{ Tag = @{ Location = 'Redmond'; County = 'King' } }},
                     @{ OptionalParameters = @{
-                        PolicyId = [Guid]::NewGuid()
                         Path = './path with spaces'
-                        PolicyVersion = '1.1.0'
                         Tag = @{ Location = 'Redmond'; County = 'King'}
                     }}
                 ) {
                     BeforeAll {
                         $newPolicyParameters = $basePolicyParameters + $OptionalParameters
                         $assertionParameters = $baseAssertionParameters.Clone()
-
-                        if ($OptionalParameters.ContainsKey('PolicyId'))
-                        {
-                            $assertionParameters['ExpectedPolicyId'] = $OptionalParameters['PolicyId']
-                        }
 
                         if ($OptionalParameters.ContainsKey('Path'))
                         {
@@ -575,11 +568,6 @@ Describe 'New-GuestConfigurationPolicy' {
 
                             $filePath = Join-Path -Path $optionalPath -ChildPath $expectedFileName
                             $assertionParameters['ExpectedFilePath'] = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($filePath)
-                        }
-
-                        if ($OptionalParameters.ContainsKey('PolicyVersion'))
-                        {
-                            $assertionParameters['ExpectedPolicyVersion'] = $OptionalParameters['PolicyVersion']
                         }
 
                         if ($OptionalParameters.ContainsKey('Tag'))

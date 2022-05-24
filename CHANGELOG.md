@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Fixed 
+
+- Start-GuestConfigurationPackageComplianceStatus and Start-GuestConfigurationPackageRemediation will run again on packages that are missing the metaconfig file. Added tests for this as well.
+- Fixed some typos in the New-GuestConfigurationPolicy help comments
+
 ## [4.0.0-preview0007] - 2022-05-19
 
 ### Changed

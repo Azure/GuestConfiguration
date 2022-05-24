@@ -217,4 +217,71 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
             }
         }
     }
+
+    Context 'Cross-platform TestFile package - no metaconfig' {
+        BeforeAll {
+            $testPackagesFolderPath = Join-Path -Path $script:testAssetsPath -ChildPath 'TestPackages'
+            $script:testFilePackagePath = Join-Path -Path $testPackagesFolderPath -ChildPath 'TestFilePackage_nometa.zip'
+        }
+
+        Context 'With parameters' {
+            BeforeAll {
+                $testFilePath = Join-Path -Path $TestDrive -ChildPath 'Mordor.txt'
+                $expectedContent = 'Frodo Baggins'
+
+                $parameters = @(
+                    @{
+                        ResourceType = 'TestFile'
+                        ResourceId = 'MyTestFile'
+                        ResourcePropertyName = 'Path'
+                        ResourcePropertyValue = $testFilePath
+                    },
+                    @{
+                        ResourceType = 'TestFile'
+                        ResourceId = 'MyTestFile'
+                        ResourcePropertyName = 'Content'
+                        ResourcePropertyValue = $expectedContent
+                    }
+                )
+            }
+
+            AfterAll {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
+            }
+
+            It 'Should return the expected result object when compliance is false' {
+                if (Test-Path -Path $testFilePath)
+                {
+                    $null = Remove-Item -Path $testFilePath -Force
+                }
+
+                $result = Get-GuestConfigurationPackageComplianceStatus -Path $script:testFilePackagePath -Parameter $parameters
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeFalse
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeFalse
+                $result.resources[0].Reasons.Count | Should -Be 1
+                $result.resources[0].Reasons[0].Code | Should -Not -BeNullOrEmpty
+                $result.resources[0].Reasons[0].Phrase | Should -Not -BeNullOrEmpty
+            }
+
+            It 'Should return the expected result object when compliance is true' {
+                $null = New-Item -Path $testFilePath -Force
+                $null = Set-Content -Path $testFilePath -Value $expectedContent -NoNewline -Force
+
+                $result = Get-GuestConfigurationPackageComplianceStatus -Path $script:testFilePackagePath -Parameter $parameters
+
+                $result.assignmentName | Should -Be 'TestFilePackage'
+                $result.complianceStatus | Should -BeTrue
+                $result.operationtype | Should -Be 'Consistency'
+                $result.resources.Count | Should -Be 1
+                $result.resources[0].ComplianceStatus | Should -BeTrue
+            }
+        }
+    }
 }

@@ -15,9 +15,9 @@
     .PARAMETER PolicyId
         The unique GUID of the policy definition.
         If you are trying to update an existing policy definition, then this ID must match the 'name'
-        field in the existing defintiion.
+        field in the existing definition.
 
-        You can run [System.Guid]::NewGuid() to generate a new GUID.
+        You can run New-Guid to generate a new GUID.
 
     .PARAMETER PolicyVersion
         The version of the policy definition.

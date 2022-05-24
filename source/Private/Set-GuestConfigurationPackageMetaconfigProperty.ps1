@@ -13,8 +13,15 @@ function Set-GuestConfigurationPackageMetaconfigProperty
         $Property
     )
 
-    $metaconfigContent = Get-Content -Path $MetaconfigPath -Raw
-    $metaconfig = $metaconfigContent | ConvertFrom-Json | ConvertTo-OrderedHashtable
+    if (Test-Path -Path $MetaconfigPath)
+    {
+        $metaconfigContent = Get-Content -Path $MetaconfigPath -Raw
+        $metaconfig = $metaconfigContent | ConvertFrom-Json | ConvertTo-OrderedHashtable
+    }
+    else
+    {
+        $metaconfig = [Ordered]@{}
+    }
 
     foreach ($propertyName in $Property.Keys)
     {

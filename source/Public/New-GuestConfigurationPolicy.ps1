@@ -12,32 +12,32 @@
         The description of the policy to create.
         The display name has a maximum length of 512 characters.
 
+    .PARAMETER PolicyId
+        The unique GUID of the policy definition.
+        If you are trying to update an existing policy definition, then this ID must match the 'name'
+        field in the existing defintiion.
+
+        You can run [System.Guid]::NewGuid() to generate a new GUID.
+
+    .PARAMETER PolicyVersion
+        The version of the policy definition.
+        If you are updating an existing policy definition, then this version should be greater than
+        the value in the 'metadata.version' field in the existing definition.
+
+        Note: This is NOT the version of the Guest Configuration package.
+        You can validate the Guest Configuration package version via the ContentVersion parameter.
+
     .PARAMETER ContentUri
         The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
         Example: https://github.com/azure/auditservice/release/AuditService.zip
 
     .PARAMETER ContentVersion
-        The version of the Guest Configuration package (.zip) to run via the created policy.
-        If specified, the version of the package downloaded via the content URI must match this value.
-        By default, this will match the version in the package downloaded via the content URI.
+        If specified, the version of the Guest Configuration package (.zip) downloaded via the
+        content URI must match this value.
+        This is for validation only.
 
         Note: This is NOT the version of the policy definition.
         You can define the policy definition version via the PolicyVersion parameter.
-
-    .PARAMETER PolicyId
-        The unique GUID of the policy definition.
-        If you are trying to update an existing policy definition, then this ID must match the 'name'
-        field in the existing defintiion.
-        The default value is a new GUID.
-
-    .PARAMETER PolicyVersion
-        The version of the policy definition.
-        If you are updating an existing policy definition, then this version must be greater than
-        the value in the 'metadata.version' field in the existing defintiion.
-        The default value is '1.0.0'.
-
-        Note: This is NOT the version of the Guest Configuration package.
-        You can define the Guest Configuration package version via the ContentVersion parameter.
 
     .PARAMETER Path
         The path to the folder under which to create the new policy definition file.
@@ -56,7 +56,7 @@
                 @{
                     Name = 'ServiceName'                                       # Required
                     DisplayName = 'Windows Service Name'                       # Required
-                    Description = 'Name of the windows service to be audited.' # Optional
+                    Description = 'Name of the windows service to be audited.' # Required
                     ResourceType = 'Service'                                   # Required
                     ResourceId = 'windowsService'                              # Required
                     ResourcePropertyName = 'Name'                              # Required
@@ -66,7 +66,7 @@
                 @{
                     Name = 'ServiceState'                                       # Required
                     DisplayName = 'Windows Service State'                       # Required
-                    Description = 'State of the windows service to be audited.' # Optional
+                    Description = 'State of the windows service to be audited.' # Required
                     ResourceType = 'Service'                                    # Required
                     ResourceId = 'windowsService'                               # Required
                     ResourcePropertyName = 'State'                              # Required
@@ -110,10 +110,10 @@
             @{
                 Name = 'ServiceName'                                       # Policy parameter name (mandatory)
                 DisplayName = 'windows service name.'                      # Policy parameter display name (mandatory)
-                Description = "Name of the windows service to be audited." # Policy parameter description (optional)
-                ResourceType = "Service"                                   # dsc configuration resource type (mandatory)
-                ResourceId = 'windowsService'                              # dsc configuration resource property name (mandatory)
-                ResourcePropertyName = "Name"                              # dsc configuration resource property name (mandatory)
+                Description = "Name of the windows service to be audited." # Policy parameter description (mandatory)
+                ResourceType = "Service"                                   # configuration resource type (mandatory)
+                ResourceId = 'windowsService'                              # configuration resource property name (mandatory)
+                ResourcePropertyName = "Name"                              # configuration resource property name (mandatory)
                 DefaultValue = 'winrm'                                     # Policy parameter default value (optional)
                 AllowedValues = @('wscsvc','WSearch','wcncsvc','winrm')    # Policy parameter allowed values (optional)
             }
@@ -137,7 +137,6 @@
             Path = $Path
         }
 #>
-
 function New-GuestConfigurationPolicy
 {
     [CmdletBinding()]
@@ -154,6 +153,16 @@ function New-GuestConfigurationPolicy
         [System.String]
         $Description,
 
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Guid]
+        $PolicyId,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [System.Version]
+        $PolicyVersion,
+
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [System.Uri]
@@ -162,16 +171,6 @@ function New-GuestConfigurationPolicy
         [Parameter()]
         [System.Version]
         $ContentVersion,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [System.Guid]
-        $PolicyId = [System.Guid]::NewGuid(),
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [System.Version]
-        $PolicyVersion = '1.0.0',
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -239,16 +238,10 @@ function New-GuestConfigurationPolicy
     }
 
     # Download package
-    $gcWorkerPath = Get-GCWorkerRootPath
-    $gcWorkerPackagesFolderPath = Join-Path -Path $gcWorkerPath -ChildPath 'packages'
-
-    if (-not (Test-Path -Path $gcWorkerPackagesFolderPath))
-    {
-        $null = New-Item -Path $gcWorkerPackagesFolderPath -ItemType 'Directory' -Force
-    }
+    $tempPath = Reset-GCWorkerTempDirectory
 
     $packageFileDownloadName = 'temp.zip'
-    $packageFileDownloadPath = Join-Path -Path $gcWorkerPackagesFolderPath -ChildPath $packageFileDownloadName
+    $packageFileDownloadPath = Join-Path -Path $tempPath -ChildPath $packageFileDownloadName
 
     if (Test-Path -Path $packageFileDownloadPath)
     {
@@ -264,7 +257,7 @@ function New-GuestConfigurationPolicy
     $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
-    $packagePath = Reset-GCWorkerTempDirectory
+    $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
     $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
 
     # Get configuration name
@@ -337,7 +330,7 @@ function New-GuestConfigurationPolicy
     # Determine paths
     if ([String]::IsNullOrEmpty($Path))
     {
-        $Path = Join-Path -Path $gcWorkerPath -ChildPath 'definitions'
+        $Path = Get-Location
     }
 
     $Path = Resolve-RelativePath -Path $Path
@@ -382,11 +375,11 @@ function New-GuestConfigurationPolicy
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 
     # Convert definition hashtable to JSON
-    $policyDefinitionContentJson = ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100
+    $policyDefinitionContentJson = (ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100).Replace('\u0027', "'")
     $formattedPolicyDefinitionContentJson = Format-PolicyDefinitionJson -Json $policyDefinitionContentJson
 
     # Write JSON to file
-    $null = Set-Content -Path $filePath -Value $formattedPolicyDefinitionContentJson -Force
+    $null = Set-Content -Path $filePath -Value $formattedPolicyDefinitionContentJson -Encoding 'UTF8' -Force
 
     # Return policy information
     $result = [PSCustomObject]@{
@@ -397,8 +390,4 @@ function New-GuestConfigurationPolicy
     }
 
     return $result
-
-    # Check if the package is signed (nothing is using this right now)
-    # $packageIsSigned = (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.cat)) -or
-    # (($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.asc)) -and ($null -ne (Get-ChildItem -Path $unzippedPkgPath -Filter *.sha256sums))))
 }

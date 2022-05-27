@@ -5,9 +5,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.0-preview0008]
+## [4.0.0-preview0009]
 
-## Fixed 
+### Changed
+
+- For New-GuestConfigurationPolicy, the IncludeArcMachines policy parameter type has been switched back to a string so that old policies can still be updated
+
+## [4.0.0-preview0008] - 2022-05-24
+
+### Fixed 
 
 - Start-GuestConfigurationPackageComplianceStatus and Start-GuestConfigurationPackageRemediation will run again on packages that are missing the metaconfig file. Added tests for this as well.
 - Fixed some typos in the New-GuestConfigurationPolicy help comments

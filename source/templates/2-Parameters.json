@@ -3,7 +3,7 @@
         "IncludeArcMachines": {
             "type": "string",
             "metadata": {
-                "displayName": "Include Arc connected servers",
+                "displayName": "Include Arc connected machines",
                 "description": "By selecting this option, you agree to be charged monthly per Arc connected machine.",
                 "portalReview": "true"
             },

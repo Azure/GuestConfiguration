@@ -110,11 +110,13 @@ Describe 'New-GuestConfigurationPolicy' {
 
             $fileContentJson.properties.parameters | Should -Not -BeNullOrEmpty
             $fileContentJson.properties.parameters.IncludeArcMachines | Should -Not -BeNullOrEmpty
-            $fileContentJson.properties.parameters.IncludeArcMachines.type | Should -Be 'boolean'
-            $fileContentJson.properties.parameters.IncludeArcMachines.defaultValue | Should -Be $false
+            $fileContentJson.properties.parameters.IncludeArcMachines.type | Should -Be 'string'
+            $fileContentJson.properties.parameters.IncludeArcMachines.defaultValue | Should -Be 'false'
+            $fileContentJson.properties.parameters.IncludeArcMachines.allowedValues | Should -Be @('true', 'false')
             $fileContentJson.properties.parameters.IncludeArcMachines.metadata | Should -Not -BeNullOrEmpty
             $fileContentJson.properties.parameters.IncludeArcMachines.metadata.displayName | Should -Be 'Include Arc connected machines'
             $fileContentJson.properties.parameters.IncludeArcMachines.metadata.description | Should -Be 'By selecting this option, you agree to be charged monthly per Arc connected machine.'
+            $fileContentJson.properties.parameters.IncludeArcMachines.metadata.portalReview | Should -Be $true
 
             $fileContentJson.properties.policyRule | Should -Not -BeNullOrEmpty
             $fileContentJson.properties.policyRule.if | Should -Not -BeNullOrEmpty

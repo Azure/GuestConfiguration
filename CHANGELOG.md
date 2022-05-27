@@ -5,7 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.0-preview0008]
+## [4.0.0-preview0009]
+
+### Changed
+
+- For New-GuestConfigurationPolicy, the IncludeArcMachines policy parameter type has been switched back to a string so that old policies can still be updated
+
+## [4.0.0-preview0008] - 2022-05-24
 
 ## Fixed 
 

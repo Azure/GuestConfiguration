@@ -1,12 +1,17 @@
 {
     "parameters": {
         "IncludeArcMachines": {
-            "type": "boolean",
+            "type": "string",
             "metadata": {
                 "displayName": "Include Arc connected machines",
-                "description": "By selecting this option, you agree to be charged monthly per Arc connected machine."
+                "description": "By selecting this option, you agree to be charged monthly per Arc connected machine.",
+                "portalReview": "true"
             },
-            "defaultValue": false
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "defaultValue": "false"
         }
     }
 }

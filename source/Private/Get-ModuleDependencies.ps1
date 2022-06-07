@@ -84,6 +84,7 @@ function Get-ModuleDependencies
             $getModuleDependenciesParameters = @{
                 ModuleName = $requiredModule.Name
                 ModuleVersion = $requiredModule.Version
+                ModuleSourcePath = $ModuleSourcePath
             }
 
             $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters
@@ -99,6 +100,7 @@ function Get-ModuleDependencies
 
             $getModuleDependenciesParameters = @{
                 ModuleName = $requiredModule.Name
+                ModuleSourcePath = $ModuleSourcePath
             }
 
             $moduleDependencies += Get-ModuleDependencies @getModuleDependenciesParameters

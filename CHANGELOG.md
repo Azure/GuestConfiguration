@@ -5,7 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.0-preview0009]
+## [4.0.0-preview0010] - 2022-06-07
+
+### Fixed
+
+- The cmdlets Get-GuestConfigurationPackageComplianceStatus and Start-GuestConfigurationPackageRemediation will now only search for nested module dependencies in the package Modules folder
+
+## [4.0.0-preview0009] - 2022-05-27
 
 ### Changed
 

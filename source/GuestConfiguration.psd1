@@ -41,7 +41,7 @@
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
         PSData = @{
-            Prerelease = 'preview0009'
+            Prerelease = 'preview0010'
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = @('GuestConfiguration', 'Azure', 'DSC')

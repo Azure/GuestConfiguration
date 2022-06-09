@@ -414,9 +414,9 @@ function New-GuestConfigurationPackage
     }
 
     # Zip the package
-    $compressArchiveSourcePath = Join-Path -Path $packageRootPath -ChildPath '*'
-    Write-Verbose -Message "Compressing the generated package from the path '$compressArchiveSourcePath' to the package path '$packageDestinationPath'..."
-    $null = Compress-Archive -Path $compressArchiveSourcePath -DestinationPath $packageDestinationPath -CompressionLevel 'Fastest'
+    # NOTE: We are NOT using Compress-Archive here because it does not zip empty folders (like an empty Modules folder) into the package
+    Write-Verbose -Message "Compressing the generated package from the path '$packageRootPath' to the package path '$packageDestinationPath'..."
+    $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($packageRootPath, $packageDestinationPath)
 
     return [PSCustomObject]@{
         PSTypeName = 'GuestConfiguration.Package'

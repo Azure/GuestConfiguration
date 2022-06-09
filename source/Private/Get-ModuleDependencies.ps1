@@ -24,6 +24,12 @@ function Get-ModuleDependencies
         throw "Found a dependency on resources from the PSDesiredStateConfiguration module, but we cannot copy these resources into the Guest Configuration package. Please switch these resources to using the PSDscResources module instead."
     }
 
+    if ($ModuleName -ieq 'GuestConfiguration')
+    {
+        Write-Warning -Message "Found a dependency on resources from the GuestConfiguartion module. This module does not contain any valid DSC resources, and it is too large to include in the Guest Configuration package. If you are using the native InSpec resource, you can ignore this message. If you wish to include custom native resources in the package, please copy the compiled files into the Modules/DscNativeResources/<resource_name> folder in the package manually."
+        return
+    }
+
     $getModuleParameters = @{
         ListAvailable = $true
     }

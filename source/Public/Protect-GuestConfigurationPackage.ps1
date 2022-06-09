@@ -214,9 +214,9 @@ function Protect-GuestConfigurationPackage
         }
 
         # Zip the signed Guest Configuration package
+        # NOTE: We are NOT using Compress-Archive here because it does not zip empty folders (like an empty Modules folder) into the package
         Write-Verbose -Message "Creating the signed Guest Configuration package at '$signedPackageFilePath'"
-        $archiveSourcePath = Join-Path -Path $tempDirectory -ChildPath '*'
-        $null = Compress-Archive -Path $archiveSourcePath -DestinationPath $signedPackageFilePath
+        $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($tempDirectory, $signedPackageFilePath)
 
         $result = [PSCustomObject]@{
             Name = $configurationName

@@ -1,0 +1,20 @@
+instance of NativeResource as $MyNativeResourceref
+{
+    ModuleName = "GuestConfiguration";
+    ResourceID = "[NativeResource]MyNativeResource";
+    SourceInfo = "::7::9::NativeResource";
+    ModuleVersion = "2.5.0";
+    ConfigurationName = "NativeResourceConfig";
+    Name = "MyName";
+    Ensure = "Present";
+    SourcePath = "NotARealSourcePath";
+    LogPath = "NotARealLogPath";
+};
+
+instance of OMI_ConfigurationDocument
+{
+    Version="1.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+    Name="NativeResourceConfig";
+};

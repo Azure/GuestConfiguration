@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0-preview0011] - 2022-06-09
+
+### Fixed
+
+- The cmdlet New-GuestConfigurationPackage will never include the GuestConfiguration module in the Modules folder of the new package (this makes the package too big). A warning will be written instead.
+- The cmdlets New-GuestConfigurationPackage and Protect-GuestConfigurationPackage now use a different compression method which allows empty folders to be zipped into the package (previously empty folders were disappearing when the package was zipped).
+
 ## [4.0.0-preview0010] - 2022-06-07
 
 ### Fixed

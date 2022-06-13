@@ -26,7 +26,7 @@ function Get-ModuleDependencies
 
     if ($ModuleName -ieq 'GuestConfiguration')
     {
-        Write-Warning -Message "Found a dependency on resources from the GuestConfiguartion module. This module does not contain any valid DSC resources, and it is too large to include in the Guest Configuration package. If you are using the native InSpec resource, you can ignore this message. If you wish to include custom native resources in the package, please copy the compiled files into the Modules/DscNativeResources/<resource_name> folder in the package manually."
+        Write-Warning -Message "Found a dependency on resources from the GuestConfiguartion module. This module will not be copied into the package as it does not contain any valid DSC resources and it is too large. If you wish to include custom native resources in the package, please copy the compiled files into the 'Modules/DscNativeResources/<resource_name>/' folder in the package manually. Example: <package_root>/Modules/DscNativeResources/MyNativeResource/libMyNativeResource.so AND <package_root>/Modules/DscNativeResources/MyNativeResource/MyNativeResource.schema.mof"
         return
     }
 

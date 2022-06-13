@@ -157,6 +157,12 @@ function Invoke-GuestConfigurationPackage
 
     $modulesFolderPath = Join-Path -Path $packageInstallPath -ChildPath 'Modules'
 
+    $modulesFolders = @( Get-ChildItem -Path $modulesFolderPath -Directory )
+    if ($modulesFolders.Count -eq 0)
+    {
+        throw "There are no folders under the Modules folder in the package at '$modulesFolderPath'. Please use the New-GuestConfigurationPackage cmdlet to generate your package. If you wish to include custom native resources in the package, please copy the compiled files into the 'Modules/DscNativeResources/<resource_name>/' folder in the package manually. Example: <package_root>/Modules/DscNativeResources/MyNativeResource/libMyNativeResource.so AND <package_root>/Modules/DscNativeResources/MyNativeResource/MyNativeResource.schema.mof"
+    }
+
     foreach ($resourceDependency in $resourceDependencies)
     {
         if ($resourceDependency['ResourceName'] -ieq 'MSFT_ChefInSpecResource')

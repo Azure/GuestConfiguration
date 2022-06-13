@@ -5,6 +5,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2022-06-13
+
+## Added
+
+- The cmdlets Get-GuestConfigurationPackageComplianceStatus and Start-GuestConfigurationPackageRemediation will now throw an error when the Modules folder in the package does not contain any subfolders.
+
+## Changed
+
+- Moved the module out of preview
+- In New-GuestConfigurationPackage, added more messaging to the warning message when a mof contains the GuestConfiguration module.
+
 ## [4.0.0-preview0011] - 2022-06-09
 
 ### Fixed

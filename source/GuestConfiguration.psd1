@@ -18,7 +18,7 @@
     Copyright = '(c) 2022 Microsoft Corporation. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description = '[PREVIEW] The Guest Configuration module is an experimental tool to assist in content authoring for Azure Guest Configuration. These cmdlets build and validate content packages and custom policies, which can then be used in cross-platform configuration management solutions.'
+    Description = 'The Guest Configuration module is a tool to author custom content for Azure Guest Configuration. These cmdlets build and validate content packages and custom policies, which can then be used in cross-platform configuration management solutions.'
 
     # Minimum version of the Windows PowerShell engine required by this module
     PowerShellVersion = '5.1'
@@ -41,7 +41,7 @@
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData = @{
         PSData = @{
-            Prerelease = 'preview0011'
+            #Prerelease = ''
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = @('GuestConfiguration', 'Azure', 'DSC')

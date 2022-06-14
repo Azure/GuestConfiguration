@@ -270,8 +270,7 @@ function New-GuestConfigurationPackage
     }
 
     # Check destination
-    $packageRootPath = Join-Path -Path $Path -ChildPath $Name
-    $packageDestinationPath = "$packageRootPath.zip"
+    $packageDestinationPath = Join-Path -Path $Path -ChildPath "$Name.zip"
 
     if (Test-Path -Path $packageDestinationPath)
     {

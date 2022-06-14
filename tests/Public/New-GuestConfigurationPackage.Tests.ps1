@@ -401,10 +401,21 @@ Describe 'New-GuestConfigurationPackage' {
 
     Context 'Cross-platform package with PSDscResources Script resource' {
         BeforeAll {
+            $testName = 'testScript'
+
+            $testPath = Join-Path -Path $script:testOutputPath -ChildPath 'My Package Path'
+            $testMofName = 'TestScript.mof'
+            $testMofPath = Join-Path -Path $script:testMofsFolderPath -ChildPath $testMofName
+            $testPackagePath = Join-Path -Path $testPath -ChildPath $testName
+            $null = New-Item -Path $testPackagePath -ItemType 'Directory' -Force
+
+            $testMofDestinationPath = Join-Path -Path $testPackagePath -ChildPath $testMofName
+            $null = Copy-Item -Path $testMofPath -Destination $testMofDestinationPath -Force
+
             $newGuestConfigurationPackageParameters = @{
-                Name = 'testScript'
-                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestScript.mof'
-                Path = Join-Path -Path $script:testOutputPath -ChildPath 'My Package Path'
+                Name = $testName
+                Configuration = $testMofDestinationPath
+                Path = $testPath
                 FrequencyMinutes = 45
                 Force = $true
             }
@@ -456,6 +467,10 @@ Describe 'New-GuestConfigurationPackage' {
         It 'Expanded package should include the PSDscResources module dependency' {
             $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'PSDscResources'
             Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Original mof should still exist under package path' {
+            Test-Path -Path $testMofDestinationPath | Should -BeTrue
         }
     }
 

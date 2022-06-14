@@ -5,13 +5,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.0] - 2022-06-14
+
+### Changed
+
+- New-GuestConfigurationPackage will no longer create the unzipped package folder under your provided Path or working directory. The package will instead be created under the module's temporary directory and only the .zip file will be generated at the provided destination Path or working directory. This fixes the issue that the the source .mof file was getting deleted when it was under a subpath that needs to be removed to create the package.
+
 ## [4.0.0] - 2022-06-13
 
-## Added
+### Added
 
 - The cmdlets Get-GuestConfigurationPackageComplianceStatus and Start-GuestConfigurationPackageRemediation will now throw an error when the Modules folder in the package does not contain any subfolders.
 
-## Changed
+### Changed
 
 - Moved the module out of preview
 - In New-GuestConfigurationPackage, added more messaging to the warning message when a mof contains the GuestConfiguration module.

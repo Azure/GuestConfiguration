@@ -169,7 +169,7 @@ function New-GuestConfigurationPackage
         }
 
         $getModuleDependenciesParameters = @{
-            ModuleName = $resourceDependency['ModuleName']
+            ModuleName    = $resourceDependency['ModuleName']
             ModuleVersion = $resourceDependency['ModuleVersion']
         }
 
@@ -269,19 +269,8 @@ function New-GuestConfigurationPackage
         }
     }
 
-    # Check set-up folder
-    $packageRootPath = Join-Path -Path $Path -ChildPath $Name
-
-    if (Test-Path -Path $packageRootPath)
-    {
-        if (-not $Force)
-        {
-            throw "A folder already exists at the package folder path '$packageRootPath'. Please remove it or use the Force parameter. With -Force the cmdlet will remove this folder for you."
-        }
-    }
-
     # Check destination
-    $packageDestinationPath = "$packageRootPath.zip"
+    $packageDestinationPath = Join-Path -Path $Path -ChildPath "$Name.zip"
 
     if (Test-Path -Path $packageDestinationPath)
     {
@@ -293,134 +282,135 @@ function New-GuestConfigurationPackage
 
     #-----PACKAGE CREATION-----
 
-    # Clear the root package folder
-    if (Test-Path -Path $packageRootPath)
+    # Clear the temp directory
+    $tempFolderPath = Reset-GCWorkerTempDirectory
+
+    try
     {
-        if ($Configuration.FullName.Contains($packageRootPath))
-        {
-            Write-Warning -Message "You have elected to forcibly remove the existing package folder path '$packageRootPath', but the specificed source path for the configuration document is under this path at '$Configuration'. The configuration document at this source path will be changed to match package requirements."
-            $gcWorkerTempPath = Reset-GCWorkerTempDirectory
-            $copiedMof = Copy-Item -Path $Configuration -Destination $gcWorkerTempPath -Force
-            $Configuration = $copiedMof.FullName
+        # Create the package root folder
+        $packageRootPath = Join-Path -Path $tempFolderPath -ChildPath $Name
+        Write-Verbose -Message "Creating the package root folder at the path '$packageRootPath'..."
+        $null = New-Item -Path $packageRootPath -ItemType 'Directory' -Force
+
+        # Create the Modules folder
+        $modulesFolderPath = Join-Path -Path $packageRootPath -ChildPath 'Modules'
+        Write-Verbose -Message "Creating the package Modules folder at the path '$modulesFolderPath'..."
+        $null = New-Item -Path $modulesFolderPath -ItemType 'Directory'
+
+        # Create the metaconfig file
+        $metaconfigFileName = "$Name.metaconfig.json"
+        $metaconfigFilePath = Join-Path -Path $packageRootPath -ChildPath $metaconfigFileName
+
+        $metaconfig = @{
+            Type    = $Type
+            Version = $Version
         }
 
-        Write-Verbose -Message "Removing an existing item at the path '$packageRootPath'..."
-        $null = Remove-Item -Path $packageRootPath -Recurse -Force
-    }
-
-    Write-Verbose -Message "Creating the package root folder at the path '$packageRootPath'..."
-    $null = New-Item -Path $packageRootPath -ItemType 'Directory' -Force
-
-    # Clear the package destination
-    if (Test-Path -Path $packageDestinationPath)
-    {
-        Write-Verbose -Message "Removing an existing item at the path '$packageDestinationPath'..."
-        $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
-    }
-
-    # Create the package structure
-    $modulesFolderPath = Join-Path -Path $packageRootPath -ChildPath 'Modules'
-    Write-Verbose -Message "Creating the package Modules folder at the path '$modulesFolderPath'..."
-    $null = New-Item -Path $modulesFolderPath -ItemType 'Directory'
-
-    # Create the metaconfig file
-    $metaconfigFileName = "$Name.metaconfig.json"
-    $metaconfigFilePath = Join-Path -Path $packageRootPath -ChildPath $metaconfigFileName
-
-    $metaconfig = @{
-        Type = $Type
-        Version = $Version
-    }
-
-    if ($FrequencyMinutes -gt 15)
-    {
-        $metaconfig['configurationModeFrequencyMins'] = $FrequencyMinutes
-    }
-
-    $metaconfigJson = $metaconfig | ConvertTo-Json
-    Write-Verbose -Message "Setting the content of the package metaconfig at the path '$metaconfigFilePath'..."
-    $null = Set-Content -Path $metaconfigFilePath -Value $metaconfigJson -Encoding 'ascii'
-
-    # Copy the mof into the package
-    $mofFileName = "$Name.mof"
-    $mofFilePath = Join-Path -Path $packageRootPath -ChildPath $mofFileName
-
-    Write-Verbose -Message "Copying the compiled DSC configuration (.mof) from the path '$Configuration' to the package path '$mofFilePath'..."
-    $null = Copy-Item -Path $Configuration -Destination $mofFilePath
-
-    # Edit the native Chef InSpec resource parameters in the mof if needed
-    if ($usingInSpecResource)
-    {
-        Edit-GuestConfigurationPackageMofChefInSpecContent -PackageName $Name -MofPath $mofFilePath
-    }
-
-    # Copy resource dependencies
-    foreach ($moduleDependency in $moduleDependencies)
-    {
-        $moduleDestinationPath = Join-Path -Path $modulesFolderPath -ChildPath $moduleDependency['Name']
-
-        Write-Verbose -Message "Copying module from '$($moduleDependency['SourcePath'])' to '$moduleDestinationPath'"
-        $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $moduleDestinationPath -Container -Recurse -Force
-    }
-
-    # Copy native Chef InSpec resource if needed
-    if ($usingInSpecResource)
-    {
-        $nativeResourcesFolder = Join-Path -Path $modulesFolderPath -ChildPath 'DscNativeResources'
-        Write-Verbose -Message "Creating the package native resources folder at the path '$nativeResourcesFolder'..."
-        $null = New-Item -Path $nativeResourcesFolder -ItemType 'Directory'
-
-        $inSpecResourceFolder = Join-Path -Path $nativeResourcesFolder -ChildPath 'MSFT_ChefInSpecResource'
-        Write-Verbose -Message "Creating the native Chef InSpec resource folder at the path '$inSpecResourceFolder'..."
-        $null = New-Item -Path $inSpecResourceFolder -ItemType 'Directory'
-
-        $dscResourcesFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'DscResources'
-        $inSpecResourceSourcePath = Join-Path -Path $dscResourcesFolderPath -ChildPath 'MSFT_ChefInSpecResource'
-
-        $installInSpecScriptSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'install_inspec.sh'
-        Write-Verbose -Message "Copying the Chef Inspec install script from the path '$installInSpecScriptSourcePath' to the package path '$modulesFolderPath'..."
-        $null = Copy-Item -Path $installInSpecScriptSourcePath -Destination $modulesFolderPath
-
-        $inSpecResourceLibrarySourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'
-        Write-Verbose -Message "Copying the native Chef Inspec resource library from the path '$inSpecResourceLibrarySourcePath' to the package path '$inSpecResourceFolder'..."
-        $null = Copy-Item -Path $inSpecResourceLibrarySourcePath -Destination $inSpecResourceFolder
-
-        $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
-        Write-Verbose -Message "Copying the native Chef Inspec resource schema from the path '$inSpecResourceSchemaMofSourcePath' to the package path '$inSpecResourceFolder'..."
-        $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceFolder
-
-        foreach ($inSpecProfileSourcePath in $inSpecProfileSourcePaths)
+        if ($FrequencyMinutes -gt 15)
         {
-            Write-Verbose -Message "Copying the Chef Inspec profile from the path '$inSpecProfileSourcePath' to the package path '$modulesFolderPath'..."
-            $null = Copy-Item -Path $inSpecProfileSourcePath -Destination $modulesFolderPath -Container -Recurse
+            $metaconfig['configurationModeFrequencyMins'] = $FrequencyMinutes
         }
-    }
 
-    # Copy extra files
-    foreach ($file in $FilesToInclude)
+        $metaconfigJson = $metaconfig | ConvertTo-Json
+        Write-Verbose -Message "Setting the content of the package metaconfig at the path '$metaconfigFilePath'..."
+        $null = Set-Content -Path $metaconfigFilePath -Value $metaconfigJson -Encoding 'ascii'
+
+        # Copy the mof into the package
+        $mofFilePath = Join-Path -Path $packageRootPath -ChildPath "$Name.mof"
+        Write-Verbose -Message "Copying the compiled DSC configuration (.mof) from the path '$Configuration' to the package path '$mofFilePath'..."
+        $null = Copy-Item -Path $Configuration -Destination $mofFilePath
+
+        # Edit the native Chef InSpec resource parameters in the mof if needed
+        if ($usingInSpecResource)
+        {
+            Edit-GuestConfigurationPackageMofChefInSpecContent -PackageName $Name -MofPath $mofFilePath
+        }
+
+        # Copy resource dependencies
+        foreach ($moduleDependency in $moduleDependencies)
+        {
+            $moduleDestinationPath = Join-Path -Path $modulesFolderPath -ChildPath $moduleDependency['Name']
+            Write-Verbose -Message "Copying module from '$($moduleDependency['SourcePath'])' to '$moduleDestinationPath'"
+            $null = Copy-Item -Path $moduleDependency['SourcePath'] -Destination $moduleDestinationPath -Container -Recurse -Force
+        }
+
+        # Copy native Chef InSpec resource if needed
+        if ($usingInSpecResource)
+        {
+            $nativeResourcesFolder = Join-Path -Path $modulesFolderPath -ChildPath 'DscNativeResources'
+            Write-Verbose -Message "Creating the package native resources folder at the path '$nativeResourcesFolder'..."
+            $null = New-Item -Path $nativeResourcesFolder -ItemType 'Directory'
+
+            $inSpecResourceFolder = Join-Path -Path $nativeResourcesFolder -ChildPath 'MSFT_ChefInSpecResource'
+            Write-Verbose -Message "Creating the native Chef InSpec resource folder at the path '$inSpecResourceFolder'..."
+            $null = New-Item -Path $inSpecResourceFolder -ItemType 'Directory'
+
+            $dscResourcesFolderPath = Join-Path -Path $PSScriptRoot -ChildPath 'DscResources'
+            $inSpecResourceSourcePath = Join-Path -Path $dscResourcesFolderPath -ChildPath 'MSFT_ChefInSpecResource'
+
+            $installInSpecScriptSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'install_inspec.sh'
+            Write-Verbose -Message "Copying the Chef Inspec install script from the path '$installInSpecScriptSourcePath' to the package path '$modulesFolderPath'..."
+            $null = Copy-Item -Path $installInSpecScriptSourcePath -Destination $modulesFolderPath
+
+            $inSpecResourceLibrarySourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'libMSFT_ChefInSpecResource.so'
+            Write-Verbose -Message "Copying the native Chef Inspec resource library from the path '$inSpecResourceLibrarySourcePath' to the package path '$inSpecResourceFolder'..."
+            $null = Copy-Item -Path $inSpecResourceLibrarySourcePath -Destination $inSpecResourceFolder
+
+            $inSpecResourceSchemaMofSourcePath = Join-Path -Path $inSpecResourceSourcePath -ChildPath 'MSFT_ChefInSpecResource.schema.mof'
+            Write-Verbose -Message "Copying the native Chef Inspec resource schema from the path '$inSpecResourceSchemaMofSourcePath' to the package path '$inSpecResourceFolder'..."
+            $null = Copy-Item -Path $inSpecResourceSchemaMofSourcePath -Destination $inSpecResourceFolder
+
+            foreach ($inSpecProfileSourcePath in $inSpecProfileSourcePaths)
+            {
+                Write-Verbose -Message "Copying the Chef Inspec profile from the path '$inSpecProfileSourcePath' to the package path '$modulesFolderPath'..."
+                $null = Copy-Item -Path $inSpecProfileSourcePath -Destination $modulesFolderPath -Container -Recurse
+            }
+        }
+
+        # Copy extra files
+        foreach ($file in $FilesToInclude)
+        {
+            $filePath = Resolve-RelativePath -Path $file
+
+            if (Test-Path -Path $filePath -PathType 'Leaf')
+            {
+                Write-Verbose -Message "Copying the custom file to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
+                $null = Copy-Item -Path $filePath -Destination $modulesFolderPath
+            }
+            else
+            {
+                Write-Verbose -Message "Copying the custom folder to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
+                $null = Copy-Item -Path $filePath -Destination $modulesFolderPath -Container -Recurse
+            }
+        }
+
+        # Clear the package destination
+        if (Test-Path -Path $packageDestinationPath)
+        {
+            Write-Verbose -Message "Removing an existing item at the path '$packageDestinationPath'..."
+            $null = Remove-Item -Path $packageDestinationPath -Recurse -Force
+        }
+
+        # Create the destination parent directory if needed
+        if (-not (Test-Path -Path $Path))
+        {
+            $null = New-Item -Path $Path -ItemType 'Directory' -Force
+        }
+
+        # Zip the package
+        # NOTE: We are NOT using Compress-Archive here because it does not zip empty folders (like an empty Modules folder) into the package
+        Write-Verbose -Message "Compressing the generated package from the path '$packageRootPath' to the package path '$packageDestinationPath'..."
+        $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($packageRootPath, $packageDestinationPath)
+    }
+    finally
     {
-        $filePath = Resolve-RelativePath -Path $file
-
-        if (Test-Path -Path $filePath -PathType 'Leaf')
-        {
-            Write-Verbose -Message "Copying the custom file to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
-            $null = Copy-Item -Path $filePath -Destination $modulesFolderPath
-        }
-        else
-        {
-            Write-Verbose -Message "Copying the custom folder to include from the path '$filePath' to the package module path '$modulesFolderPath'..."
-            $null = Copy-Item -Path $filePath -Destination $modulesFolderPath -Container -Recurse
-        }
+        # Clear the temp directory
+        $null = Reset-GCWorkerTempDirectory
     }
-
-    # Zip the package
-    # NOTE: We are NOT using Compress-Archive here because it does not zip empty folders (like an empty Modules folder) into the package
-    Write-Verbose -Message "Compressing the generated package from the path '$packageRootPath' to the package path '$packageDestinationPath'..."
-    $null = [System.IO.Compression.ZipFile]::CreateFromDirectory($packageRootPath, $packageDestinationPath)
 
     return [PSCustomObject]@{
         PSTypeName = 'GuestConfiguration.Package'
-        Name = $Name
-        Path = $packageDestinationPath
+        Name       = $Name
+        Path       = $packageDestinationPath
     }
 }

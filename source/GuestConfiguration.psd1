@@ -3,7 +3,7 @@
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    ModuleVersion = '4.0.0'
+    ModuleVersion = '4.1.0'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -56,7 +56,7 @@
             IconUri = 'https://github.com/Azure/GuestConfiguration/GuestConfigXS.png'
 
             # ReleaseNotes of this module
-            ReleaseNotes = 'https://github.com/Azure/GuestConfiguration/CHANGELOG.md'
+            ReleaseNotes = "- New-GuestConfigurationPackage will no longer create the unzipped package folder under your provided Path or working directory. The package will instead be created under the module's temporary directory and only the .zip file will be generated at the provided destination Path or working directory. This fixes the issue that the the source .mof file was getting deleted when it was under a subpath that needs to be removed to create the package."
 
             ExperimentalFeatures = @()
         } # End of PSData hashtable

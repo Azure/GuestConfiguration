@@ -17,8 +17,16 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
         $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $script:testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
         $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
+        $testModulesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestModules'
 
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+
+        $script:originalPSModulePath = $env:PSModulePath
+        $env:PSModulePath = $env:PSModulePath + ";" + $testModulesFolderPath
+    }
+
+    AfterAll {
+        $env:PSModulePath = $script:originalPSModulePath
     }
 
     Context 'Windows TimeZone package' -Skip:($os -ine 'Windows') {
@@ -282,6 +290,37 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
                 $result.resources.Count | Should -Be 1
                 $result.resources[0].ComplianceStatus | Should -BeTrue
             }
+        }
+    }
+
+    Context 'INTEGRATION - Cross-platform TestModule package from New-GuestConfigurationPackage' {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testCustom'
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestCustom.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Custom'
+                Force = $true
+            }
+
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+        }
+
+        It 'Should be able to create a custom package with the expected output object' {
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $package | Should -Not -BeNull
+            $package.Name | Should -Be $newGuestConfigurationPackageParameters.Name
+            $package.Path | Should -Be $compressedPackagePath
+        }
+
+        It 'Should return the expected result object when compliance status is true' {
+            $result = Get-GuestConfigurationPackageComplianceStatus -Path $compressedPackagePath
+
+            $result.assignmentName | Should -Be 'testCustom'
+            $result.complianceStatus | Should -BeTrue
+            $result.operationtype | Should -Be 'Consistency'
+            $result.resources.Count | Should -Be 1
+            $result.resources[0].ComplianceStatus | Should -BeTrue
         }
     }
 }

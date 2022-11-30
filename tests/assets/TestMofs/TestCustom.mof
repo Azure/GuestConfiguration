@@ -1,0 +1,17 @@
+instance of TestResource as $TestResource1ref
+{
+    ModuleName = "TestModule";
+    ResourceID = "[TestResource]MyTestResource";
+    SourceInfo = "::7::9::TestModule";
+    ModuleVersion = "1.0";
+    ConfigurationName = "CustomConfig";
+    TestKey = "MyTest";
+};
+
+instance of OMI_ConfigurationDocument
+{
+    Version = "1.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties = {"Omi_BaseResource:ConfigurationName"};
+    Name = "CustomConfig";
+};

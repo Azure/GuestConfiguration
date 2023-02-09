@@ -163,11 +163,18 @@ Describe 'New-GuestConfigurationPolicy' {
 
                     if ($parameter.ContainsKey('AllowedValues'))
                     {
+                        $fileContentJson.properties.parameters.$parameterName.allowedValues -is [array] | Should -Be $true
+                        foreach ($allowedValue in $fileContentJson.properties.parameters.$parameterName.allowedValues)
+                        {
+                            $allowedValue | Should -BeOfType String
+                        }
+
                         $fileContentJson.properties.parameters.$parameterName.allowedValues | Should -Be $parameter['AllowedValues']
                     }
 
                     if ($parameter.ContainsKey('DefaultValue'))
                     {
+                        $fileContentJson.properties.parameters.$parameterName.defaultValue | Should -BeOfType String
                         $fileContentJson.properties.parameters.$parameterName.defaultValue | Should -Be $parameter['DefaultValue']
                     }
 
@@ -400,6 +407,59 @@ Describe 'New-GuestConfigurationPolicy' {
             )
         },
         @{
+            Platform = @('Windows', 'Linux')
+            DisplayName = 'MyFile Test Policy'
+            Description = 'This is a test policy for the MyFile package at C:/pretend/path/here or \more\slashes\path'
+            PolicyId = [Guid]::NewGuid()
+            PolicyVersion = '1.0.0'
+            ContentUri = 'https://github.com/microsoft/PowerShell-DSC-for-Linux/raw/micy/custompolicy/new_gc_policy/MyFile.zip'
+            ContentHash = '59AEA0877406175CB4069F301880BEF0A21BBABCF492CE8476DA047B2FBEA8B6'
+            ConfigurationName = 'MyFile'
+            ConfigurationVersion = '1.0.0'
+            ParameterSets = @(
+                @(
+                    @{
+                        Name = 'MyStringParameter'
+                        DisplayName = 'My string parameter'
+                        Description = 'A string parameter'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'MyStringParameter'
+                        DefaultValue = 'default string value'
+                    },
+                    @{
+                        Name = 'MyBooleanParameter'
+                        DisplayName = 'My boolean parameter'
+                        Description = 'A boolean parameter'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'MyBooleanParameter'
+                        DefaultValue = $true
+                        AllowedValues = @($true, $false)
+                    },
+                    @{
+                        Name = 'MyIntegerParameter'
+                        DisplayName = 'My integer parameter'
+                        Description = 'A integer parameter'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'MyIntegerParameter'
+                        DefaultValue = 7
+                        AllowedValues = @(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+                    },
+                    @{
+                        Name = 'MyDoubleParameter'
+                        DisplayName = 'My double parameter'
+                        Description = 'A double parameter'
+                        ResourceType = 'MyFile'
+                        ResourceId = 'createFoobarTestFile'
+                        ResourcePropertyName = 'MyDoubleParameter'
+                        DefaultValue = 3.14
+                    }
+                )
+            )
+        },
+        @{
             Platform = @('Windows')
             DisplayName = 'Windows Service Test Policy'
             Description = 'This is a test policy for the Windows Service package.'
@@ -525,7 +585,31 @@ Describe 'New-GuestConfigurationPolicy' {
                         }
 
                         $assertionParameters = $baseAssertionParameters + @{
-                            ExpectedParameters = $_
+                            ExpectedParameters = $_.Clone()
+                        }
+
+                        # Parameter values should be converted to strings
+                        $defaultValueField = 'DefaultValue'
+                        $allowedValuesField = 'AllowedValues'
+
+                        if ($assertionParameters.ExpectedParameters.ContainsKey($defaultValueField) -and
+                            $assertionParameters.ExpectedParameters[$defaultValueField] -ne $null)
+                        {
+                            $defaultValue = $assertionParameters.ExpectedParameters[$defaultValueField]
+                            $assertionParameters.ExpectedParameters[$defaultValueField] = [string]$defaultValue
+                        }
+
+                        if ($assertionParameters.ExpectedParameters.ContainsKey($allowedValuesField) -and
+                            $assertionParameters.ExpectedParameters[$allowedValuesField] -ne $null)
+                        {
+                            $allowedValues = $assertionParameters.ExpectedParameters[$allowedValuesField]
+                            $allowedStringValues = @()
+                            foreach ($allowedValue in $allowedValues)
+                            {
+                                $allowedStringValues += [string]$allowedValue
+                            }
+
+                            $assertionParameters.ExpectedParameters[$allowedValuesField] = $allowedStringValues
                         }
                     }
 

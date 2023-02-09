@@ -218,6 +218,8 @@ function New-GuestConfigurationPolicy
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
+    $defaultValueParameterProperty = 'DefaultValue'
+    $allowedValuesParameterProperty = 'AllowedValues'
 
     foreach ($parameterInfo in $Parameter)
     {
@@ -231,8 +233,38 @@ function New-GuestConfigurationPolicy
 
             if ($parameterInfo[$requiredParameterProperty] -isnot [string])
             {
-                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
-                throw "The property '$requiredParameterProperty' of one of the specified parameters is not a string. All parameter property values must be strings."
+                throw "The mandatory property '$requiredParameterProperty' of one of the specified parameters is not a string. All mandatory property values of a parameter must be strings."
+            }
+        }
+
+        $parameterName = $parameterInfo['Name']
+        if ($parameterInfo.Keys -contains $defaultValueParameterProperty)
+        {
+            if ($parameterInfo[$defaultValueParameterProperty] -isnot [string] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [boolean] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [int] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [double])
+            {
+                throw "The property '$defaultValueParameterProperty' of parameter '$parameterName' is not a string, boolean, integer, or double."
+            }
+        }
+
+        if ($parameterInfo.Keys -contains $allowedValuesParameterProperty)
+        {
+            if ($parameterInfo[$allowedValuesParameterProperty] -isnot [array])
+            {
+                throw "The property '$allowedValuesParameterProperty' of parameter '$parameterName' is not an array."
+            }
+
+            foreach ($allowedValue in $parameterInfo[$allowedValuesParameterProperty])
+            {
+                if ($allowedValue -isnot [string] -and
+                    $allowedValue -isnot [boolean] -and
+                    $allowedValue -isnot [int] -and
+                    $allowedValue -isnot [double])
+                {
+                    throw "One of the values in the array for property '$allowedValuesParameterProperty' of parameter '$parameterName' is not a string, boolean, integer, or double."
+                }
             }
         }
     }

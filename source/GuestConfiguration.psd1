@@ -3,7 +3,7 @@
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    ModuleVersion = '4.2.0'
+    ModuleVersion = '4.3.0'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -15,7 +15,7 @@
     CompanyName = 'MicrosoftCorporation'
 
     # Copyright statement for this module
-    Copyright = '(c) 2022 Microsoft Corporation. All rights reserved.'
+    Copyright = '(c) 2023 Microsoft Corporation. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'The Guest Configuration module is a tool to author custom content for Azure Guest Configuration. These cmdlets build and validate content packages and custom policies, which can then be used in cross-platform configuration management solutions.'
@@ -56,7 +56,7 @@
             IconUri = 'https://github.com/Azure/GuestConfiguration/GuestConfigXS.png'
 
             # ReleaseNotes of this module
-            ReleaseNotes = "- Fixed including modules required by resources from their manifest in package"
+            ReleaseNotes = "- Added feature to use integer, double, or boolean parameters"
 
             ExperimentalFeatures = @()
         } # End of PSData hashtable

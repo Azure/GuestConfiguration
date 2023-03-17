@@ -1,0 +1,26 @@
+[ClassVersion("1.0.0.0")] 
+class Reason
+{
+    [Read] String Phrase;
+    [Read] String Code;
+};
+
+[ClassVersion("1.0.0.0"), FriendlyName("ASM_AuditPolicy")]
+class ASM_AuditPolicy : OMI_BaseResource
+{
+    [Key, Description("A semicolon-separated list of the names of the services that should be installed and running")] String Name;
+    [write] String RuleId;
+    [write] String AzId;
+    [write] String BaselineId;
+    [write] String OriginalBaselineId;
+    [write] String Severity;
+    [write] String Subcategory;
+    [write] String ExpectedValue;
+    [write] String RemediateValue;
+    [write] boolean Remediate;
+    [write] String AnalyzeOperation;
+    [write] String ServerTypeFilter;
+    [write] String OSFilter;
+    [write] boolean Enabled;
+    [Read, EmbeddedInstance("Reason")] String Reasons[];
+};

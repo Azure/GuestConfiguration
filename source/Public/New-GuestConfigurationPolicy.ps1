@@ -193,7 +193,11 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [System.Collections.Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     # Validate parameters
@@ -403,6 +407,7 @@ function New-GuestConfigurationPolicy
         PolicyId = $PolicyId
         Parameter = $Parameter
         Tag = $Tag
+        IncludeVMSS = $IncludeVMSS
     }
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 

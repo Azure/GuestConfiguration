@@ -53,7 +53,11 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     $metadataSectionParameters = @{
@@ -71,7 +75,7 @@ function New-GuestConfigurationPolicyContent
 
     $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
 
-    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag
+    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
 
     $actionSectionParameters = @{
         ConfigurationName = $ConfigurationName
@@ -80,6 +84,7 @@ function New-GuestConfigurationPolicyContent
         ContentHash = $ContentHash
         AssignmentType = $AssignmentType
         Parameter = $Parameter
+        IncludeVMSS = $IncludeVMSS
     }
 
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters

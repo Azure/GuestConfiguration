@@ -227,36 +227,47 @@ Describe 'New-GuestConfigurationPolicy' {
 
             $imageConditionList[0] | Should -Not -BeNullOrEmpty
             $imageConditionList[0].allOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf.Count | Should -Be 2
+            $imageConditionList[0].allOf.Count | Should -Be 4
+
 
             # Compute section
-            $imageConditionList[0].allOf[0] | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[0].field | Should -Be 'type'
-            $imageConditionList[0].allOf[0].equals | Should -Be 'Microsoft.Compute/virtualMachines'
+            $imageConditionList[0].allOf[0].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[0].anyOf.Count | Should -Be 2
+            $imageConditionList[0].allOf[0].anyOf[0].field | Should -Be 'type'
+            $imageConditionList[0].allOf[0].anyOf[0].equals | Should -Be 'Microsoft.Compute/virtualMachines'
+            $imageConditionList[0].allOf[0].anyOf[1].field | Should -Be 'type'
+            $imageConditionList[0].allOf[0].anyOf[1].equals | Should -Be 'Microsoft.Compute/virtualMachineScaleSets'
+            $imageConditionList[0].allOf[1].field | Should -Be "tags['aks-managed-orchestrator']"
+            $imageConditionList[0].allOf[2].field | Should -Be "tags['aks-managed-poolName']"
 
-            $imageConditionList[0].allOf[1] | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf.Count | Should -BeGreaterThan 2
+            $imageConditionList[0].allOf[-1] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf.Count | Should -BeGreaterThan 2
 
-            $imageConditionList[0].allOf[1].anyOf[0].field | Should -Be 'Microsoft.Compute/imagePublisher'
-            $imageConditionList[0].allOf[1].anyOf[0].in | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[0].field | Should -Be 'Microsoft.Compute/imagePublisher'
+            $imageConditionList[0].allOf[-1].anyOf[0].in | Should -Not -BeNullOrEmpty
 
-            $imageConditionList[0].allOf[1].anyOf[-1] | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf.Count | Should -Be 2
+            $imageConditionList[0].allOf[-1].anyOf[-1] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf.Count | Should -Be 2
 
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf.Count | Should -Be 2
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[0].field | Should -Be "Microsoft.Compute/virtualMachines/osProfile.$($ExpectedPlatform.ToLower())Configuration"
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[0].exists | Should -Be $true
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[1].field | Should -Be "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[0].anyOf[1].like | Should -Be "$ExpectedPlatform*"
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf.Count | Should -Be 4
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[0].field | Should -Be "Microsoft.Compute/virtualMachines/osProfile.$($ExpectedPlatform.ToLower())Configuration"
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[0].exists | Should -Be $true
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[1].field | Should -Be "Microsoft.Compute/virtualMachines/storageProfile.osDisk.osType"
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[1].like | Should -Be "$ExpectedPlatform*"
 
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf.Count | Should -Be 2
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[0].field.StartsWith("Microsoft.Compute/image") | Should -BeTrue
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[0].exists | Should -Be $false
-            $imageConditionList[0].allOf[1].anyOf[-1].allOf[1].anyOf[1] | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[2].field | Should -Be "Microsoft.Compute/virtualMachineScaleSets/osProfile.$($ExpectedPlatform.ToLower())Configuration"
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[2].exists | Should -Be $true
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[3].field | Should -Be "Microsoft.Compute/virtualMachineScaleSets/virtualMachineProfile.storageProfile.osDisk.osType"
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[0].anyOf[3].like | Should -Be "$ExpectedPlatform*"
+
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[1].anyOf.Count | Should -Be 2
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[1].anyOf[0].field.StartsWith("Microsoft.Compute/image") | Should -BeTrue
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[1].anyOf[0].exists | Should -Be $false
+            $imageConditionList[0].allOf[-1].anyOf[-1].allOf[1].anyOf[1] | Should -Not -BeNullOrEmpty
 
             # Hybrid section
             $imageConditionList[1].allOf | Should -Not -BeNullOrEmpty
@@ -312,7 +323,7 @@ Describe 'New-GuestConfigurationPolicy' {
                     $fileContentJson.properties.policyRule.then.details.deployment.properties.template.parameters.$parameterName.type | Should -Be 'string'
                 }
 
-                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources.Count | Should -Be 2
+                $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources.Count | Should -Be 3
 
                 $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[0].condition | Should -Be "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]"
                 $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources[0].type | Should -Be "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments"

@@ -11,10 +11,18 @@ function New-GuestConfigurationPolicyConditionsSection
 
         [Parameter()]
         [System.Collections.Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     $templateFileName = "3-Images-$Platform.json"
+    if ($IncludeVMSS)
+    {
+        $templateFileName = "3-Images-$Platform-VMSS.json"
+    }
     $conditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
     if ($null -ne $Tag -and $Tag.Count -gt 0)

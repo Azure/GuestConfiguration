@@ -96,6 +96,13 @@
         A hashtable of the tags that should be on machines to apply this policy on.
         If this is specified, the created policy will only be applied to machines with all the specified tags.
 
+    .PARAMETER Environment
+        The Azure environment in which this policy will be published.
+        Not all resource providers are available in all Azure environments, so some referenced resource providers need to be removed from the policy definitions for certain environments.
+
+        The default value is AzureCloud.
+        Current allowed values are AzureCloud and AzureUSGovernment, though these policies may work in other Azure environments as is.
+
     .EXAMPLE
         New-GuestConfigurationPolicy `
             -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
@@ -193,7 +200,12 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [System.Collections.Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
+        [System.String]
+        $Environment = 'AzureCloud'
     )
 
     # Validate parameters
@@ -371,6 +383,7 @@ function New-GuestConfigurationPolicy
         PolicyId = $PolicyId
         Parameter = $Parameter
         Tag = $Tag
+        Environment = $Environment
     }
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 

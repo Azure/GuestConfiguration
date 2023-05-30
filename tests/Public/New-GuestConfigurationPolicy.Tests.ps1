@@ -70,6 +70,10 @@ Describe 'New-GuestConfigurationPolicy' {
 
                 [Parameter()]
                 [String]
+                $ExpectedEnvironment = 'AzureCloud',
+
+                [Parameter()]
+                [String]
                 $ExpectedPolicyId,
 
                 [Parameter()]
@@ -256,22 +260,35 @@ Describe 'New-GuestConfigurationPolicy' {
             $imageConditionList[1].allOf.Count | Should -Be 2
             $imageConditionList[1].allOf[0].value | Should -Be "[parameters('IncludeArcMachines')]"
             $imageConditionList[1].allOf[0].equals | Should -Be $true
-            $imageConditionList[1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[1].allOf[1].anyOf.Count | Should -Be 2
 
-            $imageConditionList[1].allOf[1].anyOf[0].allOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[1].allOf[1].anyOf[0].allOf.Count | Should -Be 2
-            $imageConditionList[1].allOf[1].anyOf[0].allOf[0].field | Should -Be 'type'
-            $imageConditionList[1].allOf[1].anyOf[0].allOf[0].equals | Should -Be 'Microsoft.HybridCompute/machines'
-            $imageConditionList[1].allOf[1].anyOf[0].allOf[1].field | Should -Be 'Microsoft.HybridCompute/imageOffer'
-            $imageConditionList[1].allOf[1].anyOf[0].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+            if ($Environment -ieq 'AzureUSGovernment')
+            {
+                $imageConditionList[1].allOf[1].allOf | Should -Not -BeNullOrEmpty
+                $imageConditionList[1].allOf[1].allOf.Count | Should -Be 2
+                $imageConditionList[1].allOf[1].allOf[0].field | Should -Be 'type'
+                $imageConditionList[1].allOf[1].allOf[0].equals | Should -Be 'Microsoft.HybridCompute/machines'
+                $imageConditionList[1].allOf[1].allOf[1].field | Should -Be 'Microsoft.HybridCompute/imageOffer'
+                $imageConditionList[1].allOf[1].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+            }
+            else
+            {
+                $imageConditionList[1].allOf[1].anyOf | Should -Not -BeNullOrEmpty
+                $imageConditionList[1].allOf[1].anyOf.Count | Should -Be 2
 
-            $imageConditionList[1].allOf[1].anyOf[1].allOf | Should -Not -BeNullOrEmpty
-            $imageConditionList[1].allOf[1].anyOf[1].allOf.Count | Should -Be 2
-            $imageConditionList[1].allOf[1].anyOf[1].allOf[0].field | Should -Be 'type'
-            $imageConditionList[1].allOf[1].anyOf[1].allOf[0].equals | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines'
-            $imageConditionList[1].allOf[1].anyOf[1].allOf[1].field | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines/osProfile.osType'
-            $imageConditionList[1].allOf[1].anyOf[1].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+                $imageConditionList[1].allOf[1].anyOf[0].allOf | Should -Not -BeNullOrEmpty
+                $imageConditionList[1].allOf[1].anyOf[0].allOf.Count | Should -Be 2
+                $imageConditionList[1].allOf[1].anyOf[0].allOf[0].field | Should -Be 'type'
+                $imageConditionList[1].allOf[1].anyOf[0].allOf[0].equals | Should -Be 'Microsoft.HybridCompute/machines'
+                $imageConditionList[1].allOf[1].anyOf[0].allOf[1].field | Should -Be 'Microsoft.HybridCompute/imageOffer'
+                $imageConditionList[1].allOf[1].anyOf[0].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+
+                $imageConditionList[1].allOf[1].anyOf[1].allOf | Should -Not -BeNullOrEmpty
+                $imageConditionList[1].allOf[1].anyOf[1].allOf.Count | Should -Be 2
+                $imageConditionList[1].allOf[1].anyOf[1].allOf[0].field | Should -Be 'type'
+                $imageConditionList[1].allOf[1].anyOf[1].allOf[0].equals | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines'
+                $imageConditionList[1].allOf[1].anyOf[1].allOf[1].field | Should -Be 'Microsoft.ConnectedVMwarevSphere/virtualMachines/osProfile.osType'
+                $imageConditionList[1].allOf[1].anyOf[1].allOf[1].like | Should -Be "$($ExpectedPlatform.ToLower())*"
+            }
 
             # Set
             if ($ExpectedMode -ieq 'Audit')
@@ -493,6 +510,37 @@ Describe 'New-GuestConfigurationPolicy' {
 
                 It 'Should have created the expected policy definition file' {
                     Assert-GuestConfigurationPolicyDefinitionFileValid @baseAssertionParameters
+                }
+            }
+
+            Context '<Environment>' -ForEach @(
+                @{ Environment = 'AzureCloud' },
+                @{ Environment = 'AzureUSGovernment' }
+            ) {
+                BeforeAll {
+                    $newPolicyParameters = $basePolicyParameters + @{
+                        Environment = $Environment
+                    }
+
+                    $assertionParameters = $baseAssertionParameters + @{
+                        ExpectedEnvironment = $Environment
+                    }
+                }
+
+                It 'Should return the expected result object' {
+                    $result = New-GuestConfigurationPolicy @newPolicyParameters
+
+                    $result | Should -Not -BeNull
+
+                    $result.Name | Should -Be $assertionParameters.ExpectedConfigurationName
+                    $result.Path | Should -Be $assertionParameters.ExpectedFilePath
+
+                    $result.PolicyId | Should -Not -BeNullOrEmpty
+                    $result.PolicyId.GetType().Name | Should -Be 'Guid'
+                }
+
+                It 'Should have created the expected policy definition file' {
+                    Assert-GuestConfigurationPolicyDefinitionFileValid @assertionParameters
                 }
             }
 

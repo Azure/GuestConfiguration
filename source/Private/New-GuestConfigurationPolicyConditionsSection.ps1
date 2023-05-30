@@ -11,11 +11,26 @@ function New-GuestConfigurationPolicyConditionsSection
 
         [Parameter()]
         [System.Collections.Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
+        [System.String]
+        $Environment = 'AzureCloud'
     )
 
-    $templateFileName = "3-Images-$Platform.json"
-    $conditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
+    $imagesTemplateFileName = "3a-Images-$Platform.json"
+    $imagesConditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $imagesTemplateFileName
+
+    $imagesTemplateFileName = "3b-Arc-$Platform-$Environment.json"
+    $arcConditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $imagesTemplateFileName
+
+    $conditionsSection = [Ordered]@{
+        anyOf = @(
+            $imagesConditionsSection,
+            $arcConditionsSection
+        )
+    }
 
     if ($null -ne $Tag -and $Tag.Count -gt 0)
     {

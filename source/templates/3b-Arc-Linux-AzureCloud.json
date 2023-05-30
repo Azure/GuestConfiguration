@@ -1,0 +1,36 @@
+{
+    "allOf": [
+        {
+            "value": "[parameters('IncludeArcMachines')]",
+            "equals": true
+        },
+        {
+            "anyOf": [
+                {
+                    "allOf": [
+                        {
+                            "field": "type",
+                            "equals": "Microsoft.HybridCompute/machines"
+                        },
+                        {
+                            "field": "Microsoft.HybridCompute/imageOffer",
+                            "like": "linux*"
+                        }
+                    ]
+                },
+                {
+                    "allOf": [
+                        {
+                            "field": "type",
+                            "equals": "Microsoft.ConnectedVMwarevSphere/virtualMachines"
+                        },
+                        {
+                            "field": "Microsoft.ConnectedVMwarevSphere/virtualMachines/osProfile.osType",
+                            "like": "linux*"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

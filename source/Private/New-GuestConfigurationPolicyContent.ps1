@@ -53,7 +53,12 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [Hashtable]
-        $Tag
+        $Tag,
+
+        [Parameter()]
+        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
+        [System.String]
+        $Environment = 'AzureCloud'
     )
 
     $metadataSectionParameters = @{
@@ -71,7 +76,7 @@ function New-GuestConfigurationPolicyContent
 
     $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
 
-    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag
+    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -Environment $Environment
 
     $actionSectionParameters = @{
         ConfigurationName = $ConfigurationName

@@ -30,10 +30,19 @@ function New-GuestConfigurationPolicySetActionSection
 
         [Parameter()]
         [Hashtable[]]
-        $Parameter
+        $Parameter,
+
+        [Parameter()]
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     $templateFileName = "4-Action-Set.json"
+
+    if ($IncludeVMSS)
+    {
+        $templateFileName = "4-Action-Set-VMSS.json"
+    }
     $setActionSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
     $assignmentName = New-GuestConfigurationPolicyGuestAssignmentNameReference -ConfigurationName $ConfigurationName
@@ -80,6 +89,7 @@ function New-GuestConfigurationPolicySetActionSection
 
     $setActionSection.details.deployment.properties.template.resources[0].properties.guestConfiguration = $guestConfigMetadataSection
     $setActionSection.details.deployment.properties.template.resources[1].properties.guestConfiguration = $guestConfigMetadataSection
+    $setActionSection.details.deployment.properties.template.resources[2].properties.guestConfiguration = $guestConfigMetadataSection
 
     return $setActionSection
 }

@@ -17,8 +17,80 @@ Describe 'New-GuestConfigurationPackage' {
         $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
         $testAssetsPath = Join-Path -Path $testsFolderPath -ChildPath 'assets'
         $script:testMofsFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestMofs'
+        $testModulesFolderPath = Join-Path -Path $testAssetsPath -ChildPath 'TestModules'
 
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
+
+        $script:originalPSModulePath = $env:PSModulePath
+        $env:PSModulePath = $env:PSModulePath + ";" + $testModulesFolderPath
+    }
+
+    AfterAll {
+        $env:PSModulePath = $script:originalPSModulePath
+    }
+
+    Context 'Test module with submodule' {
+        BeforeAll {
+            $newGuestConfigurationPackageParameters = @{
+                Name = 'testCustom'
+                Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'TestCustom.mof'
+                Path = Join-Path -Path $script:testOutputPath -ChildPath 'Custom'
+                Force = $true
+            }
+
+            $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+            $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+
+            $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
+            $expandedPackagePath = Join-Path -Path $script:testOutputPath -ChildPath $expandedPackageName
+
+            $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
+        }
+
+        It 'Should be able to create a custom package with the expected output object' {
+            $package = New-GuestConfigurationPackage @newGuestConfigurationPackageParameters
+            $package | Should -Not -BeNull
+            $package.Name | Should -Be $newGuestConfigurationPackageParameters.Name
+            $package.Path | Should -Be $compressedPackagePath
+        }
+
+        It 'Compressed package should exist at expected output path' {
+            Test-Path -Path $compressedPackagePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Should be able to expand the new package' {
+            $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+            Test-Path -Path $expandedPackagePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Mof file should exist in expanded package' {
+            $expectedMofName = "$($newGuestConfigurationPackageParameters.Name).mof"
+            $expandedPackageMofFilePath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMofName
+            Test-Path -Path $expandedPackageMofFilePath -PathType 'Leaf' | Should -BeTrue
+        }
+
+        It 'Metaconfig should exist with default Type (Audit) and Version (1.0.0) in expanded package' {
+            $expectedMetaconfigName = "$($newGuestConfigurationPackageParameters.Name).metaconfig.json"
+            $expectedMetaconfigPath = Join-Path -Path $expandedPackagePath -ChildPath $expectedMetaconfigName
+            Test-Path -Path $expectedMetaconfigPath -PathType 'Leaf' | Should -BeTrue
+
+            $metaconfigContent = Get-Content -Path $expectedMetaconfigPath -Raw
+            $metaconfigJson = $metaconfigContent | ConvertFrom-Json
+
+            $metaconfigJson | Should -Not -BeNullOrEmpty
+            $metaconfigJson.Type | Should -Be 'Audit'
+            $metaconfigJson.Version | Should -Be '1.0.0'
+        }
+
+        It 'Expanded package should include the TestModule module dependency' {
+            $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'TestModule'
+            Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        }
+
+        It 'Expanded package should include the SubModule module dependency' {
+            $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'SubModule'
+            Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        }
     }
 
     Context 'Windows package with community PowerShell TimeZone resource' -skip:($script:os -ine 'Windows') {

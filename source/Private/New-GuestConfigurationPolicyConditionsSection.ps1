@@ -14,23 +14,16 @@ function New-GuestConfigurationPolicyConditionsSection
         $Tag,
 
         [Parameter()]
-        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
-        [System.String]
-        $Environment = 'AzureCloud'
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
-    $imagesTemplateFileName = "3a-Images-$Platform.json"
-    $imagesConditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $imagesTemplateFileName
-
-    $imagesTemplateFileName = "3b-Arc-$Platform-$Environment.json"
-    $arcConditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $imagesTemplateFileName
-
-    $conditionsSection = [Ordered]@{
-        anyOf = @(
-            $imagesConditionsSection,
-            $arcConditionsSection
-        )
+    $templateFileName = "3-Images-$Platform.json"
+    if ($IncludeVMSS)
+    {
+        $templateFileName = "3-Images-$Platform-VMSS.json"
     }
+    $conditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
     if ($null -ne $Tag -and $Tag.Count -gt 0)
     {

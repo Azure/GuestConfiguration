@@ -95,7 +95,7 @@ To perform tasks with the GuestConfiguration module, navigate to the GuestConfig
 1. Run tests
   `./build.ps1 -tasks test`
 1. Run specific test
-  `./build.ps1 -tasks test -PesterScript ./Tests/Public/foo.tests.ps1`
+  `./build.ps1 -tasks test -PesterScript ./Tests/Unit/Public/foo.tests.ps1`
 
 ## Common Error Messages
 

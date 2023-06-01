@@ -96,13 +96,6 @@
         A hashtable of the tags that should be on machines to apply this policy on.
         If this is specified, the created policy will only be applied to machines with all the specified tags.
 
-    .PARAMETER Environment
-        The Azure environment in which this policy will be published.
-        Not all resource providers are available in all Azure environments, so some referenced resource providers need to be removed from the policy definitions for certain environments.
-
-        The default value is AzureCloud.
-        Current allowed values are AzureCloud and AzureUSGovernment, though these policies may work in other Azure environments as is.
-
     .EXAMPLE
         New-GuestConfigurationPolicy `
             -ContentUri https://github.com/azure/auditservice/release/AuditService.zip `
@@ -203,9 +196,8 @@ function New-GuestConfigurationPolicy
         $Tag,
 
         [Parameter()]
-        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
-        [System.String]
-        $Environment = 'AzureCloud'
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     # Validate parameters
@@ -230,6 +222,8 @@ function New-GuestConfigurationPolicy
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
+    $defaultValueParameterProperty = 'DefaultValue'
+    $allowedValuesParameterProperty = 'AllowedValues'
 
     foreach ($parameterInfo in $Parameter)
     {
@@ -243,8 +237,38 @@ function New-GuestConfigurationPolicy
 
             if ($parameterInfo[$requiredParameterProperty] -isnot [string])
             {
-                $requiredParameterPropertyString = $requiredParameterProperties -join ', '
-                throw "The property '$requiredParameterProperty' of one of the specified parameters is not a string. All parameter property values must be strings."
+                throw "The mandatory property '$requiredParameterProperty' of one of the specified parameters is not a string. All mandatory property values of a parameter must be strings."
+            }
+        }
+
+        $parameterName = $parameterInfo['Name']
+        if ($parameterInfo.Keys -contains $defaultValueParameterProperty)
+        {
+            if ($parameterInfo[$defaultValueParameterProperty] -isnot [string] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [boolean] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [int] -and
+                $parameterInfo[$defaultValueParameterProperty] -isnot [double])
+            {
+                throw "The property '$defaultValueParameterProperty' of parameter '$parameterName' is not a string, boolean, integer, or double."
+            }
+        }
+
+        if ($parameterInfo.Keys -contains $allowedValuesParameterProperty)
+        {
+            if ($parameterInfo[$allowedValuesParameterProperty] -isnot [array])
+            {
+                throw "The property '$allowedValuesParameterProperty' of parameter '$parameterName' is not an array."
+            }
+
+            foreach ($allowedValue in $parameterInfo[$allowedValuesParameterProperty])
+            {
+                if ($allowedValue -isnot [string] -and
+                    $allowedValue -isnot [boolean] -and
+                    $allowedValue -isnot [int] -and
+                    $allowedValue -isnot [double])
+                {
+                    throw "One of the values in the array for property '$allowedValuesParameterProperty' of parameter '$parameterName' is not a string, boolean, integer, or double."
+                }
             }
         }
     }
@@ -383,7 +407,7 @@ function New-GuestConfigurationPolicy
         PolicyId = $PolicyId
         Parameter = $Parameter
         Tag = $Tag
-        Environment = $Environment
+        IncludeVMSS = $IncludeVMSS
     }
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 

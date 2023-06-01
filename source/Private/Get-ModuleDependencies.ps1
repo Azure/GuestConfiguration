@@ -73,8 +73,8 @@ function Get-ModuleDependencies
     }
 
     $moduleDependency = @{
-        Name = $resourceDependency['ModuleName']
-        Version = $resourceDependency['ModuleVersion']
+        Name = $sourceModule.Name
+        Version = $sourceModule.Version
         SourcePath = $sourceModule.ModuleBase
     }
 
@@ -85,7 +85,7 @@ function Get-ModuleDependencies
     {
         foreach ($requiredModule in $sourceModule.RequiredModules)
         {
-            Write-Verbose -Message "The module '$ModuleName' requires the module '$($requiredModule.Name)'. Attempting to copy the required module..."
+            Write-Verbose -Message "The module '$ModuleName' requires the module '$($requiredModule.Name)'"
 
             $getModuleDependenciesParameters = @{
                 ModuleName = $requiredModule.Name
@@ -102,7 +102,7 @@ function Get-ModuleDependencies
     {
         foreach ($externalModuleDependency in $sourceModule.ExternalModuleDependencies)
         {
-            Write-Verbose -Message "The module '$ModuleName' requires the module '$externalModuleDependency'. Attempting to copy the required module..."
+            Write-Verbose -Message "The module '$ModuleName' requires the module '$externalModuleDependency'"
 
             $getModuleDependenciesParameters = @{
                 ModuleName = $requiredModule.Name

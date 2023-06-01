@@ -12,8 +12,6 @@ function New-GuestConfigurationPolicyParametersSection
     $templateFileName = '2-Parameters.json'
     $parametersSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
-    $optionalFields = @('AllowedValues', 'DefaultValue')
-
     foreach ($currentParameter in $Parameter)
     {
         $parameterName = $currentParameter['Name']
@@ -25,13 +23,22 @@ function New-GuestConfigurationPolicyParametersSection
             }
         }
 
-        foreach ($optionalField in $optionalFields)
+        if ($currentParameter.Keys -contains 'DefaultValue')
         {
-            if ($currentParameter.Keys -contains $optionalField)
+            # Key is intentionally camelCase
+            $parametersSection.parameters.$parameterName['defaultValue'] = [string]$currentParameter['DefaultValue']
+        }
+
+        if ($currentParameter.Keys -contains 'AllowedValues')
+        {
+            $allowedStringValues = @()
+            foreach ($allowedValue in $currentParameter['AllowedValues'])
             {
-                $fieldName = $optionalField.Substring(0, 1).ToLower() + $optionalField.Substring(1)
-                $parametersSection.parameters.$parameterName.$fieldName = $currentParameter[$optionalField]
+                $allowedStringValues += [string]$allowedValue
             }
+
+            # Key is intentionally camelCase
+            $parametersSection.parameters.$parameterName['allowedValues'] = $allowedStringValues
         }
     }
 

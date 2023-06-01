@@ -56,9 +56,8 @@ function New-GuestConfigurationPolicyContent
         $Tag,
 
         [Parameter()]
-        [ValidateSet('AzureCloud', 'AzureUSGovernment')]
-        [System.String]
-        $Environment = 'AzureCloud'
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     $metadataSectionParameters = @{
@@ -76,7 +75,7 @@ function New-GuestConfigurationPolicyContent
 
     $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
 
-    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -Environment $Environment
+    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
 
     $actionSectionParameters = @{
         ConfigurationName = $ConfigurationName
@@ -85,6 +84,7 @@ function New-GuestConfigurationPolicyContent
         ContentHash = $ContentHash
         AssignmentType = $AssignmentType
         Parameter = $Parameter
+        IncludeVMSS = $IncludeVMSS
     }
 
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters

@@ -31,7 +31,11 @@ function New-GuestConfigurationPolicyActionSection
 
         [Parameter()]
         [Hashtable[]]
-        $Parameter
+        $Parameter,
+
+        [Parameter()]
+        [System.Boolean]
+        $IncludeVMSS = $true
     )
 
     if ($AssignmentType -ieq 'Audit')
@@ -47,6 +51,7 @@ function New-GuestConfigurationPolicyActionSection
             ContentHash = $ContentHash
             AssignmentType = $AssignmentType
             Parameter = $Parameter
+            IncludeVMSS = $IncludeVMSS
         }
 
         $actionSection = New-GuestConfigurationPolicySetActionSection @setActionSectionParameters

@@ -3,7 +3,7 @@
     RootModule = 'GuestConfiguration.psm1'
 
     # Version number of this module.
-    ModuleVersion = '4.4.0'
+    ModuleVersion = '4.5.0'
 
     # ID used to uniquely identify this module
     GUID = '164465d5-6575-4e7f-b80b-680e4198354e'
@@ -56,7 +56,7 @@
             IconUri = 'https://github.com/Azure/GuestConfiguration/GuestConfigXS.png'
 
             # ReleaseNotes of this module
-            ReleaseNotes = "- Added feature to support VMSS resource type for policy creation"
+            ReleaseNotes = "- Added support to use multiple PowerShell Class based resources in a configuration on Linux machines"
 
             ExperimentalFeatures = @()
         } # End of PSData hashtable

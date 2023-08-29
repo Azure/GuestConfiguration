@@ -24,7 +24,7 @@ variables:
   REPOROOT: $(Build.SourcesDirectory)
   OUTPUTROOT: $(REPOROOT)/output
   NUGET_XMLDOC_MODE: none
-  LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-1804:latest'
+  LinuxContainerImage: 'mcr.microsoft.com/onebranch/cbl-mariner/build:2.0'
   WindowsContainerImage: 'cdpxwin1809.azurecr.io/global/corext:latest'
 
 resources:
@@ -82,24 +82,25 @@ extends:
               downloadPath: '$(Build.SourcesDirectory)\output'
 
           - task: Bash@3
-            displayName: 'Initial set up for Ubuntu 16'
+            displayName: 'Initial set up for Mariner'
             inputs:
               targetType: 'inline'
               script: |
-                echo "apt-get update && apt-get install -y sudo"
-                apt-get update && apt-get install -y sudo;
-                echo "sudo apt-get update"
-                sudo apt-get update
+                echo "yum update && yum install -y sudo"
+                yum -y update && yum install -y sudo;
+                echo "sudo yum update"
+                sudo yum -y update
                 echo "Install pre-requisite packages."
-                sudo apt-get install -y wget apt-transport-https software-properties-common
+                # sudo yum install -y wget apt-transport-https software-properties-common
                 echo "Download the Microsoft repository GPG keys"
-                wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+                wget -q https://packages.microsoft.com/config/rhel/9/packages-microsoft-prod.rpm
                 echo "Register the Microsoft repository GPG keys"
-                sudo dpkg -i packages-microsoft-prod.deb
+                sudo rpm -i packages-microsoft-prod.rpm
                 echo "Update the list of packages after we added packages.microsoft.com"
-                sudo apt-get update
+                sudo yum -y update
                 echo "Install PowerShell"
-                sudo apt-get install -y powershell
+                # sudo yum install -y powershell
+                sudo yum -y install https://github.com/PowerShell/PowerShell/releases/download/v7.3.6/powershell-7.3.6-1.rh.x86_64.rpm
                 echo "Copy GC agent"
                 mkdir -p '$(Build.SourcesDirectory)/source/gc_agents'
                 sudo find $(Build.SourcesDirectory) -type f -name GC.zip | tee '$(Build.SourcesDirectory)/source/gc_agents/DSC_Linux.zip'

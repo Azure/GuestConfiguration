@@ -5,6 +5,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.5.0] - 2023-07-25
+### Added
+- support to use multiple PowerShell Class based resources in a configuration on Linux machines
+
+## [4.4.0] - 2023-03-31
+### Added
+- Feature to support VMSS resource type for policy creation
+
+## [4.3.0] - 2023-02-14
+### Added
+- Feature to use integer, double, or boolean parameters
+
+## [4.2.0] - 2022-11-01
+### Fixed
+- Including modules required by resources from their manifest in package
+
 ## [4.1.0] - 2022-06-14
 
 ### Changed

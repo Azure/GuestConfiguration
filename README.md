@@ -50,19 +50,7 @@ PowerShell 7.1.3 for Windows and
 A full list of changes in each version can be found in the
 [change log](CHANGELOG.md)
 
-## Contributing
 
-This project welcomes contributions and suggestions.  All contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Branch naming conventions
 This repository uses git versioning to automatically calculate the newest version of the module. Branches that begin with "feature/" will increment the minor version, and those that begin with "fix" will increment the patch version. Please refer to the GitVersion.yml file for more details. 
@@ -119,3 +107,24 @@ To perform tasks with the GuestConfiguration module, navigate to the GuestConfig
 | `LICENSE`             | The license for the sample.                                          |
 | `README.md`           | This README file.                                                    |
 | `SECURITY.md`         | How to report security issues.                                       |
+
+## Contributing
+
+Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) which outlines all of our policies, procedures, and requirements for contributing to this project.
+Currently, we cannot accept contributions.
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Support 
+
+This module is intended to provide guidelines / samples to help authors to create their own configurations and resource modules for use in custom Machine Configuration projects.
+
+Support is best effort via GitHub issues. If there are any questions and comments, we will try to get to them but may not be able to.
+
+## Disclaimer
+
+We are not currently accepting PRs.
+
+Further, the machine configuration artifact build process is private, so the only feedback we can provide on a public PR is functional testing. We will have to do a full private integration test before merging.

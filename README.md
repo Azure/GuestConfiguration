@@ -1,7 +1,5 @@
 # PowerShell module for Microsoft Azure Policy's guest configuration
 
-![GuestConfig](./GuestConfigXS.png)
-
 The `GuestConfiguration` PowerShell module provides commands
 that assist authors in  creating, testing, and publishing
 custom content for guest configureation to manage settings

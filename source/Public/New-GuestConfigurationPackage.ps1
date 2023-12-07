@@ -447,12 +447,28 @@ function New-GuestConfigurationPackage
             $null = Copy-Item -Path $ASM_SecurityPolicySourcePath -Destination $ASM_SecurityPolicy
             #endregion 
 
+            #region ASM_LinuxAuditResource
+            $ASM_LinuxAuditResource = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_LinuxAuditResource'
+            if( -not(Test-Path $ASM_LinuxAuditResource ))
+            {
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_LinuxAuditResource'..." 
+                $null = New-Item -Path $ASM_LinuxAuditResource -ItemType 'Directory'
+
+            }
+
+            $ASM_LinuxAuditResourceFolderPath = Join-Path -Path $dscResourcesFolderPath -ChildPath 'ASM_LinuxAuditResource'
+            $ASM_LinuxAuditResourceSourcePath = Join-Path -Path $ASM_LinuxAuditResourceFolderPath -ChildPath 'libASM_LinuxAuditResource.so'
+            Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_LinuxAuditResourceSourcePath' to the package path '$modulesFolderPath'..."
+            $null = Copy-Item -Path $ASM_LinuxAuditResourceSourcePath -Destination $ASM_LinuxAuditResource
+            #endregion 
+
             #region update MOF file for proper resource ID for match with built-in experience
             $fileContent = get-content -Path $Configuration
             $fileContent= $fileContent -replace "\[ASM_Registry\]", ""
             $fileContent= $fileContent -replace "\[ASM_SecurityPolicy\]", ""
             $fileContent= $fileContent -replace "\[ASM_AuditPolicy\]", ""
             $fileContent= $fileContent -replace "\[ASM_OsConfig\]", ""
+            $fileContent= $fileContent -replace "\[ASM_LinuxAuditResource\]", ""
             #Filter out sourceInfo
             $fileContent= $fileContent | Select-String -Pattern "SourceInfo = *" -NotMatch
             $fileContent | Out-File $MofFilePath

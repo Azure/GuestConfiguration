@@ -1,0 +1,15 @@
+[ClassVersion("1.0.0.0")]
+class Reason
+{
+    [Read] String Phrase;
+    [Read] String Code;
+};
+
+[ClassVersion("1.0.0.0"), FriendlyName("ASM_LinuxAuditResource")]
+class ASM_LinuxAuditResource : OMI_BaseResource
+{
+    [Key, Description("MSID")] String Msid;
+    [write] String BaselineName;
+    [write] String PolicyName;
+    [Read, EmbeddedInstance("Reason")] String Reasons[];
+};

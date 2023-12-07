@@ -171,7 +171,8 @@ function New-GuestConfigurationPackage
         elseif(($resourceDependency['ResourceName'] -ieq 'ASM_SecurityPolicy') -or
                 ($resourceDependency['ResourceName'] -ieq 'ASM_AuditPolicy') -or
                 ($resourceDependency['ResourceName'] -ieq 'ASM_OsConfig') -or
-                ($resourceDependency['ResourceName'] -ieq 'ASM_Registry') )
+                ($resourceDependency['ResourceName'] -ieq 'ASM_Registry') -or
+                ($resourceDependency['ResourceName'] -ieq 'ASM_LinuxAuditResource') )
         {
             $usingASMBaseline = $true
             continue
@@ -383,7 +384,7 @@ function New-GuestConfigurationPackage
             $nativeResourcesFolder = Join-Path -Path $modulesFolderPath -ChildPath 'DscNativeResources'
             if( -not(Test-Path $nativeResourcesFolder ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$nativeResourcesFolder'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$nativeResourcesFolder'..."
                 $null = New-Item -Path $nativeResourcesFolder -ItemType 'Directory'
 
             }
@@ -391,7 +392,7 @@ function New-GuestConfigurationPackage
             $ASM_AuditPolicy = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_AuditPolicy'
             if( -not(Test-Path $ASM_AuditPolicy ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_AuditPolicy'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_AuditPolicy'..."
                 $null = New-Item -Path $ASM_AuditPolicy -ItemType 'Directory'
 
             }
@@ -400,13 +401,13 @@ function New-GuestConfigurationPackage
             $ASM_AuditPolicySourcePath = Join-Path -Path $ASM_AuditPolicyFolderPath -ChildPath 'ASM_AuditPolicy.dll'
             Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_AuditPolicySourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $ASM_AuditPolicySourcePath -Destination $ASM_AuditPolicy
-            #endregion  
+            #endregion
 
             #region ASM_OsConfig
             $ASM_OsConfig = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_OsConfig'
             if( -not(Test-Path $ASM_OsConfig ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_OsConfig'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_OsConfig'..."
                 $null = New-Item -Path $ASM_OsConfig -ItemType 'Directory'
 
             }
@@ -415,13 +416,13 @@ function New-GuestConfigurationPackage
             $ASM_OsConfigSourcePath = Join-Path -Path $ASM_OsConfigFolderPath -ChildPath 'ASM_OsConfig.dll'
             Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_OsConfigSourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $ASM_OsConfigSourcePath -Destination $ASM_OsConfig
-            #endregion 
+            #endregion
 
             #region ASM_Registry
             $ASM_Registry = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_Registry'
             if( -not(Test-Path $ASM_Registry ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_Registry'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_Registry'..."
                 $null = New-Item -Path $ASM_Registry -ItemType 'Directory'
 
             }
@@ -430,13 +431,13 @@ function New-GuestConfigurationPackage
             $ASM_RegistrySourcePath = Join-Path -Path $ASM_RegistryFolderPath -ChildPath 'ASM_Registry.dll'
             Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_RegistrySourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $ASM_RegistrySourcePath -Destination $ASM_Registry
-            #endregion 
+            #endregion
 
             #region ASM_SecurityPolicy
             $ASM_SecurityPolicy = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_SecurityPolicy'
             if( -not(Test-Path $ASM_SecurityPolicy ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_SecurityPolicy'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_SecurityPolicy'..."
                 $null = New-Item -Path $ASM_SecurityPolicy -ItemType 'Directory'
 
             }
@@ -445,13 +446,13 @@ function New-GuestConfigurationPackage
             $ASM_SecurityPolicySourcePath = Join-Path -Path $ASM_SecurityPolicyFolderPath -ChildPath 'ASM_SecurityPolicy.dll'
             Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_SecurityPolicySourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $ASM_SecurityPolicySourcePath -Destination $ASM_SecurityPolicy
-            #endregion 
+            #endregion
 
             #region ASM_LinuxAuditResource
             $ASM_LinuxAuditResource = Join-Path -Path $nativeResourcesFolder -ChildPath 'ASM_LinuxAuditResource'
             if( -not(Test-Path $ASM_LinuxAuditResource ))
             {
-                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_LinuxAuditResource'..." 
+                Write-Verbose -Message "Creating the package native resources folder at the path '$ASM_LinuxAuditResource'..."
                 $null = New-Item -Path $ASM_LinuxAuditResource -ItemType 'Directory'
 
             }
@@ -460,7 +461,7 @@ function New-GuestConfigurationPackage
             $ASM_LinuxAuditResourceSourcePath = Join-Path -Path $ASM_LinuxAuditResourceFolderPath -ChildPath 'libASM_LinuxAuditResource.so'
             Write-Verbose -Message "Copying the Audit Policy Baseline from the path '$ASM_LinuxAuditResourceSourcePath' to the package path '$modulesFolderPath'..."
             $null = Copy-Item -Path $ASM_LinuxAuditResourceSourcePath -Destination $ASM_LinuxAuditResource
-            #endregion 
+            #endregion
 
             #region update MOF file for proper resource ID for match with built-in experience
             $fileContent = get-content -Path $Configuration

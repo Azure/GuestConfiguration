@@ -1,0 +1,2099 @@
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource0ref
+{
+	ResourceID = "Ensure logging is configured";
+	Msid = "60";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure logging is configured";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource1ref
+{
+	ResourceID = "Ensure logger configuration files are restricted.";
+	Msid = "63.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure logger configuration files are restricted.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource2ref
+{
+	ResourceID = "Ensure at/cron is restricted to authorized users";
+	Msid = "98";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure at/cron is restricted to authorized users";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource3ref
+{
+	ResourceID = "Ensure remote login warning banner is configured properly.";
+	Msid = "111";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure remote login warning banner is configured properly.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource4ref
+{
+	ResourceID = "Ensure local login warning banner is configured properly.";
+	Msid = "111.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure local login warning banner is configured properly.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource5ref
+{
+	ResourceID = "Ensure auditd service is enabled";
+	Msid = "162";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure auditd service is enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource6ref
+{
+	ResourceID = "Run AuditD service";
+	Msid = "163";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Run AuditD service";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource7ref
+{
+	ResourceID = "Ensure mounting of USB storage devices is disabled";
+	Msid = "1.1.21.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure mounting of USB storage devices is disabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource8ref
+{
+	ResourceID = "The nodev option should be enabled for all removable media.";
+	Msid = "2.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The nodev option should be enabled for all removable media.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource9ref
+{
+	ResourceID = "The noexec option should be enabled for all removable media.";
+	Msid = "2.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The noexec option should be enabled for all removable media.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource10ref
+{
+	ResourceID = "The nosuid option should be enabled for all removable media.";
+	Msid = "2.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The nosuid option should be enabled for all removable media.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource11ref
+{
+	ResourceID = "The nodev/nosuid option should be enabled for all NFS mounts.";
+	Msid = "5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The nodev/nosuid option should be enabled for all NFS mounts.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource12ref
+{
+	ResourceID = "Disable the installation and use of file systems that are not required (cramfs)";
+	Msid = "6.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable the installation and use of file systems that are not required (cramfs)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource13ref
+{
+	ResourceID = "Disable the installation and use of file systems that are not required (freevxfs)";
+	Msid = "6.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable the installation and use of file systems that are not required (freevxfs)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource14ref
+{
+	ResourceID = "Disable the installation and use of file systems that are not required (hfs)";
+	Msid = "6.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable the installation and use of file systems that are not required (hfs)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource15ref
+{
+	ResourceID = "Disable the installation and use of file systems that are not required (hfsplus)";
+	Msid = "6.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable the installation and use of file systems that are not required (hfsplus)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource16ref
+{
+	ResourceID = "Disable the installation and use of file systems that are not required (jffs2)";
+	Msid = "6.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable the installation and use of file systems that are not required (jffs2)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource17ref
+{
+	ResourceID = "Kernels should only be compiled from approved sources.";
+	Msid = "10";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Kernels should only be compiled from approved sources.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource18ref
+{
+	ResourceID = "/etc/shadow file permissions should be set to 0400";
+	Msid = "11.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/shadow file permissions should be set to 0400";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource19ref
+{
+	ResourceID = "/etc/shadow- file permissions should be set to 0400";
+	Msid = "11.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/shadow- file permissions should be set to 0400";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource20ref
+{
+	ResourceID = "/etc/gshadow file permissions should be set to 0400";
+	Msid = "11.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/gshadow file permissions should be set to 0400";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource21ref
+{
+	ResourceID = "/etc/gshadow- file permissions should be set to 0400";
+	Msid = "11.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/gshadow- file permissions should be set to 0400";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource22ref
+{
+	ResourceID = "/etc/passwd file permissions should be 0644";
+	Msid = "12.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/passwd file permissions should be 0644";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource23ref
+{
+	ResourceID = "/etc/group file permissions should be 0644";
+	Msid = "12.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/group file permissions should be 0644";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource24ref
+{
+	ResourceID = "/etc/passwd- file permissions should be set to 0644";
+	Msid = "12.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/passwd- file permissions should be set to 0644";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource25ref
+{
+	ResourceID = "/etc/group- file permissions should be 0644";
+	Msid = "12.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "/etc/group- file permissions should be 0644";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource26ref
+{
+	ResourceID = "Access to the root account via su should be restricted to the 'root' group";
+	Msid = "21";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Access to the root account via su should be restricted to the 'root' group";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource27ref
+{
+	ResourceID = "The 'root' group should exist, and contain all members who can su to root";
+	Msid = "22";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The 'root' group should exist, and contain all members who can su to root";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource28ref
+{
+	ResourceID = "All accounts should have a password";
+	Msid = "23.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All accounts should have a password";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource29ref
+{
+	ResourceID = "Accounts other than root must have unique UIDs greater than zero(0)";
+	Msid = "24";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Accounts other than root must have unique UIDs greater than zero(0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource30ref
+{
+	ResourceID = "Randomized placement of virtual memory regions should be enabled";
+	Msid = "25";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Randomized placement of virtual memory regions should be enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource31ref
+{
+	ResourceID = "Kernel support for the XD/NX processor feature should be enabled";
+	Msid = "26";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Kernel support for the XD/NX processor feature should be enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource32ref
+{
+	ResourceID = "The '.' should not appear in root's $PATH";
+	Msid = "27.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The '.' should not appear in root's $PATH";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource33ref
+{
+	ResourceID = "User home directories should be mode 750 or more restrictive";
+	Msid = "28";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "User home directories should be mode 750 or more restrictive";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource34ref
+{
+	ResourceID = "The default umask for all users should be set to 077 in login.defs";
+	Msid = "29";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The default umask for all users should be set to 077 in login.defs";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource35ref
+{
+	ResourceID = "All bootloaders should have password protection enabled.";
+	Msid = "31";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All bootloaders should have password protection enabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource36ref
+{
+	ResourceID = "Ensure permissions on bootloader config are configured";
+	Msid = "31.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on bootloader config are configured";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource37ref
+{
+	ResourceID = "Ensure authentication required for single user mode.";
+	Msid = "33";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure authentication required for single user mode.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource38ref
+{
+	ResourceID = "Ensure packet redirect sending is disabled.";
+	Msid = "38.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure packet redirect sending is disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource39ref
+{
+	ResourceID = "Sending ICMP redirects should be disabled for all interfaces. (net.ipv4.conf.default.accept_redirects = 0)";
+	Msid = "38.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Sending ICMP redirects should be disabled for all interfaces. (net.ipv4.conf.default.accept_redirects = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource40ref
+{
+	ResourceID = "Sending ICMP redirects should be disabled for all interfaces. (net.ipv4.conf.default.secure_redirects = 0)";
+	Msid = "38.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Sending ICMP redirects should be disabled for all interfaces. (net.ipv4.conf.default.secure_redirects = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource41ref
+{
+	ResourceID = "Accepting source routed packets should be disabled for all interfaces. (net.ipv4.conf.all.accept_source_route = 0)";
+	Msid = "40.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Accepting source routed packets should be disabled for all interfaces. (net.ipv4.conf.all.accept_source_route = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource42ref
+{
+	ResourceID = "Accepting source routed packets should be disabled for all interfaces. (net.ipv6.conf.all.accept_source_route = 0)";
+	Msid = "40.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Accepting source routed packets should be disabled for all interfaces. (net.ipv6.conf.all.accept_source_route = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource43ref
+{
+	ResourceID = "The default setting for accepting source routed packets should be disabled for network interfaces. (net.ipv4.conf.default.accept_source_route = 0)";
+	Msid = "42.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The default setting for accepting source routed packets should be disabled for network interfaces. (net.ipv4.conf.default.accept_source_route = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource44ref
+{
+	ResourceID = "The default setting for accepting source routed packets should be disabled for network interfaces. (net.ipv6.conf.default.accept_source_route = 0)";
+	Msid = "42.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The default setting for accepting source routed packets should be disabled for network interfaces. (net.ipv6.conf.default.accept_source_route = 0)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource45ref
+{
+	ResourceID = "Ignoring bogus ICMP responses to broadcasts should be enabled. (net.ipv4.icmp_ignore_bogus_error_responses = 1)";
+	Msid = "43";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ignoring bogus ICMP responses to broadcasts should be enabled. (net.ipv4.icmp_ignore_bogus_error_responses = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource46ref
+{
+	ResourceID = "Ignoring ICMP echo requests (pings) sent to broadcast / multicast addresses should be enabled. (net.ipv4.icmp_echo_ignore_broadcasts = 1)";
+	Msid = "44";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ignoring ICMP echo requests (pings) sent to broadcast / multicast addresses should be enabled. (net.ipv4.icmp_echo_ignore_broadcasts = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource47ref
+{
+	ResourceID = "Logging of martian packets (those with impossible addresses) should be enabled for all interfaces. (net.ipv4.conf.all.log_martians = 1) and (net.ipv4.conf.default.log_martians = 1)";
+	Msid = "45.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Logging of martian packets (those with impossible addresses) should be enabled for all interfaces. (net.ipv4.conf.all.log_martians = 1) and (net.ipv4.conf.default.log_martians = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource48ref
+{
+	ResourceID = "Performing source validation by reverse path should be enabled for all interfaces. (net.ipv4.conf.all.rp_filter = 1)";
+	Msid = "46.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Performing source validation by reverse path should be enabled for all interfaces. (net.ipv4.conf.all.rp_filter = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource49ref
+{
+	ResourceID = "Performing source validation by reverse path should be enabled for all interfaces. (net.ipv4.conf.default.rp_filter = 1)";
+	Msid = "46.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Performing source validation by reverse path should be enabled for all interfaces. (net.ipv4.conf.default.rp_filter = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource50ref
+{
+	ResourceID = "TCP SYN cookies should be enabled. (net.ipv4.tcp_syncookies = 1)";
+	Msid = "47";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "TCP SYN cookies should be enabled. (net.ipv4.tcp_syncookies = 1)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource51ref
+{
+	ResourceID = "The system should not act as a network sniffer.";
+	Msid = "48";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The system should not act as a network sniffer.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource52ref
+{
+	ResourceID = "All wireless interfaces should be disabled.";
+	Msid = "49";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All wireless interfaces should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource53ref
+{
+	ResourceID = "The IPv6 protocol should be enabled.";
+	Msid = "50";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The IPv6 protocol should be enabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource54ref
+{
+	ResourceID = "Ensure DCCP is disabled";
+	Msid = "54";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure DCCP is disabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource55ref
+{
+	ResourceID = "Ensure SCTP is disabled";
+	Msid = "55";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SCTP is disabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource56ref
+{
+	ResourceID = "Disable support for RDS.";
+	Msid = "56";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable support for RDS.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource57ref
+{
+	ResourceID = "Ensure TIPC is disabled";
+	Msid = "57";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure TIPC is disabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource58ref
+{
+	ResourceID = "The syslog, rsyslog, or syslog-ng package should be installed.";
+	Msid = "61";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The syslog, rsyslog, or syslog-ng package should be installed.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource59ref
+{
+	ResourceID = "The systemd-journald service should be configured to persists log messages";
+	Msid = "61.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The systemd-journald service should be configured to persists log messages";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource60ref
+{
+	ResourceID = "Ensure a logging service is enabled";
+	Msid = "62";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure a logging service is enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource61ref
+{
+	ResourceID = "File permissions for all rsyslog log files should be set to 640 or 600.";
+	Msid = "63";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "File permissions for all rsyslog log files should be set to 640 or 600.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource62ref
+{
+	ResourceID = "All rsyslog log files should be owned by the adm group.";
+	Msid = "64";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All rsyslog log files should be owned by the adm group.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource63ref
+{
+	ResourceID = "All rsyslog log files should be owned by the syslog user.";
+	Msid = "65";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All rsyslog log files should be owned by the syslog user.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource64ref
+{
+	ResourceID = "Rsyslog should not accept remote messages.";
+	Msid = "67";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Rsyslog should not accept remote messages.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource65ref
+{
+	ResourceID = "The logrotate (syslog rotater) service should be enabled.";
+	Msid = "68";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The logrotate (syslog rotater) service should be enabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource66ref
+{
+	ResourceID = "The rlogin service should be disabled.";
+	Msid = "69";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rlogin service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource67ref
+{
+	ResourceID = "Disable inetd unless required. (inetd)";
+	Msid = "70.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable inetd unless required. (inetd)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource68ref
+{
+	ResourceID = "Disable xinetd unless required. (xinetd)";
+	Msid = "70.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable xinetd unless required. (xinetd)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource69ref
+{
+	ResourceID = "Install inetd only if appropriate and required by your distro. Secure according to current hardening standards. (if required)";
+	Msid = "71.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Install inetd only if appropriate and required by your distro. Secure according to current hardening standards. (if required)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource70ref
+{
+	ResourceID = "Install xinetd only if appropriate and required by your distro. Secure according to current hardening standards. (if required)";
+	Msid = "71.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Install xinetd only if appropriate and required by your distro. Secure according to current hardening standards. (if required)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource71ref
+{
+	ResourceID = "The telnet service should be disabled.";
+	Msid = "72";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The telnet service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource72ref
+{
+	ResourceID = "All telnetd packages should be uninstalled.";
+	Msid = "73";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "All telnetd packages should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource73ref
+{
+	ResourceID = "The rcp/rsh service should be disabled.";
+	Msid = "74";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rcp/rsh service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource74ref
+{
+	ResourceID = "The rsh-server package should be uninstalled.";
+	Msid = "77";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rsh-server package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource75ref
+{
+	ResourceID = "The ypbind service should be disabled.";
+	Msid = "78";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The ypbind service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource76ref
+{
+	ResourceID = "The nis package should be uninstalled.";
+	Msid = "79";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The nis package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource77ref
+{
+	ResourceID = "The tftp service should be disabled.";
+	Msid = "80";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The tftp service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource78ref
+{
+	ResourceID = "The tftpd package should be uninstalled.";
+	Msid = "81";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The tftpd package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource79ref
+{
+	ResourceID = "The readahead-fedora package should be uninstalled.";
+	Msid = "82";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The readahead-fedora package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource80ref
+{
+	ResourceID = "The bluetooth/hidd service should be disabled.";
+	Msid = "84";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The bluetooth/hidd service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource81ref
+{
+	ResourceID = "The isdn service should be disabled.";
+	Msid = "86";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The isdn service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource82ref
+{
+	ResourceID = "The isdnutils-base package should be uninstalled.";
+	Msid = "87";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The isdnutils-base package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource83ref
+{
+	ResourceID = "The kdump service should be disabled.";
+	Msid = "88";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The kdump service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource84ref
+{
+	ResourceID = "Zeroconf networking should be disabled.";
+	Msid = "89";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Zeroconf networking should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource85ref
+{
+	ResourceID = "The crond service should be enabled.";
+	Msid = "90";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The crond service should be enabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource86ref
+{
+	ResourceID = "File permissions for /etc/anacrontab should be set to root:root 600.";
+	Msid = "91";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "File permissions for /etc/anacrontab should be set to root:root 600.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource87ref
+{
+	ResourceID = "Ensure permissions on /etc/cron.d are configured.";
+	Msid = "93";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/cron.d are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource88ref
+{
+	ResourceID = "Ensure permissions on /etc/cron.daily are configured.";
+	Msid = "94";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/cron.daily are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource89ref
+{
+	ResourceID = "Ensure permissions on /etc/cron.hourly are configured.";
+	Msid = "95";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/cron.hourly are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource90ref
+{
+	ResourceID = "Ensure permissions on /etc/cron.monthly are configured.";
+	Msid = "96";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/cron.monthly are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource91ref
+{
+	ResourceID = "Ensure permissions on /etc/cron.weekly are configured.";
+	Msid = "97";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/cron.weekly are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource92ref
+{
+	ResourceID = "The avahi-daemon service should be disabled.";
+	Msid = "114";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The avahi-daemon service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource93ref
+{
+	ResourceID = "The cups service should be disabled.";
+	Msid = "115";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The cups service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource94ref
+{
+	ResourceID = "The isc-dhcpd service should be disabled.";
+	Msid = "116";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The isc-dhcpd service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource95ref
+{
+	ResourceID = "The isc-dhcp-server package should be uninstalled.";
+	Msid = "117";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The isc-dhcp-server package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource96ref
+{
+	ResourceID = "The sendmail package should be uninstalled.";
+	Msid = "120";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The sendmail package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource97ref
+{
+	ResourceID = "The postfix package should be uninstalled.";
+	Msid = "121";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The postfix package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource98ref
+{
+	ResourceID = "Postfix network listening should be disabled as appropriate.";
+	Msid = "122";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Postfix network listening should be disabled as appropriate.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource99ref
+{
+	ResourceID = "The ldap service should be disabled.";
+	Msid = "124";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The ldap service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource100ref
+{
+	ResourceID = "The rpcgssd service should be disabled.";
+	Msid = "126";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rpcgssd service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource101ref
+{
+	ResourceID = "The rpcidmapd service should be disabled.";
+	Msid = "127";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rpcidmapd service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource102ref
+{
+	ResourceID = "The portmap service should be disabled.";
+	Msid = "129.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The portmap service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource103ref
+{
+	ResourceID = "The Network File System (NFS) service should be disabled.";
+	Msid = "129.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The Network File System (NFS) service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource104ref
+{
+	ResourceID = "The rpcsvcgssd service should be disabled.";
+	Msid = "130";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The rpcsvcgssd service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource105ref
+{
+	ResourceID = "The named service should be disabled.";
+	Msid = "131";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The named service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource106ref
+{
+	ResourceID = "The bind package should be uninstalled.";
+	Msid = "132";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The bind package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource107ref
+{
+	ResourceID = "The dovecot service should be disabled.";
+	Msid = "137";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The dovecot service should be disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource108ref
+{
+	ResourceID = "The dovecot package should be uninstalled.";
+	Msid = "138";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "The dovecot package should be uninstalled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource109ref
+{
+	ResourceID = "Ensure no legacy `+` entries exist in /etc/passwd";
+	Msid = "156.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no legacy `+` entries exist in /etc/passwd";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource110ref
+{
+	ResourceID = "Ensure no legacy `+` entries exist in /etc/shadow";
+	Msid = "156.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no legacy `+` entries exist in /etc/shadow";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource111ref
+{
+	ResourceID = "Ensure no legacy `+` entries exist in /etc/group";
+	Msid = "156.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no legacy `+` entries exist in /etc/group";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource112ref
+{
+	ResourceID = "Ensure password expiration is 365 days or less.";
+	Msid = "157.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure password expiration is 365 days or less.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource113ref
+{
+	ResourceID = "Ensure password expiration warning days is 7 or more.";
+	Msid = "157.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure password expiration warning days is 7 or more.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource114ref
+{
+	ResourceID = "Ensure password reuse is limited.";
+	Msid = "157.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure password reuse is limited.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource115ref
+{
+	ResourceID = "Ensure password hashing algorithm is SHA-512";
+	Msid = "157.11";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure password hashing algorithm is SHA-512";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource116ref
+{
+	ResourceID = "Ensure minimum days between password changes is 7 or more.";
+	Msid = "157.12";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure minimum days between password changes is 7 or more.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource117ref
+{
+	ResourceID = "Ensure all users last password change date is in the past";
+	Msid = "157.14";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure all users last password change date is in the past";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource118ref
+{
+	ResourceID = "Ensure system accounts are non-login";
+	Msid = "157.15";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure system accounts are non-login";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource119ref
+{
+	ResourceID = "Ensure default group for the root account is GID 0";
+	Msid = "157.16";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure default group for the root account is GID 0";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource120ref
+{
+	ResourceID = "Ensure root is the only UID 0 account";
+	Msid = "157.18";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure root is the only UID 0 account";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource121ref
+{
+	ResourceID = "Remove unnecessary accounts";
+	Msid = "159";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Remove unnecessary accounts";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource122ref
+{
+	ResourceID = "Ensure SNMP Server is not enabled";
+	Msid = "179";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SNMP Server is not enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource123ref
+{
+	ResourceID = "Ensure rsync service is not enabled";
+	Msid = "181";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure rsync service is not enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource124ref
+{
+	ResourceID = "Ensure NIS server is not enabled";
+	Msid = "182";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure NIS server is not enabled";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource125ref
+{
+	ResourceID = "Ensure rsh client is not installed";
+	Msid = "183";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure rsh client is not installed";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource126ref
+{
+	ResourceID = "Disable SMB V1 with Samba";
+	Msid = "185";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable SMB V1 with Samba";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource127ref
+{
+	ResourceID = "Ensure nodev option set on /home partition.";
+	Msid = "1.1.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure nodev option set on /home partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource128ref
+{
+	ResourceID = "Ensure nodev option set on /tmp partition.";
+	Msid = "1.1.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure nodev option set on /tmp partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource129ref
+{
+	ResourceID = "Ensure nodev option set on /var/tmp partition.";
+	Msid = "1.1.6";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure nodev option set on /var/tmp partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource130ref
+{
+	ResourceID = "Ensure nosuid option set on /tmp partition.";
+	Msid = "1.1.7";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure nosuid option set on /tmp partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource131ref
+{
+	ResourceID = "Ensure nosuid option set on /var/tmp partition.";
+	Msid = "1.1.8";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure nosuid option set on /var/tmp partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource132ref
+{
+	ResourceID = "Ensure noexec option set on /var/tmp partition.";
+	Msid = "1.1.9";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure noexec option set on /var/tmp partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource133ref
+{
+	ResourceID = "Ensure noexec option set on /dev/shm partition.";
+	Msid = "1.1.16";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure noexec option set on /dev/shm partition.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource134ref
+{
+	ResourceID = "Disable automounting";
+	Msid = "1.1.21";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Disable automounting";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource135ref
+{
+	ResourceID = "Ensure core dumps are restricted.";
+	Msid = "1.5.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure core dumps are restricted.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource136ref
+{
+	ResourceID = "Ensure prelink is disabled.";
+	Msid = "1.5.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure prelink is disabled.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource137ref
+{
+	ResourceID = "Ensure permissions on /etc/motd are configured.";
+	Msid = "1.7.1.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/motd are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource138ref
+{
+	ResourceID = "Ensure permissions on /etc/issue are configured.";
+	Msid = "1.7.1.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/issue are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource139ref
+{
+	ResourceID = "Ensure permissions on /etc/issue.net are configured.";
+	Msid = "1.7.1.6";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/issue.net are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource140ref
+{
+	ResourceID = "Ensure talk client is not installed.";
+	Msid = "2.3.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure talk client is not installed.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource141ref
+{
+	ResourceID = "Ensure permissions on /etc/hosts.allow are configured.";
+	Msid = "3.4.4";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/hosts.allow are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource142ref
+{
+	ResourceID = "Ensure permissions on /etc/hosts.deny are configured.";
+	Msid = "3.4.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/hosts.deny are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource143ref
+{
+	ResourceID = "Ensure default deny firewall policy";
+	Msid = "3.6.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure default deny firewall policy";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource144ref
+{
+	ResourceID = "Ensure password creation requirements are configured.";
+	Msid = "5.3.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure password creation requirements are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource145ref
+{
+	ResourceID = "Ensure lockout for failed password attempts is configured.";
+	Msid = "5.3.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure lockout for failed password attempts is configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource146ref
+{
+	ResourceID = "Ensure all users' home directories exist";
+	Msid = "6.2.7";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure all users' home directories exist";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource147ref
+{
+	ResourceID = "Ensure users own their home directories";
+	Msid = "6.2.9";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure users own their home directories";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource148ref
+{
+	ResourceID = "Ensure users' dot files are not group or world writable.";
+	Msid = "6.2.10";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure users' dot files are not group or world writable.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource149ref
+{
+	ResourceID = "Ensure no users have .forward files";
+	Msid = "6.2.11";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no users have .forward files";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource150ref
+{
+	ResourceID = "Ensure no users have .netrc files";
+	Msid = "6.2.12";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no users have .netrc files";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource151ref
+{
+	ResourceID = "Ensure no users have .rhosts files";
+	Msid = "6.2.14";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no users have .rhosts files";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource152ref
+{
+	ResourceID = "Ensure all groups in /etc/passwd exist in /etc/group";
+	Msid = "6.2.15";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure all groups in /etc/passwd exist in /etc/group";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource153ref
+{
+	ResourceID = "Ensure no duplicate UIDs exist";
+	Msid = "6.2.16";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no duplicate UIDs exist";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource154ref
+{
+	ResourceID = "Ensure no duplicate GIDs exist";
+	Msid = "6.2.17";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no duplicate GIDs exist";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource155ref
+{
+	ResourceID = "Ensure no duplicate user names exist";
+	Msid = "6.2.18";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no duplicate user names exist";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource156ref
+{
+	ResourceID = "Ensure no duplicate groups exist";
+	Msid = "6.2.19";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure no duplicate groups exist";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource157ref
+{
+	ResourceID = "Ensure shadow group is empty";
+	Msid = "6.2.20";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure shadow group is empty";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource158ref
+{
+	ResourceID = "Ensure permissions on /etc/ssh/sshd_config are configured.";
+	Msid = "5.2.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure permissions on /etc/ssh/sshd_config are configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource159ref
+{
+	ResourceID = "SSH must be configured and managed to meet best practices. - '/etc/ssh/sshd_config Protocol = 2'";
+	Msid = "106.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "SSH must be configured and managed to meet best practices. - '/etc/ssh/sshd_config Protocol = 2'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource160ref
+{
+	ResourceID = "SSH must be configured and managed to meet best practices. - '/etc/ssh/sshd_config IgnoreRhosts = yes'";
+	Msid = "106.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "SSH must be configured and managed to meet best practices. - '/etc/ssh/sshd_config IgnoreRhosts = yes'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource161ref
+{
+	ResourceID = "Ensure SSH LogLevel is set to INFO";
+	Msid = "106.5";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SSH LogLevel is set to INFO";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource162ref
+{
+	ResourceID = "Ensure SSH MaxAuthTries is set to 6 or less";
+	Msid = "106.7";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SSH MaxAuthTries is set to 6 or less";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource163ref
+{
+	ResourceID = "Ensure SSH access is limited";
+	Msid = "106.11";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SSH access is limited";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource164ref
+{
+	ResourceID = "Emulation of the rsh command through the ssh server should be disabled. - '/etc/ssh/sshd_config RhostsRSAAuthentication = no'";
+	Msid = "107";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Emulation of the rsh command through the ssh server should be disabled. - '/etc/ssh/sshd_config RhostsRSAAuthentication = no'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource165ref
+{
+	ResourceID = "SSH host-based authentication should be disabled. - '/etc/ssh/sshd_config HostbasedAuthentication = no'";
+	Msid = "108";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "SSH host-based authentication should be disabled. - '/etc/ssh/sshd_config HostbasedAuthentication = no'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource166ref
+{
+	ResourceID = "Root login via SSH should be disabled. - '/etc/ssh/sshd_config PermitRootLogin = no'";
+	Msid = "109";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Root login via SSH should be disabled. - '/etc/ssh/sshd_config PermitRootLogin = no'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource167ref
+{
+	ResourceID = "Remote connections from accounts with empty passwords should be disabled. - '/etc/ssh/sshd_config PermitEmptyPasswords = no'";
+	Msid = "110";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Remote connections from accounts with empty passwords should be disabled. - '/etc/ssh/sshd_config PermitEmptyPasswords = no'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource168ref
+{
+	ResourceID = "Ensure SSH Idle Timeout Interval is configured.";
+	Msid = "110.1";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SSH Idle Timeout Interval is configured.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource169ref
+{
+	ResourceID = "Ensure SSH LoginGraceTime is set to one minute or less.";
+	Msid = "110.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure SSH LoginGraceTime is set to one minute or less.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource170ref
+{
+	ResourceID = "Ensure only approved MAC algorithms are used";
+	Msid = "110.3";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Ensure only approved MAC algorithms are used";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource171ref
+{
+	ResourceID = "SSH warning banner should be enabled. - '/etc/ssh/sshd_config Banner = /etc/issue.net'";
+	Msid = "111.2";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "SSH warning banner should be enabled. - '/etc/ssh/sshd_config Banner = /etc/issue.net'";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource172ref
+{
+	ResourceID = "Users are not allowed to set environment options for SSH.";
+	Msid = "112";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Users are not allowed to set environment options for SSH.";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of ASM_LinuxAuditResource as $ASM_LinuxAuditResource173ref
+{
+	ResourceID = "Appropriate ciphers should be used for SSH. (Ciphers aes128-ctr,aes192-ctr,aes256-ctr)";
+	Msid = "113";
+	SourceInfo = "::4::5::LinuxAuditResource";
+	PolicyName = "Appropriate ciphers should be used for SSH. (Ciphers aes128-ctr,aes192-ctr,aes256-ctr)";
+	BaselineName = "ASC.Linux";
+	ModuleName = "GuestConfiguration";
+	ModuleVersion = "1.19.4";
+	ConfigurationName = "ASC.Linux";
+};
+
+instance of OMI_ConfigurationDocument
+{
+	Version="2.0.0";
+
+	CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+
+	Author="vsts";
+
+	GenerationDate="08/31/2022 14:38:56";
+
+	GenerationHost="fv-az80-686";
+
+	Name="AzureLinuxBaseline";
+};

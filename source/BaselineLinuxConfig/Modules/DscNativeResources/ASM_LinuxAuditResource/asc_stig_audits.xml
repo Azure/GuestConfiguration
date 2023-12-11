@@ -1,0 +1,8 @@
+<baseline BaselineId="ASC.STIG.Linux.1" BaseOrigId="1">
+  <baselines>
+    <baseline id="ASC.Linux" />
+    <baseline id="STIG.Linux" />
+  </baselines>
+  <audits>
+  </audits>
+</baseline>

@@ -1,0 +1,133 @@
+<baseline BaselineId="STIG.Linux.1" BaseOrigId="1">
+  <audits>
+    <audit
+      description="The Trivial File Transfer Protocol (TFTP) server package must not be installed if not required for this distribution operational support."
+      msid="81.2"
+      Cceid="V-230533"
+      severity="Critical"
+      impact="If TFTP is required for operational support (such as the transmission of router configurations) its use must be documented with the Information System Security Officer (ISSO), restricted to only authorized personnel, and have access control rules established."
+      remediation="Remove the TFTP package from the system."
+      ruleId="c69a3ffc-94bb-4b15-8928-5f2fc1d1f875">
+      <check distro="*" command="CheckPackageNotInstalled" packagename="tftp-server"/>
+    </audit>
+    <audit
+      description="This distribution must not have the telnet-server package installed."
+      msid="188"
+      severity="Critical"
+      impact="It is detrimental for operating systems to provide, or install by default, functionality exceeding requirements or mission objectives. These unnecessary capabilities or services are often overlooked and therefore may remain unsecured. They increase the risk to the platform by providing additional attack vectors. Operating systems are capable of providing a wide variety of functions and services. Some of the functions and services, provided by default, may not be necessary to support essential organizational operations (e.g., key missions, functions). Examples of non-essential capabilities include, but are not limited to, games, software packages, tools, and demonstration software not related to requirements or providing a wide array of functionality not required for every mission, but which cannot be disabled. Verify the operating system is configured to disable non-essential capabilities. The most secure way of ensuring a non-essential capability is disabled is to not have the capability installed. The telnet service provides an unencrypted remote access service that does not provide for the confidentiality and integrity of user passwords or the remote session. If a privileged user were to log on using this service, the privileged user password could be compromised."
+      remediation="Configure the operating system to disable non-essential capabilities by removing the telnet-server package from the system."
+      ruleId="722bec37-6d57-4ef0-ba40-ca84459ddfd1">
+      <check distro="*" command="CheckPackageNotInstalled" packagename="telnet-server"/>
+    </audit>
+    <audit
+      description="This distribution should reject authentication with blank or null passwords"
+      msid="189"
+      severity="Critical"
+      impact="If an account has an empty password, anyone could log on and run commands with the privileges of that account. Accounts with empty passwords should never be used in operational environments."
+      remediation="Remove any instances of the 'nullok' option in '/etc/pam.d/system-auth' and '/etc/pam.d/password-auth'"
+      ruleId="b98f78c8-bcd5-4e03-bc23-84357e367685">
+      <check distro="*" command="CheckNoMatchingLinesIfExists" regex="nullok" path="/etc/pam.d/system-auth"/>
+      <check distro="*" command="CheckNoMatchingLinesIfExists" regex="nullok" path="/etc/pam.d/password-auth"/>
+      <!-- permitemptypassword check covered in MSID 110 -->
+    </audit>
+    <audit
+      description="Unattended or automatic logon via the distribution graphical user interface must not be allowed."
+      msid="190"
+      severity="Critical"
+      impact="Failure to restrict system access to authenticated users negatively impacts operating system security."
+      remediation="Configure the operating system to not allow an unattended or automatic logon to the system via a graphical user interface."
+      ruleId="2a93f316-fbd4-458c-9ffb-87d5493b05d4">
+      <check distro="*" command="CheckNoMatchingLinesIfExists" regex="AutomaticLoginEnable\s*=\s*true" path="/etc/gdm/custom.conf"/>
+    </audit>
+    <audit
+      description="Distribution must prevent the installation of software, patches, service packs, device drivers, or operating system components from a repository without a verification they have been digitally signed using a certificate that is issued by a Certificate Authority (CA) that is recognized and approved by the organization."
+      msid="191"
+      severity="Critical"
+      impact="Changes to any software components can have significant effects on the overall security of the operating system. This requirement ensures the software has not been tampered with and that it has been provided by a trusted vendor. Accordingly, patches, service packs, device drivers, or operating system components must be signed with a certificate recognized and approved by the organization. Verifying the authenticity of the software prior to installation validates the integrity of the patch or upgrade received from a vendor. This verifies the software has not been tampered with and that it has been provided by a trusted vendor. Self-signed certificates are disallowed by this requirement. The operating system should not have to verify the software again. This requirement does not mandate DoD certificates for this purpose; however, the certificate used to verify the software must be from an approved CA."
+      remediation="Configure the operating system to verify the signature of packages from a repository prior to install."
+      ruleId="1e9276d8-2ab6-4adf-adcf-dd261ac38d90">
+      <!--RedHat 8 + Mariner -->
+      <check distro="Mariner|RedHat=8" command="CheckMatchingLinesInDir" path="/etc/yum.repos.d/" regex="^\[.*\]|gpgcheck=1"/>
+      <check distro="RedHat=7|Oracle=7" command="CheckMatchingLines" path="/etc/yum.conf" regex="^[^#]*\s*gpgcheck=1"/>  
+      <check distro="Ubuntu" command="CheckMatchingLinesInDir" path="/etc/apt/apt.conf.d/" regex="AllowUnauthenticated\s&quot;false&quot;;"/>
+      <check distro="Mariner|RedHat=8|Oracle=8" command="CheckMatchingLines" path="/etc/dnf/dnf.conf" regex="^[^#]*localpkg_gpgcheck=(?:True|1|yes)"/>
+      <check distro="RedHat=7|Oracle=7" command="CheckMatchingLines" path="/etc/yum.conf" regex="^[^#]*\s*localpkg_gpgcheck=1"/>
+      <!--Check not available on SLES & Oracle 8-->
+    </audit>
+    <audit
+      description="Distribution must implement NIST FIPS-validated cryptography for the following: to provision digital signatures, to generate cryptographic hashes, and to protect data requiring data-at-rest protections in accordance with applicable federal laws, Executive Orders, directives, policies, regulations, and standards."
+      msid="192"
+      severity="Critical"
+      impact="Use of weak or untested encryption algorithms undermines the purposes of using encryption to protect data. The operating system must implement cryptographic modules adhering to the higher standards approved by the Federal Government since this provides assurance they have been tested and validated. GRUB 2 is utilized as the default bootloader. Note that GRUB 2 command-line parameters are defined in the 'kernelopts' variable of the /boot/grub2/grubenv file for all kernel boot entries. The command 'fips-mode-setup' modifies the 'kernelopts' variable, which in turn updates all kernel boot entries. The fips=1 kernel option needs to be added to the kernel command line during system installation so that key generation is done with FIPS-approved algorithms and continuous monitoring tests in place. Users must also ensure the system has plenty of entropy during the installation process by moving the mouse around, or if no mouse is available, ensuring that many keystrokes are typed. The recommended amount of keystrokes is 256 and more. Less than 256 keystrokes may generate a non-unique key. Satisfies: SRG-OS-000033-GPOS-00014, SRG-OS-000125-GPOS-00065, SRG-OS-000396-GPOS-00176, SRG-OS-000423-GPOS-00187, SRG-OS-000478-GPOS-00223"
+      remediation="Configure the operating system to implement DoD-approved encryption."
+      ruleId="dc598ceb-7319-49cc-bca5-807d0358a94a">
+      <check distro="Mariner|RedHat=8|Oracle=8" command="CheckServiceEnabled" service="fipscheck"/>
+      <check distro="RedHat=7|Oracle=7" command="CheckPackageInstalledRegexp" packagename="^dracut-fips"/>
+      <!--Check not available on Ubuntu (rule covered under 192.3),SLES-->
+      <check distro="Mariner|RedHat=8|Oracle=8" command="CheckMatchingLines" path="/proc/cmdline" regex="fips=1"/>
+      <!--! BIOS-based machines-->
+      <check distro="RedHat=7|Oracle=7" command="CheckMatchingLines" regex="fips=1" path="/boot/grub2/grub.cfg">
+        <dependency type="FileExists">/etc/default/grub</dependency>
+      </check>
+      <!--! UEFI machines-->
+      <check distro="RedHat=7|Oracle=7" command="CheckMatchingLines" regex="fips=1" path="/boot/efi/EFI/redhat/grub.cfg">
+        <dependency type="FileExists">/boot/efi/EFI/redhat/grub.cfg</dependency>
+      </check>
+      <check distro="Mariner|RedHat|Oracle|Ubuntu" command="CheckMatchingLinesIfExists" path="/proc/sys/crypto/fips_enabled" regex="^1$"/>
+      <check distro="RedHat=7|Oracle=7" command="CheckFileExists" path="/etc/system-fips"/>
+    </audit>
+    <audit
+      description="There must be no .shosts files on the operating system."
+      msid="193"
+      severity="Critical"
+      impact="The '.shosts' files are used to configure host-based authentication for individual users or the system via SSH. Host-based authentication is not sufficient for preventing unauthorized access to the system, as it does not require interactive identification and authentication of a connection request, or for the use of two-factor authentication."
+      remediation="Remove any found '.shosts' files from the system."
+      ruleId="559acc3d-de8c-4032-9519-ce14e53688b2">
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckUserDirs" expect="FileNotExist" path=".shosts"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckUserDirs" expect="FileNotExist" path=".ssh/.shosts"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/.shosts"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/etc/.shosts"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/etc/ssh/.shosts"></check>
+    </audit>
+    <audit
+      description="There must be no .shosts.equiv files on the operating system"
+      msid="194"
+      severity="Critical"
+      impact="The 'shosts.equiv' files are used to configure host-based authentication for the system via SSH. Host-based authentication is not sufficient for preventing unauthorized access to the system, as it does not require interactive identification and authentication of a connection request, or for the use of two-factor authentication."
+      remediation="Remove any found 'shosts.equiv' files from the system."
+      ruleId="0fa9db1d-89dd-4388-8131-da7471431035">
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckUserDirs" expect="FileNotExist" path="shosts.equiv"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckUserDirs" expect="FileNotExist" path=".ssh/shosts.equiv"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/shosts.equiv"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/etc/shosts.equiv"></check>
+      <check distro="Mariner|RedHat|Oracle=7|Oracle=8|SLES=15" command="CheckFileNotExists" path="/etc/ssh/shosts.equiv"></check>
+    </audit>
+    <!--! Removed 197.1, 197.2 and 197.3 duplicate rules, these rules exist as msid 1.1.9, 1.1.6, and 1.1.7 respectively.-->
+    <!--! Removed 199.1 - duplicate of msid 1.1.21.1-->
+    <audit
+      description="This distribution must be configured to disable USB mass storage."
+      msid="199.2"
+      severity="Critical"
+      impact="USB mass storage permits easy introduction of unknown devices, thereby facilitating malicious activity."
+      remediation="Configure the operating system to disable the ability to use the USB Storage kernel module and USB mass storage devices."
+      ruleId="4c391775-9d1e-4fae-b0e1-d8b56a4cfac3">
+      <check distro="*" command="CheckMatchingLinesInDir" path="/etc/modprobe.d/" regex="blacklist\s+usb-storage"></check>
+    </audit>
+    <audit
+      description="Operating systems booted with United Extensible Firmware Interface (UEFI) implemented must require authentication upon booting into single-user mode and maintenance"
+      msid="200"
+      severity="Critical"
+      impact="If the system does not require valid authentication before it boots into single-user or maintenance mode, anyone who invokes single-user or maintenance mode is granted privileged access to all files on the system. GRUB 2 is the default boot loader and is designed to require a password to boot into single-user mode or make modifications to the boot menu."
+      remediation="Configure the system to require a grub bootloader password for the grub superuser account."
+      ruleId="c85c6c20-b772-4cad-9b4f-7822052b8d22">
+      <check distro="Mariner" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/mariner/user.cfg" regex="^[^#]*GRUB2_PASSWORD=grub\.pbkdf2\.sha512\..*$"></check>
+      <check distro="RedHat&gt;=7|Oracle&gt;=7" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/redhat/user.cfg" regex="^[^#]*GRUB2_PASSWORD=grub\.pbkdf2\.sha512\..*$"></check>
+      <check distro="Ubuntu" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/grub.cfg" regex="^[^#]*password_pbkdf2\s+root\s+grub.pbkdf2.sha512.$"></check>
+      <check distro="SLES=15" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/sles/grub.cfg" regex="^[^#]*password_pbkdf2\s+root\s+grub.pbkdf2.sha512.$"></check>
+      <check distro="Mariner" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/mariner/grub.cfg" regex="^[^#]*set superusers=..*$"></check>
+      <check distro="RedHat|Oracle" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/redhat/grub.cfg" regex="^[^#]*set superusers=..*$"></check>
+      <check distro="Mariner" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/mariner/grub.cfg" regex="^[^#]*export superusers..*$"></check>
+      <check distro="RedHat|Oracle" command="CheckMatchingLinesIfExists" path="/boot/efi/EFI/redhat/grub.cfg" regex="[^#*\s*]\s*export\s*superusers|^\s*export\s*superusers"></check>
+    </audit>
+  </audits>
+</baseline>

@@ -690,6 +690,61 @@ Describe 'New-GuestConfigurationPolicy' {
                         Assert-GuestConfigurationPolicyDefinitionFileValid @assertionParameters
                     }
                 }
+
+                Context 'New parameters - contentManagedIdentity and contentPath' {
+                    BeforeAll {
+                        $fileName = $ContentUri.Split('/')[-1]
+                        $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
+                        Invoke-WebRequest $ContentUri -OutFile $filePath
+
+                        $basePolicyParameters['ContentManagedIdentity'] = 'myManagedIdentity'
+                        $basePolicyParameters['ContentPath'] = $filePath
+                        $baseAssertionParameters['ExpectedManagedIdentity'] = 'myManagedIdentity'
+                    }
+
+                    It 'Should include contentManagedIdentity in the result object' {
+                        $result = New-GuestConfigurationPolicy @basePolicyParameters
+
+                        $result | Should -Not -BeNull
+
+                        $fileContent = Get-Content -Path $result.Path -Raw
+                        $fileContentJson = $fileContent | ConvertFrom-Json
+
+                        foreach ($deploymentResource in $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources)
+                        {
+                            $deploymentResource.properties.guestConfiguration.contentManagedIdentity | Should -Be 'myManagedIdentity'
+                        }
+                    }
+                }
+
+                Context 'New parameters - contentManagedIdentity without contentPath' {
+                    BeforeAll {
+                        $basePolicyParameters['ContentManagedIdentity'] = 'myManagedIdentity'
+                        $basePolicyParameters['ContentPath'] = $null
+
+                    }
+
+                    It 'Should throw a missing parameter exception if one of the parameters is missing' {
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ContentManagedIdentity and ContentPath must be provided together.'
+                    }
+                }
+
+                Context 'New parameters - contentPath without contentManagedIdentity' {
+                    BeforeAll {
+                        $fileName = $ContentUri.Split('/')[-1]
+                        $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
+                        Invoke-WebRequest $ContentUri -OutFile $filePath
+
+                        $basePolicyParameters['ContentPath'] = $filePath
+                        $basePolicyParameters['ContentManagedIdentity'] = $null
+
+                        Remove-Item -Path $filePath
+                    }
+
+                    It 'Should throw a missing parameter exception if one of the parameters is missing' {
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ContentManagedIdentity and ContentPath must be provided together.'
+                    }
+                }
             }
         }
     }

@@ -19,6 +19,10 @@ function New-GuestConfigurationPolicyActionSection
         [String]
         $ContentUri,
 
+        [Parameter()]
+        [String]
+        $ContentManagedIdentity,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]
@@ -52,6 +56,11 @@ function New-GuestConfigurationPolicyActionSection
             AssignmentType = $AssignmentType
             Parameter = $Parameter
             IncludeVMSS = $IncludeVMSS
+        }
+
+        if ($ContentManagedIdentity)
+        {
+            $setActionSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
         }
 
         $actionSection = New-GuestConfigurationPolicySetActionSection @setActionSectionParameters

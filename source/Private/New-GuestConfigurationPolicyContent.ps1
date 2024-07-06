@@ -28,6 +28,10 @@ function New-GuestConfigurationPolicyContent
         [String]
         $ContentUri,
 
+        [Parameter()]
+        [String]
+        $ContentManagedIdentity,
+
         [Parameter(Mandatory = $true)]
         [String]
         $ContentHash,
@@ -71,11 +75,40 @@ function New-GuestConfigurationPolicyContent
         Parameter = $Parameter
     }
 
+    if ($ContentManagedIdentity)
+    {
+        $metadataSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
+    }
+
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
 
     $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
 
     $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
+
+    if ($ContentManagedIdentity)
+    {
+        foreach ($anyOf in $conditionsSection.anyOf)
+        {
+            foreach ($allOf in $anyOf.allOf)
+            {
+                if ($allOf.value -eq "[parameters('IncludeArcMachines')]")
+                {
+                    # Find and remove the specified section
+                    $indexToRemove = $anyOf.allOf.IndexOf($allOf)
+                    if ($indexToRemove -ne -1)
+                    {
+                        $anyOf.RemoveAt($indexToRemove)
+                    }
+                }
+            }
+        }
+
+        if ($parametersSection.parameters.IncludeArcMachines)
+        {
+            $parametersSection.parameters.Remove("IncludeArcMachines")
+        }
+    }
 
     $actionSectionParameters = @{
         ConfigurationName = $ConfigurationName
@@ -87,7 +120,26 @@ function New-GuestConfigurationPolicyContent
         IncludeVMSS = $IncludeVMSS
     }
 
+    if ($ContentManagedIdentity)
+    {
+        $actionSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
+    }
+
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters
+
+    if ($ContentManagedIdentity -and $actionSection.details.deployment.properties.template.resources)
+    {
+        $tempResources = @()
+        foreach ($resource in $actionSection.details.deployment.properties.template.resources)
+        {
+            if ($resource.condition -imatch "HybridCompute")
+            {
+                continue
+            }
+            $tempResources += $resource
+        }
+        $actionSection.details.deployment.properties.template.resources = $tempResources
+    }
 
     $policyDefinitionContent = [Ordered]@{
         properties = $metadataSection + $parametersSection + [Ordered]@{

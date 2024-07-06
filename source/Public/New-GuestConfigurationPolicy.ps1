@@ -31,6 +31,14 @@
         The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
         Example: https://github.com/azure/auditservice/release/AuditService.zip
 
+    .PARAMETER ContentManagedIdentity
+        This is the identity that is used to download the package from storage account container instead of using SaS url.
+        This value can be null.
+
+    .PARAMETER ContentPath
+        The path to the package zip file.
+        This value can be null.
+
     .PARAMETER ContentVersion
         If specified, the version of the Guest Configuration package (.zip) downloaded via the
         content URI must match this value.
@@ -168,6 +176,14 @@ function New-GuestConfigurationPolicy
         [System.Uri]
         $ContentUri,
 
+        [Parameter(ParameterSetName='ManagedIdentity')]
+        [System.String]
+        $ContentManagedIdentity,
+
+        [Parameter(ParameterSetName='ManagedIdentity')]
+        [System.String]
+        $ContentPath,
+
         [Parameter()]
         [System.Version]
         $ContentVersion,
@@ -219,6 +235,11 @@ function New-GuestConfigurationPolicy
     if ($ContentUri.Scheme -notmatch '[http|https]')
     {
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
+    }
+
+    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ContentManagedIdentity) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    {
+        throw "Both ContentManagedIdentity and ContentPath must be provided together."
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
@@ -275,26 +296,39 @@ function New-GuestConfigurationPolicy
 
     # Download package
     $tempPath = Reset-GCWorkerTempDirectory
+    $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
 
-    $packageFileDownloadName = 'temp.zip'
-    $packageFileDownloadPath = Join-Path -Path $tempPath -ChildPath $packageFileDownloadName
-
-    if (Test-Path -Path $packageFileDownloadPath)
+    if ($ContentManagedIdentity -and $ContentPath)
     {
-        $null = Remove-Item -Path $packageFileDownloadPath -Force
+        $contentHash = (Get-FileHash -Path $ContentPath -Algorithm 'SHA256').Hash
+
+        $packagePresentIn = $ContentPath
+
+        Write-Information -MessageData "Arc is not supported for use with User Assigned Idenity" -InformationAction Continue
     }
-
-    $null = Invoke-WebRequest -Uri $ContentUri -OutFile $packageFileDownloadPath
-
-    if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
+    else
     {
-        $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
+        $packageFileDownloadName = 'temp.zip'
+        $packageFileDownloadPath = Join-Path -Path $tempPath -ChildPath $packageFileDownloadName
+
+        if (Test-Path -Path $packageFileDownloadPath)
+        {
+            $null = Remove-Item -Path $packageFileDownloadPath -Force
+        }
+
+        $null = Invoke-WebRequest -Uri $ContentUri -OutFile $packageFileDownloadPath
+
+        if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
+        {
+            $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
+        }
+        $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
+
+        $packagePresentIn = $packageFileDownloadPath
     }
-    $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
 
     # Extract package
-    $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
-    $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
+    $null = Expand-Archive -Path $packagePresentIn -DestinationPath $packagePath -Force
 
     # Get configuration name
     $mofFilePattern = '*.mof'
@@ -409,6 +443,12 @@ function New-GuestConfigurationPolicy
         Tag = $Tag
         IncludeVMSS = $IncludeVMSS
     }
+    
+    if ($ContentManagedIdentity -and $ContentPath)
+    {
+        $policyDefinitionContentParameters.ContentManagedIdentity = $ContentManagedIdentity
+    }
+
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
 
     # Convert definition hashtable to JSON

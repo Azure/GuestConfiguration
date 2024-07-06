@@ -18,6 +18,10 @@ function New-GuestConfigurationPolicySetActionSection
         [String]
         $ContentUri,
 
+        [Parameter()]
+        [String]
+        $ContentManagedIdentity,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]
@@ -69,6 +73,11 @@ function New-GuestConfigurationPolicySetActionSection
         contentUri = $ContentUri
         contentHash = $ContentHash
         assignmentType = $AssignmentType
+    }
+
+    if ($ContentManagedIdentity)
+    {
+        $guestConfigMetadataSection.contentManagedIdentity = $ContentManagedIdentity
     }
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)

@@ -77,7 +77,7 @@ function New-GuestConfigurationPolicyContent
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
-        $metadataSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
+        $metadataSectionParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }
 
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
@@ -122,7 +122,7 @@ function New-GuestConfigurationPolicyContent
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
-        $actionSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
+        $actionSectionParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }
 
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters

@@ -450,15 +450,10 @@ function New-GuestConfigurationPolicy
         Tag = $Tag
         IncludeVMSS = $IncludeVMSS
     }
-    
+
     if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
     {
-        $policyDefinitionContentParameters.ContentManagedIdentity = $ManagedIdentityResourceId
-    }
-
-    if ($ContentManagedIdentity -and $ContentPath)
-    {
-        $policyDefinitionContentParameters.ContentManagedIdentity = $ContentManagedIdentity
+        $policyDefinitionContentParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }
 
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters

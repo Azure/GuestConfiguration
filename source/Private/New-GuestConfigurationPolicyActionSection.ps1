@@ -60,7 +60,7 @@ function New-GuestConfigurationPolicyActionSection
 
         if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
         {
-            $setActionSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
+            $setActionSectionParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
         }
 
         $actionSection = New-GuestConfigurationPolicySetActionSection @setActionSectionParameters

@@ -21,7 +21,7 @@ function New-GuestConfigurationPolicyActionSection
 
         [Parameter()]
         [String]
-        $ContentManagedIdentity,
+        $ManagedIdentityResourceId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -58,9 +58,9 @@ function New-GuestConfigurationPolicyActionSection
             IncludeVMSS = $IncludeVMSS
         }
 
-        if ($ContentManagedIdentity)
+        if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
         {
-            $setActionSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
+            $setActionSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
         }
 
         $actionSection = New-GuestConfigurationPolicySetActionSection @setActionSectionParameters

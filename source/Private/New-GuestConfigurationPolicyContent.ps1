@@ -30,7 +30,7 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [String]
-        $ContentManagedIdentity,
+        $ManagedIdentityResourceId,
 
         [Parameter(Mandatory = $true)]
         [String]
@@ -75,9 +75,9 @@ function New-GuestConfigurationPolicyContent
         Parameter = $Parameter
     }
 
-    if ($ContentManagedIdentity)
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
-        $metadataSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
+        $metadataSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
     }
 
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
@@ -86,7 +86,7 @@ function New-GuestConfigurationPolicyContent
 
     $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
 
-    if ($ContentManagedIdentity)
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
         foreach ($anyOf in $conditionsSection.anyOf)
         {
@@ -120,14 +120,14 @@ function New-GuestConfigurationPolicyContent
         IncludeVMSS = $IncludeVMSS
     }
 
-    if ($ContentManagedIdentity)
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
-        $actionSectionParameters.ContentManagedIdentity = $ContentManagedIdentity
+        $actionSectionParameters.ContentManagedIdentity = $ManagedIdentityResourceId
     }
 
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters
 
-    if ($ContentManagedIdentity -and $actionSection.details.deployment.properties.template.resources)
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $actionSection.details.deployment.properties.template.resources)
     {
         $tempResources = @()
         foreach ($resource in $actionSection.details.deployment.properties.template.resources)

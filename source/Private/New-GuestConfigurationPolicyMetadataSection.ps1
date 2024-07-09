@@ -34,7 +34,7 @@ function New-GuestConfigurationPolicyMetadataSection
 
         [Parameter()]
         [String]
-        $ContentManagedIdentity,
+        $ManagedIdentityResourceId,
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -62,9 +62,9 @@ function New-GuestConfigurationPolicyMetadataSection
         contentHash = $ContentHash
     }
 
-    if ($ContentManagedIdentity)
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
-        $propertiesSection.metadata.guestConfiguration.contentManagedIdentity = $ContentManagedIdentity
+        $propertiesSection.metadata.guestConfiguration.contentManagedIdentity = $ManagedIdentityResourceId
     }
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)

@@ -31,13 +31,24 @@
         The public HTTP or HTTPS URI of the Guest Configuration package (.zip) to run via the created policy.
         Example: https://github.com/azure/auditservice/release/AuditService.zip
 
-    .PARAMETER ContentManagedIdentity
+        Note: If you are using an Azure storage account to store the custom machine configuration package artifact, you have two options for access:
+        1. Generate a blob shared access signature (SAS) token with read access and provide the full blob URI with the SAS token for the ContentUri parameter.
+        2. Create a user-assigned managed identity with read access to the storage account blob containing the package.
+            Provide the resource ID of the managed identity, a local path to the zipped package, and a URI to the package without a SAS token for the ManagedIdentityResourceId, ContentPath, and ContentUri parameters.
+            With this option, once the generated policy is applied, the managed identity will be used to download the package onto the target machine.
+
+    .PARAMETER ManagedIdentityResourceId
         This is the identity that is used to download the package from storage account container instead of using SaS url.
-        This value can be null.
+        The value for this parameter needs to be the resource id of the managed identity.
+        This is an option to use when the package is stored in a storage account and the storage account is protected by a managed identity.
+
+        Note: optional parameter. If this is specified, ContentPath must also be specified.
 
     .PARAMETER ContentPath
-        The path to the package zip file.
-        This value can be null.
+        This is the path to the local package zip file. This is used to calculate the hash of the package.
+        The value of this parameter is not used in the policy definition.
+
+        Note: optional parameter. If this is specified, ManagedIdentityResourceId must also be specified.
 
     .PARAMETER ContentVersion
         If specified, the version of the Guest Configuration package (.zip) downloaded via the
@@ -178,7 +189,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter(ParameterSetName='ManagedIdentity')]
         [System.String]
-        $ContentManagedIdentity,
+        $ManagedIdentityResourceId,
 
         [Parameter(ParameterSetName='ManagedIdentity')]
         [System.String]
@@ -237,9 +248,9 @@ function New-GuestConfigurationPolicy
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ContentManagedIdentity) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
     {
-        throw "Both ContentManagedIdentity and ContentPath must be provided together."
+        throw "Both ManagedIdentityResourceId and ContentPath must be provided together."
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
@@ -298,13 +309,11 @@ function New-GuestConfigurationPolicy
     $tempPath = Reset-GCWorkerTempDirectory
     $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
 
-    if ($ContentManagedIdentity -and $ContentPath)
+    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
     {
-        $contentHash = (Get-FileHash -Path $ContentPath -Algorithm 'SHA256').Hash
+        $packageFileDownloadPath = $ContentPath
 
-        $packagePresentIn = $ContentPath
-
-        Write-Information -MessageData "Arc is not supported for use with User Assigned Idenity" -InformationAction Continue
+        Write-Information -MessageData "Arc is not supported for use with User Assigned Identity" -InformationAction Continue
     }
     else
     {
@@ -317,18 +326,16 @@ function New-GuestConfigurationPolicy
         }
 
         $null = Invoke-WebRequest -Uri $ContentUri -OutFile $packageFileDownloadPath
-
-        if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
-        {
-            $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
-        }
-        $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
-
-        $packagePresentIn = $packageFileDownloadPath
     }
 
+    if ($null -eq (Get-Command -Name 'Get-FileHash' -ErrorAction 'SilentlyContinue'))
+    {
+        $null = Import-Module -Name 'Microsoft.PowerShell.Utility'
+    }
+    $contentHash = (Get-FileHash -Path $packageFileDownloadPath -Algorithm 'SHA256').Hash
+
     # Extract package
-    $null = Expand-Archive -Path $packagePresentIn -DestinationPath $packagePath -Force
+    $null = Expand-Archive -Path $packageFileDownloadPath -DestinationPath $packagePath -Force
 
     # Get configuration name
     $mofFilePattern = '*.mof'
@@ -444,6 +451,11 @@ function New-GuestConfigurationPolicy
         IncludeVMSS = $IncludeVMSS
     }
     
+    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    {
+        $policyDefinitionContentParameters.ContentManagedIdentity = $ManagedIdentityResourceId
+    }
+
     if ($ContentManagedIdentity -and $ContentPath)
     {
         $policyDefinitionContentParameters.ContentManagedIdentity = $ContentManagedIdentity

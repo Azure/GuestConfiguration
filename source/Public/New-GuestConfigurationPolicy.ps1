@@ -34,7 +34,7 @@
         Note: If you are using an Azure storage account to store the custom machine configuration package artifact, you have two options for access:
         1. Generate a blob shared access signature (SAS) token with read access and provide the full blob URI with the SAS token for the ContentUri parameter.
         2. Create a user-assigned managed identity with read access to the storage account blob containing the package.
-            Provide the resource ID of the managed identity, a local path to the zipped package, and a URI to the package without a SAS token for the ManagedIdentityResourceId, ContentPath, and ContentUri parameters.
+            Provide the resource ID of the managed identity, a local path to the zipped package, and a URI to the package without a SAS token for the ManagedIdentityResourceId, LocalContentPath, and ContentUri parameters.
             With this option, once the generated policy is applied, the managed identity will be used to download the package onto the target machine.
 
     .PARAMETER ManagedIdentityResourceId
@@ -42,9 +42,9 @@
         The value for this parameter needs to be the resource id of the managed identity.
         This is an option to use when the package is stored in a storage account and the storage account is protected by a managed identity.
 
-        Note: optional parameter. If this is specified, ContentPath must also be specified.
+        Note: optional parameter. If this is specified, LocalContentPath must also be specified.
 
-    .PARAMETER ContentPath
+    .PARAMETER LocalContentPath
         This is the path to the local package zip file. This is used to calculate the hash of the package.
         The value of this parameter is not used in the policy definition.
 
@@ -114,6 +114,11 @@
     .PARAMETER Tag
         A hashtable of the tags that should be on machines to apply this policy on.
         If this is specified, the created policy will only be applied to machines with all the specified tags.
+
+
+    .PARAMETER ExcludeArcMachines
+        This parameter needs to be specified if the New-GuestConfigurationPolicy is using a User Assigned Identity.
+        Enabling this parameter will signal that users are aware of exclusion of Arc enabled servers in the definition.
 
     .EXAMPLE
         New-GuestConfigurationPolicy `
@@ -193,7 +198,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter(ParameterSetName='ManagedIdentity')]
         [System.String]
-        $ContentPath,
+        $LocalContentPath,
 
         [Parameter()]
         [System.Version]
@@ -224,7 +229,11 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [System.Boolean]
-        $IncludeVMSS = $true
+        $IncludeVMSS = $true,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     # Validate parameters
@@ -248,9 +257,9 @@ function New-GuestConfigurationPolicy
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
     {
-        throw "Both ManagedIdentityResourceId and ContentPath must be provided together."
+        throw "Both ManagedIdentityResourceId and LocalContentPath must be provided together."
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
@@ -309,11 +318,14 @@ function New-GuestConfigurationPolicy
     $tempPath = Reset-GCWorkerTempDirectory
     $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
 
-    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
     {
-        $packageFileDownloadPath = $ContentPath
+        if (-not $ExcludeArcMachines)
+        {
+            throw "The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. Managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
+        }
 
-        Write-Information -MessageData "Arc is not supported for use with User Assigned Identity" -InformationAction Continue
+        $packageFileDownloadPath = $LocalContentPath
     }
     else
     {
@@ -451,12 +463,12 @@ function New-GuestConfigurationPolicy
         IncludeVMSS = $IncludeVMSS
     }
 
-    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($ContentPath)))
+    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
     {
         $policyDefinitionContentParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }
 
-    $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters
+    $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters -ExcludeArcMachines:$ExcludeArcMachines
 
     # Convert definition hashtable to JSON
     $policyDefinitionContentJson = (ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100).Replace('\u0027', "'")

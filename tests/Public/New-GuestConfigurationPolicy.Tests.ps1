@@ -691,19 +691,19 @@ Describe 'New-GuestConfigurationPolicy' {
                     }
                 }
 
-                Context 'Optional identity parameters - ManagedIdentityResourceId and contentPath' {
+                Context 'Optional identity parameters - ManagedIdentityResourceId and LocalContentPath with ExcludeArcMachines' {
                     BeforeAll {
                         $fileName = $ContentUri.Split('/')[-1]
                         $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
                         Invoke-WebRequest $ContentUri -OutFile $filePath
 
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
-                        $basePolicyParameters['ContentPath'] = $filePath
+                        $basePolicyParameters['LocalContentPath'] = $filePath
                         $baseAssertionParameters['ExpectedManagedIdentity'] = 'myManagedIdentity'
                     }
 
                     It 'Should include contentManagedIdentity in the result object' {
-                        $result = New-GuestConfigurationPolicy @basePolicyParameters
+                        $result = New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines
 
                         $result | Should -Not -BeNull
 
@@ -717,32 +717,46 @@ Describe 'New-GuestConfigurationPolicy' {
                     }
                 }
 
-                Context 'New parameters - ManagedIdentityResourceId without contentPath' {
-                    BeforeAll {
-                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
-                        $basePolicyParameters['ContentPath'] = $null
-
-                    }
-
-                    It 'Should throw a missing parameter exception if one of the parameters is missing' {
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and ContentPath must be provided together.'
-                    }
-                }
-
-                Context 'New parameters - contentPath without ManagedIdentityResourceId' {
+                Context 'Optional identity parameters - ManagedIdentityResourceId and LocalContentPath without ExcludeArcMachines' {
                     BeforeAll {
                         $fileName = $ContentUri.Split('/')[-1]
                         $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
                         Invoke-WebRequest $ContentUri -OutFile $filePath
 
-                        $basePolicyParameters['ContentPath'] = $filePath
+                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
+                        $basePolicyParameters['LocalContentPath'] = $filePath
+                    }
+
+                    It 'Should throw a exception if ExcludeArcMachines is not specified' {
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Custom policies that reference User Assigned Identities will not include Arc enabled servers in the definition. Use -ExcludeArcMachines to continue.'
+                    }
+                }
+
+                Context 'Optional identity parameters - ManagedIdentityResourceId without LocalContentPath' {
+                    BeforeAll {
+                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
+                        $basePolicyParameters['LocalContentPath'] = $null
+                    }
+
+                    It 'Should throw a missing parameter exception if one of the parameters is missing' {
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together.'
+                    }
+                }
+
+                Context 'Optional identity parameters - LocalContentPath without ManagedIdentityResourceId' {
+                    BeforeAll {
+                        $fileName = $ContentUri.Split('/')[-1]
+                        $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
+                        Invoke-WebRequest $ContentUri -OutFile $filePath
+
+                        $basePolicyParameters['LocalContentPath'] = $filePath
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
 
                         Remove-Item -Path $filePath
                     }
 
                     It 'Should throw a missing parameter exception if one of the parameters is missing' {
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and ContentPath must be provided together.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together.'
                     }
                 }
             }

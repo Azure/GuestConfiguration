@@ -61,7 +61,11 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [System.Boolean]
-        $IncludeVMSS = $true
+        $IncludeVMSS = $true,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     $metadataSectionParameters = @{
@@ -86,7 +90,7 @@ function New-GuestConfigurationPolicyContent
 
     $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
 
-    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
+    if ($ExcludeArcMachines)
     {
         foreach ($anyOf in $conditionsSection.anyOf)
         {
@@ -127,7 +131,7 @@ function New-GuestConfigurationPolicyContent
 
     $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters
 
-    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $actionSection.details.deployment.properties.template.resources)
+    if ($ExcludeArcMachines -and $actionSection.details.deployment.properties.template.resources)
     {
         $tempResources = @()
         foreach ($resource in $actionSection.details.deployment.properties.template.resources)

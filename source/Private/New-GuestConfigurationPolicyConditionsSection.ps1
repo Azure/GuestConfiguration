@@ -15,7 +15,11 @@ function New-GuestConfigurationPolicyConditionsSection
 
         [Parameter()]
         [System.Boolean]
-        $IncludeVMSS = $true
+        $IncludeVMSS = $true,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     $templateFileName = "3-Images-$Platform.json"
@@ -53,6 +57,25 @@ function New-GuestConfigurationPolicyConditionsSection
                 $conditionsSection,
                 $tagConditions
             )
+        }
+    }
+
+    if ($ExcludeArcMachines)
+    {
+        foreach ($anyOf in $conditionsSection.anyOf)
+        {
+            foreach ($allOf in $anyOf.allOf)
+            {
+                if ($allOf.value -eq "[parameters('IncludeArcMachines')]")
+                {
+                    # Find and remove the specified section
+                    $indexToRemove = $anyOf.allOf.IndexOf($allOf)
+                    if ($indexToRemove -ne -1)
+                    {
+                        $anyOf.RemoveAt($indexToRemove)
+                    }
+                }
+            }
         }
     }
 

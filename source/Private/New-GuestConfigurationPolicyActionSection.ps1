@@ -39,7 +39,11 @@ function New-GuestConfigurationPolicyActionSection
 
         [Parameter()]
         [System.Boolean]
-        $IncludeVMSS = $true
+        $IncludeVMSS = $true,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     if ($AssignmentType -ieq 'Audit')
@@ -94,6 +98,20 @@ function New-GuestConfigurationPolicyActionSection
                 $parameterCondition
             )
         }
+    }
+
+    if ($ExcludeArcMachines -and $actionSection.details.deployment.properties.template.resources)
+    {
+        $tempResources = @()
+        foreach ($resource in $actionSection.details.deployment.properties.template.resources)
+        {
+            if ($resource.condition -imatch "HybridCompute")
+            {
+                continue
+            }
+            $tempResources += $resource
+        }
+        $actionSection.details.deployment.properties.template.resources = $tempResources
     }
 
     return $actionSection

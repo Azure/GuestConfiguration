@@ -6,11 +6,23 @@ function New-GuestConfigurationPolicyParametersSection
     (
         [Parameter()]
         [Hashtable[]]
-        $Parameter
+        $Parameter,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     $templateFileName = '2-Parameters.json'
     $parametersSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
+
+    if ($ExcludeArcMachines)
+    {
+        if ($parametersSection.parameters.IncludeArcMachines)
+        {
+            $parametersSection.parameters.Remove("IncludeArcMachines")
+        }
+    }
 
     foreach ($currentParameter in $Parameter)
     {

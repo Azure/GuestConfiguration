@@ -729,7 +729,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $fileContent = Get-Content -Path $result.Path -Raw
                         $fileContentJson = $fileContent | ConvertFrom-Json
 
-                        $fileContentJson.properties.metadata.guestConfiguration.contentManagedIdentity | Should -BeNullOrEmpty
+                        $fileContentJson.properties.metadata.guestConfiguration.PSObject.Properties.Match('contentManagedIdentity').Count | Should -Be 0
 
                         # Check Hybrid section removed
                         $imageConditionList = $fileContentJson.properties.policyRule.if.anyOf

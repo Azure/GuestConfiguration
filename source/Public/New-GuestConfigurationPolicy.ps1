@@ -34,7 +34,7 @@
         Note: If you are using an Azure storage account to store the custom machine configuration package artifact, you have two options for access:
         1. Generate a blob shared access signature (SAS) token with read access and provide the full blob URI with the SAS token for the ContentUri parameter.
         2. Create a user-assigned managed identity with read access to the storage account blob containing the package.
-            Provide the resource ID of the managed identity, a local path to the zipped package, and a URI to the package without a SAS token for the ManagedIdentityResourceId, LocalContentPath, and ContentUri parameters.
+            Provide the resource ID of the managed identity, a local path to the zipped package, a URI to the package without a SAS token and the ExcludeArcMachines parameter.
             With this option, once the generated policy is applied, the managed identity will be used to download the package onto the target machine.
 
     .PARAMETER ManagedIdentityResourceId
@@ -42,7 +42,7 @@
         The value for this parameter needs to be the resource id of the managed identity.
         This is an option to use when the package is stored in a storage account and the storage account is protected by a managed identity.
 
-        Note: optional parameter. If this is specified, LocalContentPath must also be specified.
+        Note: optional parameter. If this is specified, LocalContentPath and ExcludeArcMachines must also be specified.
 
     .PARAMETER LocalContentPath
         This is the path to the local package zip file. This is used to calculate the hash of the package.
@@ -259,7 +259,7 @@ function New-GuestConfigurationPolicy
 
     if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
     {
-        throw "Both ManagedIdentityResourceId and LocalContentPath must be provided together."
+        throw "Both ManagedIdentityResourceId and LocalContentPath must be provided together. Please include ManagedIdentityResourceId, LocalContentPath, and ExcludeArcMachines parameters."
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
@@ -463,7 +463,7 @@ function New-GuestConfigurationPolicy
         IncludeVMSS = $IncludeVMSS
     }
 
-    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
         $policyDefinitionContentParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }

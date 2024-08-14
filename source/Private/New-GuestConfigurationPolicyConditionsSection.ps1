@@ -60,6 +60,8 @@ function New-GuestConfigurationPolicyConditionsSection
         }
     }
 
+    $conditionsSection.anyOf = [System.Collections.ArrayList]@($conditionsSection.anyOf)
+
     if ($ExcludeArcMachines)
     {
         foreach ($anyOf in $conditionsSection.anyOf)
@@ -68,14 +70,14 @@ function New-GuestConfigurationPolicyConditionsSection
             {
                 if ($allOf.value -eq "[parameters('IncludeArcMachines')]")
                 {
-                    # Find and remove the specified section
-                    $indexToRemove = $anyOf.allOf.IndexOf($allOf)
-                    if ($indexToRemove -ne -1)
-                    {
-                        $anyOf.RemoveAt($indexToRemove)
-                    }
+                    $indexToRemove = $conditionsSection.anyOf.IndexOf($anyOf)
                 }
             }
+        }
+
+        if ($indexToRemove -ne -1)
+        {
+            $conditionsSection.anyOf.RemoveAt($indexToRemove)
         }
     }
 

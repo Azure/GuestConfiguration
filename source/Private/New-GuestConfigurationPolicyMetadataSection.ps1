@@ -32,6 +32,10 @@ function New-GuestConfigurationPolicyMetadataSection
         [String]
         $ContentUri,
 
+        [Parameter()]
+        [String]
+        $ManagedIdentityResourceId,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]
@@ -56,6 +60,11 @@ function New-GuestConfigurationPolicyMetadataSection
         contentType = 'Custom'
         contentUri = $ContentUri
         contentHash = $ContentHash
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
+    {
+        $propertiesSection.metadata.guestConfiguration.contentManagedIdentity = $ManagedIdentityResourceId
     }
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)

@@ -28,6 +28,10 @@ function New-GuestConfigurationPolicyContent
         [String]
         $ContentUri,
 
+        [Parameter()]
+        [String]
+        $ManagedIdentityResourceId,
+
         [Parameter(Mandatory = $true)]
         [String]
         $ContentHash,
@@ -57,7 +61,11 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [System.Boolean]
-        $IncludeVMSS = $true
+        $IncludeVMSS = $true,
+
+        [Parameter()]
+        [Switch]
+        $ExcludeArcMachines
     )
 
     $metadataSectionParameters = @{
@@ -71,11 +79,16 @@ function New-GuestConfigurationPolicyContent
         Parameter = $Parameter
     }
 
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
+    {
+        $metadataSectionParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
+    }
+
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
 
-    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter
+    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter -ExcludeArcMachines:$ExcludeArcMachines
 
-    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS
+    $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS -ExcludeArcMachines:$ExcludeArcMachines
 
     $actionSectionParameters = @{
         ConfigurationName = $ConfigurationName
@@ -87,7 +100,12 @@ function New-GuestConfigurationPolicyContent
         IncludeVMSS = $IncludeVMSS
     }
 
-    $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
+    {
+        $actionSectionParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
+    }
+
+    $actionSection = New-GuestConfigurationPolicyActionSection @actionSectionParameters -ExcludeArcMachines:$ExcludeArcMachines
 
     $policyDefinitionContent = [Ordered]@{
         properties = $metadataSection + $parametersSection + [Ordered]@{

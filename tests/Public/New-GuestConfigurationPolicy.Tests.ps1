@@ -333,7 +333,14 @@ Describe 'New-GuestConfigurationPolicy' {
 
                 foreach ($deploymentResource in $fileContentJson.properties.policyRule.then.details.deployment.properties.template.resources)
                 {
-                    $deploymentResource.apiVersion | Should -Be "2018-11-20"
+                    if ($deploymentResource.type -notcontains "HybridCompute")
+                    {
+                        $deploymentResource.apiVersion | Should -Be "2024-04-05"
+                    }
+                    else
+                    {
+                        $deploymentResource.apiVersion | Should -Be "2018-11-20"
+                    }
                     $deploymentResource.name | Should -Be "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]"
                     $deploymentResource.location | Should -Be "[parameters('location')]"
 

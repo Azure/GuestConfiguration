@@ -47,7 +47,7 @@
                     "resources": [
                         {
                             "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachines'))]",
-                            "apiVersion": "2018-11-20",
+                            "apiVersion": "2024-04-05",
                             "type": "Microsoft.Compute/virtualMachines/providers/guestConfigurationAssignments",
                             "name": "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]",
                             "location": "[parameters('location')]",
@@ -81,7 +81,7 @@
                         },
 						{
                             "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachineScaleSets'))]",
-                            "apiVersion": "2018-11-20",
+                            "apiVersion": "2024-04-05",
                             "type": "Microsoft.Compute/virtualMachineScaleSets/providers/guestConfigurationAssignments",
                             "name": "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]",
                             "location": "[parameters('location')]",

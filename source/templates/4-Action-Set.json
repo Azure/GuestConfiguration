@@ -64,7 +64,7 @@
                         },
                         {
                             "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.HybridCompute/machines'))]",
-                            "apiVersion": "2018-11-20",
+                            "apiVersion": "2024-04-05",
                             "type": "Microsoft.HybridCompute/machines/providers/guestConfigurationAssignments",
                             "name": "[concat(parameters('vmName'), '/Microsoft.GuestConfiguration/', parameters('assignmentName'))]",
                             "location": "[parameters('location')]",

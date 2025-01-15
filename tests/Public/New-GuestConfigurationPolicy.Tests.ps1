@@ -684,6 +684,12 @@ Describe 'New-GuestConfigurationPolicy' {
 
                         $result.PolicyId | Should -Not -BeNullOrEmpty
                         $result.PolicyId.GetType().Name | Should -Be 'Guid'
+
+                        $fileContent = Get-Content -Path $result.Path -Raw
+                        $fileContentJson = $fileContent | ConvertFrom-Json
+
+                        $imageConditionList = $fileContentJson.properties.policyRule.if.anyOf
+                        $imageConditionList | Should -BeNullOrEmpty
                     }
 
                     It 'Should have created the expected policy definition file' {

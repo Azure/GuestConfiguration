@@ -29,6 +29,27 @@ function New-GuestConfigurationPolicyConditionsSection
     }
     $conditionsSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
+    if ($ExcludeArcMachines)
+    {
+        $conditionsSection.anyOf = [System.Collections.ArrayList]@($conditionsSection.anyOf)
+
+        foreach ($anyOf in $conditionsSection.anyOf)
+        {
+            foreach ($allOf in $anyOf.allOf)
+            {
+                if ($allOf.value -eq "[parameters('IncludeArcMachines')]")
+                {
+                    $indexToRemove = $conditionsSection.anyOf.IndexOf($anyOf)
+                }
+            }
+        }
+
+        if ($indexToRemove -ne -1)
+        {
+            $conditionsSection.anyOf.RemoveAt($indexToRemove)
+        }
+    }
+
     if ($null -ne $Tag -and $Tag.Count -gt 0)
     {
         $tagConditionList = @()
@@ -57,27 +78,6 @@ function New-GuestConfigurationPolicyConditionsSection
                 $conditionsSection,
                 $tagConditions
             )
-        }
-    }
-
-    $conditionsSection.anyOf = [System.Collections.ArrayList]@($conditionsSection.anyOf)
-
-    if ($ExcludeArcMachines)
-    {
-        foreach ($anyOf in $conditionsSection.anyOf)
-        {
-            foreach ($allOf in $anyOf.allOf)
-            {
-                if ($allOf.value -eq "[parameters('IncludeArcMachines')]")
-                {
-                    $indexToRemove = $conditionsSection.anyOf.IndexOf($anyOf)
-                }
-            }
-        }
-
-        if ($indexToRemove -ne -1)
-        {
-            $conditionsSection.anyOf.RemoveAt($indexToRemove)
         }
     }
 

@@ -684,6 +684,12 @@ Describe 'New-GuestConfigurationPolicy' {
 
                         $result.PolicyId | Should -Not -BeNullOrEmpty
                         $result.PolicyId.GetType().Name | Should -Be 'Guid'
+
+                        $fileContent = Get-Content -Path $result.Path -Raw
+                        $fileContentJson = $fileContent | ConvertFrom-Json
+
+                        $imageConditionList = $fileContentJson.properties.policyRule.if.anyOf
+                        $imageConditionList | Should -BeNullOrEmpty
                     }
 
                     It 'Should have created the expected policy definition file' {
@@ -696,13 +702,13 @@ Describe 'New-GuestConfigurationPolicy' {
                         $fileName = $ContentUri.Split('/')[-1]
                         $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
                         Invoke-WebRequest $ContentUri -OutFile $filePath
-
-                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
-                        $basePolicyParameters['LocalContentPath'] = $filePath
-                        $baseAssertionParameters['ExpectedManagedIdentity'] = 'myManagedIdentity'
                     }
 
                     It 'Should include contentManagedIdentity in the result object and exclude Arc machines' {
+                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
+                        $basePolicyParameters['LocalContentPath'] = $filePath
+                        $baseAssertionParameters['ExpectedManagedIdentity'] = 'myManagedIdentity'
+
                         $result = New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines
 
                         $result | Should -Not -BeNull
@@ -717,11 +723,13 @@ Describe 'New-GuestConfigurationPolicy' {
 
                         $imageConditionList[0].allOf[0].anyOf[0].equals | Should -Be 'Microsoft.Compute/virtualMachines'
                         $imageConditionList[1].allOf | Should -BeNullOrEmpty
+
+                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('LocalContentPath')
+                        $baseAssertionParameters.Remove('ExpectedManagedIdentity')
                     }
 
                     It 'Should not include contentManagedIdentity in the result object, but also exclude Arc machines' {
-                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
-                        $basePolicyParameters.Remove('LocalContentPath')
                         $result = New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines
 
                         $result | Should -Not -BeNull
@@ -743,20 +751,30 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
 
                         { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. Managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy.'
+
+                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('LocalContentPath')
                     }
 
                     It 'Should throw a missing parameter exception if one of the parameters (LocalContentPath) is missing' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together. Please include ManagedIdentityResourceId, LocalContentPath, and ExcludeArcMachines parameters.'
+
+                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('LocalContentPath')
                     }
 
                     It 'Should throw a missing parameter exception if one of the parameters (ManagedIdentityResourceId) is missing' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Both ManagedIdentityResourceId and LocalContentPath must be provided together. Please include ManagedIdentityResourceId, LocalContentPath, and ExcludeArcMachines parameters.'
+
+
+                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('LocalContentPath')
                     }
                 }
             }

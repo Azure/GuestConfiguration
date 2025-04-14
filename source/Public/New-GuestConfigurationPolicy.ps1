@@ -44,6 +44,14 @@
 
         Note: optional parameter. If this is specified, LocalContentPath and ExcludeArcMachines must also be specified.
 
+    .PARAMETER UseSystemAssignmentIdentity
+        This is the option to use the system assigned identity for downloading package from storage account container instead of using SaS url.
+        When this option is enabled you cannot use the ManagedIdentityResourceId. Only one of the options should be used at a time.
+        You can use this parameter without ExcludeArcMachines option as the system assigned identity is available for Arc machines.
+        This is an option to use when the package is stored in a storage account and the storage account is protected by a managed identity.
+
+        Note: optional parameter. If this is specified, LocalContentPath must also be specified but ManagedIdentityResourceId should not be specified.
+
     .PARAMETER LocalContentPath
         This is the path to the local package zip file. This is used to calculate the hash of the package.
         The value of this parameter is not used in the policy definition.
@@ -200,6 +208,10 @@ function New-GuestConfigurationPolicy
         [System.String]
         $LocalContentPath,
 
+        [Parameter(ParameterSetName='ManagedIdentity')]
+        [Switch]
+        $UseSystemAssignmentIdentity,
+
         [Parameter()]
         [System.Version]
         $ContentVersion,
@@ -257,9 +269,26 @@ function New-GuestConfigurationPolicy
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity' -and ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
+    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity')
     {
-        throw "Both ManagedIdentityResourceId and LocalContentPath must be provided together. Please include ManagedIdentityResourceId, LocalContentPath, and ExcludeArcMachines parameters."
+        if (-not [string]::IsNullOrWhiteSpace($LocalContentPath))
+        {
+            if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignmentIdentity)
+            {
+                throw "If LocalContentPath is provided then please include either ManagedIdentityResourceId with ExcludeArchMachine or UseSystemAssignmentIdentity."
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignmentIdentity)
+            {
+                throw "Both ManagedIdentityResourceId and UseSystemAssignmentIdentity cannot be provided together."
+            }
+        }
+        else
+        {
+            if ($ManagedIdentityResourceId -or $UseSystemAssignmentIdentity)
+            {
+                throw "If ManagedIdentityResourceId with ExcludeArchMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package."
+            }
+        }
     }
 
     $requiredParameterProperties = @('Name', 'DisplayName', 'Description', 'ResourceType', 'ResourceId', 'ResourcePropertyName')
@@ -318,14 +347,28 @@ function New-GuestConfigurationPolicy
     $tempPath = Reset-GCWorkerTempDirectory
     $packagePath = Join-Path -Path $tempPath -ChildPath 'extracted'
 
-    if (-not ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or [string]::IsNullOrWhiteSpace($LocalContentPath)))
+    # This means the customer wants to use either identity to download the package.
+    if (-not [string]::IsNullOrWhiteSpace($LocalContentPath))
     {
-        if (-not $ExcludeArcMachines)
+        # This means the customer wants to use the User-Defined id.
+        if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
         {
-            throw "The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. Managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
-        }
+            if (-not $ExcludeArcMachines)
+            {
+                throw "The ManagedIdentityResourceId (user-assigned identity) and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. User assigned Managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
+            }
 
-        $packageFileDownloadPath = $LocalContentPath
+            $packageFileDownloadPath = $LocalContentPath
+        }
+        # This means the customer wants to use the System-Assigned id.
+        elseif ($UseSystemAssignmentIdentity)
+        {
+            $packageFileDownloadPath = $LocalContentPath
+        }
+        else
+        {
+            throw "The LocalContentPath is defined but either of the identity is not given. Please provide ManagedIdentityResourceId along with ExcludeArcMachine or use flag UseSystemAssignmentIdentity."
+        }
     }
     else
     {
@@ -466,6 +509,10 @@ function New-GuestConfigurationPolicy
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
         $policyDefinitionContentParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
+    }
+    elseif ($UseSystemAssignmentIdentity)
+    {
+        $policyDefinitionContentParameters.ManagedIdentityResourceId = "system"
     }
 
     $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters -ExcludeArcMachines:$ExcludeArcMachines

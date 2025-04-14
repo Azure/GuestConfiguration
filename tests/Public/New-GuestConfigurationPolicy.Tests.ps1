@@ -806,7 +806,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArchMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')
@@ -827,7 +827,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignmentIdentity } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArchMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignmentIdentity } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')

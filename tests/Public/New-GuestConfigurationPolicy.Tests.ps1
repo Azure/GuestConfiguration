@@ -697,7 +697,7 @@ Describe 'New-GuestConfigurationPolicy' {
                     }
                 }
 
-                Context 'Optional identity parameters - ManagedIdentityResourceId and ExcludeArcMachines or UseSystemAssignmentIdentity and LocalContentPath' {
+                Context 'Optional identity parameters - ManagedIdentityResourceId and ExcludeArcMachines or UseSystemAssignedIdentity and LocalContentPath' {
                     BeforeAll {
                         $fileName = $ContentUri.Split('/')[-1]
                         $filePath = Join-Path -Path $defaultDefinitionsPath -ChildPath $fileName
@@ -729,11 +729,11 @@ Describe 'New-GuestConfigurationPolicy' {
                         $baseAssertionParameters.Remove('ExpectedManagedIdentity')
                     }
 
-                    It 'Should include contentManagedIdentity - UseSystemAssignmentIdentity in the result object and exclude Arc machines' {
+                    It 'Should include contentManagedIdentity - UseSystemAssignedIdentity in the result object and exclude Arc machines' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
                         $baseAssertionParameters['ExpectedManagedIdentity'] = 'system'
 
-                        $result = New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines -UseSystemAssignmentIdentity
+                        $result = New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines -UseSystemAssignedIdentity
 
                         $result | Should -Not -BeNull
 
@@ -752,11 +752,11 @@ Describe 'New-GuestConfigurationPolicy' {
                         $baseAssertionParameters.Remove('ExpectedManagedIdentity')
                     }
 
-                    It 'Should include contentManagedIdentity - UseSystemAssignmentIdentity in the result object and not exclude Arc machines' {
+                    It 'Should include contentManagedIdentity - UseSystemAssignedIdentity in the result object and not exclude Arc machines' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
                         $baseAssertionParameters['ExpectedManagedIdentity'] = 'system'
 
-                        $result = New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignmentIdentity
+                        $result = New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignedIdentity
 
                         $result | Should -Not -BeNull
 
@@ -812,7 +812,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters.Remove('LocalContentPath')
                     }
 
-                    It 'Should throw a missing parameter exception if ManagedIdentityResourceId or UseSystemAssignmentIdentity is missing but LocalContentPath is provided' {
+                    It 'Should throw a missing parameter exception if ManagedIdentityResourceId or UseSystemAssignedIdentity is missing but LocalContentPath is provided' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
 
@@ -827,7 +827,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignmentIdentity } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignedIdentity } | Should -Throw -ExpectedMessage 'If ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignedIdentity is enabled please include the LocalContentPath with the path to the local package.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')

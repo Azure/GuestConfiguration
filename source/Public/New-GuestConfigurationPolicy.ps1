@@ -44,7 +44,7 @@
 
         Note: optional parameter. If this is specified, LocalContentPath and ExcludeArcMachines must also be specified.
 
-    .PARAMETER UseSystemAssignmentIdentity
+    .PARAMETER UseSystemAssignedIdentity
         This is the option to use the system assigned identity for downloading package from storage account container instead of using SaS url.
         When this option is enabled you cannot use the ManagedIdentityResourceId. Only one of the options should be used at a time.
         You can use this parameter without ExcludeArcMachines option as the system assigned identity is available for Arc machines.
@@ -210,7 +210,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter(ParameterSetName='ManagedIdentity')]
         [Switch]
-        $UseSystemAssignmentIdentity,
+        $UseSystemAssignedIdentity,
 
         [Parameter()]
         [System.Version]
@@ -273,18 +273,18 @@ function New-GuestConfigurationPolicy
     {
         if (-not [string]::IsNullOrWhiteSpace($LocalContentPath))
         {
-            if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignmentIdentity)
+            if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
             {
                 throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
             }
-            elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignmentIdentity)
+            elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignedIdentity)
             {
                 throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
             }
         }
         else
         {
-            if ($ManagedIdentityResourceId -or $UseSystemAssignmentIdentity)
+            if ($ManagedIdentityResourceId -or $UseSystemAssignedIdentity)
             {
                 throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
             }
@@ -361,13 +361,13 @@ function New-GuestConfigurationPolicy
             $packageFileDownloadPath = $LocalContentPath
         }
         # This means the customer wants to use the System-Assigned id.
-        elseif ($UseSystemAssignmentIdentity)
+        elseif ($UseSystemAssignedIdentity)
         {
             $packageFileDownloadPath = $LocalContentPath
         }
         else
         {
-            throw "The LocalContentPath is defined but either of the identity is not given. Please provide ManagedIdentityResourceId along with ExcludeArcMachine or use flag UseSystemAssignmentIdentity."
+            throw "The LocalContentPath is defined but either of the identity is not given. Please provide ManagedIdentityResourceId along with ExcludeArcMachine or use flag UseSystemAssignedIdentity."
         }
     }
     else
@@ -510,7 +510,7 @@ function New-GuestConfigurationPolicy
     {
         $policyDefinitionContentParameters.ManagedIdentityResourceId = $ManagedIdentityResourceId
     }
-    elseif ($UseSystemAssignmentIdentity)
+    elseif ($UseSystemAssignedIdentity)
     {
         $policyDefinitionContentParameters.ManagedIdentityResourceId = "system"
     }

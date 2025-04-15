@@ -275,18 +275,18 @@ function New-GuestConfigurationPolicy
         {
             if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignmentIdentity)
             {
-                throw "If LocalContentPath is provided then please include either ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignmentIdentity."
+                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
             }
             elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignmentIdentity)
             {
-                throw "Both ManagedIdentityResourceId and UseSystemAssignmentIdentity cannot be provided together."
+                throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
             }
         }
         else
         {
             if ($ManagedIdentityResourceId -or $UseSystemAssignmentIdentity)
             {
-                throw "If ManagedIdentityResourceId with ExcludeArcMachine or UseSystemAssignmentIdentity is enabled please include the LocalContentPath with the path to the local package."
+                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
             }
         }
     }

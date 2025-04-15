@@ -38,7 +38,7 @@
             With this option, once the generated policy is applied, the managed identity will be used to download the package onto the target machine.
 
     .PARAMETER ManagedIdentityResourceId
-        This is the identity that is used to download the package from storage account container instead of using SaS url.
+        This is the identity that is used to download the package from storage account container instead of using SAS url.
         The value for this parameter needs to be the resource id of the managed identity.
         This is an option to use when the package is stored in a storage account and the storage account is protected by a managed identity.
 

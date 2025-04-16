@@ -275,7 +275,7 @@ function New-GuestConfigurationPolicy
         {
             if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
             {
-                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
+                throw "Please specify either the -UseSystemAssignmentIdentity flag or ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag when providing input to the LocalContentPath parameter."
             }
             elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignedIdentity)
             {
@@ -284,9 +284,9 @@ function New-GuestConfigurationPolicy
         }
         else
         {
-            if ($ManagedIdentityResourceId -or $UseSystemAssignedIdentity)
+            if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or $UseSystemAssignedIdentity)
             {
-                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag"
+                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag."
             }
         }
     }
@@ -355,7 +355,7 @@ function New-GuestConfigurationPolicy
         {
             if (-not $ExcludeArcMachines)
             {
-                throw "The ManagedIdentityResourceId (user-assigned identity) and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. User assigned Managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
+                throw "The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. User assigned managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
             }
 
             $packageFileDownloadPath = $LocalContentPath

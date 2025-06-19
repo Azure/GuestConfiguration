@@ -65,13 +65,13 @@ function Get-MofResouceDependencies
         # Temporarily modify LD_LIBRARY_PATH to ensure the libmi.so library can be found
         Write-Verbose -Message "Setting LD_LIBRARY_PATH to include: $binFolderDestinationPath"
         $originalLdLibraryPath = $env:LD_LIBRARY_PATH
-        if ($originalLdLibraryPath)
+        if ([String]::IsNullOrEmpty($originalLdLibraryPath))
         {
-            $env:LD_LIBRARY_PATH = "$originalLdLibraryPath`:$binFolderDestinationPath"
+            $env:LD_LIBRARY_PATH = $binFolderDestinationPath
         }
         else
         {
-            $env:LD_LIBRARY_PATH = $binFolderDestinationPath
+            $env:LD_LIBRARY_PATH = "$originalLdLibraryPath`:$binFolderDestinationPath"
         }
 
         try

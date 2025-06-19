@@ -148,6 +148,13 @@ function New-GuestConfigurationPackage
     }
 
     # Validate dependencies
+    $platform = Get-OSPlatform
+    if ($platform -ine 'Windows')
+    {
+        # Install the Guest Configuration worker on Linux so that we can access the libmi.so library
+        Install-GCWorker
+    }
+
     $resourceDependencies = @( Get-MofResouceDependencies -MofFilePath $Configuration )
 
     if ($resourceDependencies.Count -le 0)

@@ -1,7 +1,26 @@
 instance of OMI_ConfigurationDocument
-{
-    Version = "1.0.0";
-    MinimumCompatibleVersion = "1.0.0";
-    CompatibleVersionAdditionalProperties = {"Omi_BaseResource:ConfigurationName"};
-    Name = "CustomConfig";
-};
+
+
+                    {
+ Version="2.0.0";
+
+
+                        MinimumCompatibleVersion = "1.0.0";
+
+
+                        CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+
+
+                        Author="kakeim";
+
+
+                        GenerationDate="01/26/2022 13:55:29";
+
+
+                        GenerationHost="DESKTOP-IQHSK3I";
+
+
+                        Name="TestScriptConfig";
+
+
+                    };

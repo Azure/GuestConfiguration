@@ -1,0 +1,33 @@
+instance of nxFile as $nxFile1ref
+{
+    ResourceID = "[nxFile]MyFile";
+    Contents = "Hello, world!";
+    SourceInfo = "/home/gurrajatwal/MyConfig.ps1::3::10::nxFile";
+    Mode = "0777";
+    DestinationPath = "/tmp/myfile";
+    ModuleVersion = "1.5.0";
+    Ensure = "Present";
+    ModuleName = "nxtools";
+    ConfigurationName = "MyConfig";
+};
+
+instance of nxFile as $nxFile2ref
+{
+    ResourceID = "[nxFile]MyFile";
+    Contents = "Hello, world!";
+    SourceInfo = "/home/gurrajatwal/MyConfig.ps1::3::10::nxFile";
+    Mode = "0777";
+    DestinationPath = "/tmp/myfile";
+    ModuleVersion = "1.5.0";
+    Ensure = "Present";
+    ModuleName = "nxtools";
+    ConfigurationName = "MyConfig";
+};
+
+instance of OMI_ConfigurationDocument
+{
+    Version="2.0.0";
+    MinimumCompatibleVersion = "1.0.0";
+    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
+    Name="MyConfig";
+};

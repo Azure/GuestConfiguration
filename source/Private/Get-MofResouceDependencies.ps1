@@ -80,7 +80,17 @@ function Get-MofResouceDependencies
             # libmi.so library to be available, and LD_LIBRARY_PATH must be set before the PowerShell process starts for
             # the dynamic linker to find the library during process initialization.
             $job = Start-Job -ScriptBlock $scriptBlock -ArgumentList $MofFilePath.FullName
-            $resourceDependencies = @(Receive-Job -Job $job -Wait -AutoRemoveJob)
+            $null = Wait-Job $job
+            if ($job.State -eq 'Failed')
+            {
+                $jobError = $job.ChildJobs[0].JobStateInfo.Reason
+                Remove-Job $job
+                throw $jobError
+            }
+
+            $resourceDependencies = @(Receive-Job $job)
+            Remove-Job $job
+
             return [Hashtable[]] $resourceDependencies
         }
         finally

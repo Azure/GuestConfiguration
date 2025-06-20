@@ -1,33 +1,27 @@
-instance of nxFile as $nxFile1ref
+instance of TestResource as $TestResource1ref
 {
-    ResourceID = "[nxFile]MyFile";
-    Contents = "Hello, world!";
-    SourceInfo = "/home/gurrajatwal/MyConfig.ps1::3::10::nxFile";
-    Mode = "0777";
-    DestinationPath = "/tmp/myfile";
-    ModuleVersion = "1.5.0";
-    Ensure = "Present";
-    ModuleName = "nxtools";
-    ConfigurationName = "MyConfig";
+    ModuleName = "TestModule";
+    ResourceID = "[TestResource]MyTestResource";
+    SourceInfo = "::7::9::TestModule";
+    ModuleVersion = "1.0";
+    ConfigurationName = "CustomConfig";
+    TestKey = "MyTest";
 };
 
-instance of nxFile as $nxFile2ref
+instance of TestResource as $TestResource2ref
 {
-    ResourceID = "[nxFile]MyFile";
-    Contents = "Hello, world!";
-    SourceInfo = "/home/gurrajatwal/MyConfig.ps1::3::10::nxFile";
-    Mode = "0777";
-    DestinationPath = "/tmp/myfile";
-    ModuleVersion = "1.5.0";
-    Ensure = "Present";
-    ModuleName = "nxtools";
-    ConfigurationName = "MyConfig";
+    ModuleName = "TestModule";
+    ResourceID = "[TestResource]MyTestResource";
+    SourceInfo = "::7::9::TestModule";
+    ModuleVersion = "1.0";
+    ConfigurationName = "CustomConfig";
+    TestKey = "MyTest";
 };
 
 instance of OMI_ConfigurationDocument
 {
-    Version="2.0.0";
+    Version = "1.0.0";
     MinimumCompatibleVersion = "1.0.0";
-    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-    Name="MyConfig";
+    CompatibleVersionAdditionalProperties = {"Omi_BaseResource:ConfigurationName"};
+    Name = "CustomConfig";
 };

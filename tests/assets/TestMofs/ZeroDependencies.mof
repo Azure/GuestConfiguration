@@ -1,7 +1,7 @@
 instance of OMI_ConfigurationDocument
 {
-    Version="2.0.0";
+    Version = "1.0.0";
     MinimumCompatibleVersion = "1.0.0";
-    CompatibleVersionAdditionalProperties= {"Omi_BaseResource:ConfigurationName"};
-    Name="MyConfig";
+    CompatibleVersionAdditionalProperties = {"Omi_BaseResource:ConfigurationName"};
+    Name = "CustomConfig";
 };

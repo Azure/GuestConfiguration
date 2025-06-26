@@ -606,6 +606,16 @@ Describe 'New-GuestConfigurationPackage' {
         }
     }
 
+    It 'Should not throw when the MOF has one dependency' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testSingleDependency"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'SingleDependency.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+    }
+
     It 'Should not throw when the MOF has multiple dependencies' {
         $newGuestConfigurationPackageParameters = @{
             Name = "testMultipleDependencies"

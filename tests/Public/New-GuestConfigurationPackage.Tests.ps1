@@ -605,4 +605,34 @@ Describe 'New-GuestConfigurationPackage' {
             $resourceDependencies.Count | Should -Be 0
         }
     }
+
+    It 'Should not throw when the MOF has one dependency' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testSingleDependency"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'SingleDependency.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+    }
+
+    It 'Should not throw when the MOF has multiple dependencies' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testMultipleDependencies"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'MultipleDependencies.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+    }
+
+    it 'Should throw when the MOF has zero dependencies' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testZeroDependencies"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'ZeroDependencies.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Throw -ExpectedMessage "Failed to determine resource dependencies*"
+    }
 }

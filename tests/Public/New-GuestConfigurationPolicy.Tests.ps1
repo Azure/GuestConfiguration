@@ -684,6 +684,32 @@ Describe 'New-GuestConfigurationPolicy' {
 
                         $result.PolicyId | Should -Not -BeNullOrEmpty
                         $result.PolicyId.GetType().Name | Should -Be 'Guid'
+
+                        $fileContent = Get-Content -Path $result.Path -Raw
+                        $fileContentJson = $fileContent | ConvertFrom-Json
+
+                        if ($OptionalParameters.ContainsKey('Tag'))
+                        {
+                            $fileContentJson.properties.policyRule.if.allOf | Should -Not -BeNullOrEmpty
+                            $fileContentJson.properties.policyRule.if.allOf.Count | Should -Be 2
+                            $fileContentJson.properties.policyRule.if.allOf[0].anyOf | Should -Not -BeNullOrEmpty
+
+                            # Multiple tags: allOf[1].allOf contains the tag conditions
+                            # Single tag: allOf[1] is the tag condition directly
+                            if ($OptionalParameters['Tag'].Keys.Count -gt 1)
+                            {
+                                $fileContentJson.properties.policyRule.if.allOf[1].allOf | Should -Not -BeNullOrEmpty
+                            }
+                            else
+                            {
+                                $fileContentJson.properties.policyRule.if.allOf[1].field | Should -Not -BeNullOrEmpty
+                                $fileContentJson.properties.policyRule.if.allOf[1].equals | Should -Not -BeNullOrEmpty
+                            }
+                        }
+                        else
+                        {
+                            $fileContentJson.properties.policyRule.if.anyOf | Should -Not -BeNullOrEmpty
+                        }
                     }
 
                     It 'Should have created the expected policy definition file' {

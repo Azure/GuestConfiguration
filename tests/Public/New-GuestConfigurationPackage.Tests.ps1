@@ -22,7 +22,7 @@ Describe 'New-GuestConfigurationPackage' {
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
 
         $script:originalPSModulePath = $env:PSModulePath
-        $env:PSModulePath = $env:PSModulePath + ";" + $testModulesFolderPath
+        $env:PSModulePath = $env:PSModulePath + [System.IO.Path]::PathSeparator + $testModulesFolderPath
     }
 
     AfterAll {
@@ -604,5 +604,35 @@ Describe 'New-GuestConfigurationPackage' {
             $resourceDependencies = @( Get-ChildItem -Path $expandedPackageModulesPath )
             $resourceDependencies.Count | Should -Be 0
         }
+    }
+
+    It 'Should not throw when the MOF has one dependency' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testSingleDependency"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'SingleDependency.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+    }
+
+    It 'Should not throw when the MOF has multiple dependencies' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testMultipleDependencies"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'MultipleDependencies.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+    }
+
+    it 'Should throw when the MOF has zero dependencies' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testZeroDependencies"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'ZeroDependencies.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Throw -ExpectedMessage "Failed to determine resource dependencies*"
     }
 }

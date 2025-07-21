@@ -22,7 +22,7 @@ Describe 'Get-GuestConfigurationPackageComplianceStatus' {
         $script:testOutputPath = Join-Path -Path $TestDrive -ChildPath 'output'
 
         $script:originalPSModulePath = $env:PSModulePath
-        $env:PSModulePath = $env:PSModulePath + ";" + $testModulesFolderPath
+        $env:PSModulePath = $env:PSModulePath + [System.IO.Path]::PathSeparator + $testModulesFolderPath
     }
 
     AfterAll {

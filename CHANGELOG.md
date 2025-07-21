@@ -4,6 +4,8 @@ The format is based on and uses the types of changes according to [Keep a Change
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fixed an error related to loading OMI libraries on newer versions of PowerShell
 
 ## [4.5.0] - 2023-07-25
 ### Added

@@ -200,15 +200,15 @@ function New-GuestConfigurationPolicy
         [System.Uri]
         $ContentUri,
 
-        [Parameter(ParameterSetName='ManagedIdentity')]
+        [Parameter()]
         [System.String]
         $ManagedIdentityResourceId,
 
-        [Parameter(ParameterSetName='ManagedIdentity')]
+        [Parameter()]
         [System.String]
         $LocalContentPath,
 
-        [Parameter(ParameterSetName='ManagedIdentity')]
+        [Parameter()]
         [Switch]
         $UseSystemAssignedIdentity,
 
@@ -269,25 +269,33 @@ function New-GuestConfigurationPolicy
         throw "The specified package URI does not follow the HTTP or HTTPS scheme. Please specify a valid HTTP or HTTPS URI with the ContentUri parameter."
     }
 
-    if ($PSCmdlet.ParameterSetName -eq 'ManagedIdentity')
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignedIdentity)
+    {
+        throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
+    {
+        if (-not $ExcludeArcMachines)
+        {
+            throw "The ManagedIdentityResourceId parameter is defined but the ExcludeArcMachines flag is not provided. User assigned managed identities cannot be used with Azure Arc machines."
+        }
+        if ([string]::IsNullOrWhiteSpace($LocalContentPath))
+        {
+            throw "Please provide input to the LocalContentPath parameter to use the ManagedIdentityResourceId parameter."
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignedIdentity)
+    {
+        if ([string]::IsNullOrWhiteSpace($LocalContentPath))
+        {
+            throw "Please provide input to the LocalContentPath parameter to use the UseSystemAssignedIdentity flag."
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
     {
         if (-not [string]::IsNullOrWhiteSpace($LocalContentPath))
         {
-            if ([string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
-            {
-                throw "Please specify either the -UseSystemAssignmentIdentity flag or ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag when providing input to the LocalContentPath parameter."
-            }
-            elseif (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and $UseSystemAssignedIdentity)
-            {
-                throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
-            }
-        }
-        else
-        {
-            if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -or $UseSystemAssignedIdentity)
-            {
-                throw "Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag."
-            }
+            throw "LocalContentPath was provided, but no identity parameters were specified. Please include either the UseSystemAssignedIdentity or ManagedIdentityResourceId with LocalContentPath."
         }
     }
 
@@ -353,21 +361,12 @@ function New-GuestConfigurationPolicy
         # This means the customer wants to use the User-Defined id.
         if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
         {
-            if (-not $ExcludeArcMachines)
-            {
-                throw "The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. User assigned managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy."
-            }
-
             $packageFileDownloadPath = $LocalContentPath
         }
         # This means the customer wants to use the System-Assigned id.
         elseif ($UseSystemAssignedIdentity)
         {
             $packageFileDownloadPath = $LocalContentPath
-        }
-        else
-        {
-            throw "The LocalContentPath is defined but either of the identity is not given. Please provide ManagedIdentityResourceId along with ExcludeArcMachine or use flag UseSystemAssignedIdentity."
         }
     }
     else

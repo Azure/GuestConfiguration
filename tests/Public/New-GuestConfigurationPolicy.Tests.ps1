@@ -816,7 +816,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
                         $basePolicyParameters['LocalContentPath'] = $filePath
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'The ManagedIdentityResourceId and LocalContentPath parameters are defined but the -ExcludeArcMachines parameter is not. User assigned managed identities cannot be used with Azure Arc machines. Please provide the -ExcludeArcMachines parameter to exclude Azure Arc machines and use a managed identity with this policy.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'The ManagedIdentityResourceId parameter is defined but the ExcludeArcMachines flag is not provided. User assigned managed identities cannot be used with Azure Arc machines.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')
@@ -826,7 +826,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use the ManagedIdentityResourceId parameter.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')
@@ -836,7 +836,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['LocalContentPath'] = $filePath
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Please specify either the -UseSystemAssignmentIdentity flag or ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag when providing input to the LocalContentPath parameter.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'LocalContentPath was provided, but no identity parameters were specified. Please include either the UseSystemAssignedIdentity or ManagedIdentityResourceId with LocalContentPath.'
 
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
@@ -847,9 +847,29 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = $null
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignedIdentity } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use either the -UseSystemAssignedIdentity flag or the ManagedIdentityResourceId parameter with the -ExcludeArcMachine flag.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters -UseSystemAssignedIdentity } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use the UseSystemAssignedIdentity flag.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('LocalContentPath')
+                    }
+
+                    It 'Should throw an error that both ManagedIdentityResourceId and UseSystemAssignedIdentity are provided' {
+                        $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
+                        $basePolicyParameters['UseSystemAssignedIdentity'] = $true
+                        $basePolicyParameters['LocalContentPath'] = $filePath
+
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together.'
+
+                        $basePolicyParameters.Remove('ManagedIdentityResourceId')
+                        $basePolicyParameters.Remove('UseSystemAssignedIdentity')
+                        $basePolicyParameters.Remove('LocalContentPath')
+                    }
+
+                    It 'Should throw an error when LocalContentPath is provided but neither of the identity parameters are provided' {
+                        $basePolicyParameters['LocalContentPath'] = $filePath
+
+                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'LocalContentPath was provided, but no identity parameters were specified. Please include either the UseSystemAssignedIdentity or ManagedIdentityResourceId with LocalContentPath.'
+
                         $basePolicyParameters.Remove('LocalContentPath')
                     }
                 }

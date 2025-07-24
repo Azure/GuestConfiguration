@@ -826,7 +826,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $basePolicyParameters['ManagedIdentityResourceId'] = 'myManagedIdentity'
                         $basePolicyParameters['LocalContentPath'] = $null
 
-                        { New-GuestConfigurationPolicy @basePolicyParameters } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use the ManagedIdentityResourceId parameter.'
+                        { New-GuestConfigurationPolicy @basePolicyParameters -ExcludeArcMachines } | Should -Throw -ExpectedMessage 'Please provide input to the LocalContentPath parameter to use the ManagedIdentityResourceId parameter.'
 
                         $basePolicyParameters.Remove('ManagedIdentityResourceId')
                         $basePolicyParameters.Remove('LocalContentPath')

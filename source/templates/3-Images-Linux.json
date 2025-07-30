@@ -179,7 +179,7 @@
             "allOf": [
                 {
                     "value": "[parameters('IncludeArcMachines')]",
-                    "equals": true
+                    "equals": "true"
                 },
                 {
                     "anyOf": [

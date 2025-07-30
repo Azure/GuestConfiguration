@@ -4,6 +4,10 @@ The format is based on and uses the types of changes according to [Keep a Change
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [4.2.0] - 2025-07-30
+### Fixed
+- Fixed "IncludeArcMachines" property to be compared as string instead of bool
+  
 ### Fixed
 - Fixed an error related to loading OMI libraries on newer versions of PowerShell
 

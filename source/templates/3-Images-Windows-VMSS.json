@@ -11,9 +11,9 @@
 						{
 							"field": "type",
 							"equals": "Microsoft.Compute/virtualMachineScaleSets"
-						}						
+						}
 					]
-                    
+
                 },
 				{
 					"field": "tags['aks-managed-orchestrator']",
@@ -188,7 +188,7 @@
             "allOf": [
                 {
                     "value": "[parameters('IncludeArcMachines')]",
-                    "equals": true
+                    "equals": "true"
                 },
                 {
                     "anyOf": [

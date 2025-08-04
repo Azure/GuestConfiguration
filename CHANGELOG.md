@@ -5,7 +5,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+- Fixed "IncludeArcMachines" property to be compared as string instead of bool
+  
+## [4.9.0] - 2025-07-24
+### Added
+- Added support for system managed identity-based custom policy downloads on Azure and Arc machines
+
+## [4.8.0] - 2025-07-07
+### Fixed
 - Fixed an error related to loading OMI libraries on newer versions of PowerShell
+
+## [4.7.0] - 2025-01-17
+### Fixed
+- New-GuestConfigurationPolicy: Fixed a bug where a null condition section was getting generated when using the Tag parameter
+
+## [4.6.0] - 2024-10-31
+### Added
+- New-GuestConfigurationPolicy: Added option to download custom policy package from Azure Storage with permissions from an Azure Managed Identity. This feature can only be used for non-Arc machines. New parameters include ManagedIdentityResourceId to declare which identity to use, LocalContentPath for development testing to skip download and test a local policy package, and ExcludeArcMachines switch to remove Arc machine references from the policy.
+### Changed
+- Updated GuestConfiguration API version to 2024-04-05
 
 ## [4.5.0] - 2023-07-25
 ### Added

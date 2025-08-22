@@ -185,11 +185,12 @@ function New-GuestConfigurationPackage
 
     if ($moduleDependencies.Count -gt 0)
     {
-        Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name)"
+        Write-Verbose -Message "Found the module dependencies: $($moduleDependencies.Name | Sort-Object | Get-Unique)"
     }
 
-    $duplicateModules = @( $moduleDependencies | Group-Object -Property 'Name' | Where-Object { $_.Count -gt 1 } )
+    $duplicateModules = @( $moduleDependencies | Group-Object -Property 'Name' )
 
+    $distinctModules = @()
     foreach ($duplicateModule in $duplicateModules)
     {
         $uniqueVersions = @( $duplicateModule.Group.Version | Get-Unique )
@@ -199,7 +200,11 @@ function New-GuestConfigurationPackage
             $moduleName = $duplicateModule.Group[0].Name
             throw "Cannot include more than one version of a module in one package. Detected versions $uniqueVersions of the module '$moduleName' are needed for this package."
         }
+
+        $distinctModules += $duplicateModule.Group[0]
     }
+
+    $moduleDependencies = $distinctModules
 
     $inSpecProfileSourcePaths = @()
 

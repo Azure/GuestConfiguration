@@ -626,6 +626,53 @@ Describe 'New-GuestConfigurationPackage' {
         { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
     }
 
+    It 'Should copy the dependency module only once when the MOF has multiple dependencies' {
+        $newGuestConfigurationPackageParameters = @{
+            Name = "testMultipleDependencies"
+            Configuration = Join-Path -Path $script:testMofsFolderPath -ChildPath 'MultipleDependencies.mof'
+            Path = Join-Path -Path $script:testOutputPath -ChildPath 'Package'
+            Force = $true
+        }
+
+        $compressedPackageName = "$($newGuestConfigurationPackageParameters.Name).zip"
+        $compressedPackagePath = Join-Path -Path $newGuestConfigurationPackageParameters.Path -ChildPath $compressedPackageName
+
+        $expandedPackageName = "$($newGuestConfigurationPackageParameters.Name)-Expanded"
+        $expandedPackagePath = Join-Path -Path $script:testOutputPath -ChildPath $expandedPackageName
+
+        $expandedPackageModulesPath = Join-Path -Path $expandedPackagePath -ChildPath 'Modules'
+
+        { New-GuestConfigurationPackage @newGuestConfigurationPackageParameters } | Should -Not -Throw
+
+        $null = Expand-Archive -Path $compressedPackagePath -DestinationPath $expandedPackagePath -Force
+
+        $expectedResourceModulePath = Join-Path -Path $expandedPackageModulesPath -ChildPath 'PSDscResources'
+        Test-Path -Path $expectedResourceModulePath -PathType 'Container' | Should -BeTrue
+        @(Get-ChildItem -Path $expectedResourceModulePath).Count | Should -BeGreaterThan 1
+
+        $expectedItems = @(
+            'PSDscResources.psd1',
+            'LICENSE',
+            'README.md',
+            'CHANGELOG.md',
+            'DscResources',
+            'Examples',
+            'Tests'
+        )
+
+        foreach ($item in $expectedItems)
+        {
+            $path = Join-Path -Path $expectedResourceModulePath -ChildPath $item
+            Test-Path -Path $path | Should -BeTrue
+        }
+
+        # Ensure there are no unexpected subfolders (like version folders)
+        $allowedFolders = @('DscResources','Examples','Tests')
+        $actualFolders = Get-ChildItem -Path $expectedResourceModulePath -Directory | Select-Object -ExpandProperty Name
+        $unexpectedFolders = $actualFolders | Where-Object { $_ -notin $allowedFolders }
+        $unexpectedFolders | Should -BeNullOrEmpty
+    }
+
     it 'Should throw when the MOF has zero dependencies' {
         $newGuestConfigurationPackageParameters = @{
             Name = "testZeroDependencies"

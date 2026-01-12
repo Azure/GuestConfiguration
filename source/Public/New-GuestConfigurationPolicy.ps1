@@ -245,7 +245,11 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines
+        $ExcludeArcMachines,
+
+        [Parameter()]
+        [Switch]
+        $EnableAutoRemediation
     )
 
     # Validate parameters
@@ -273,6 +277,12 @@ function New-GuestConfigurationPolicy
     {
         throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
     }
+
+    if ($EnableAutoRemediation -and $Mode -eq 'Audit')
+    {
+        throw "The EnableAutoRemediation parameter cannot be used with Audit mode. Please use ApplyAndAutoCorrect or ApplyAndMonitor mode."
+    }
+
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
     {
         if (-not $ExcludeArcMachines)
@@ -514,7 +524,7 @@ function New-GuestConfigurationPolicy
         $policyDefinitionContentParameters.ManagedIdentityResourceId = "system"
     }
 
-    $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters -ExcludeArcMachines:$ExcludeArcMachines
+    $policyDefinitionContent = New-GuestConfigurationPolicyContent @policyDefinitionContentParameters -ExcludeArcMachines:$ExcludeArcMachines -EnableAutoRemediation:$EnableAutoRemediation
 
     # Convert definition hashtable to JSON
     $policyDefinitionContentJson = (ConvertTo-Json -InputObject $policyDefinitionContent -Depth 100).Replace('\u0027', "'")

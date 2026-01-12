@@ -12,6 +12,18 @@
                 "false"
             ],
             "defaultValue": "false"
+        },
+        "EnableAutoRemediation": {
+            "type": "string",
+            "metadata": {
+                "displayName": "Enable Auto Remediation",
+                "description": "When true, the policy will automatically enforce the time zone configuration. When false, it will only audit"
+            },
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "defaultValue": "false"
         }
     }
 }

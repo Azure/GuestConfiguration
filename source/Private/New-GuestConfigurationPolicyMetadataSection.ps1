@@ -74,7 +74,7 @@ function New-GuestConfigurationPolicyMetadataSection
     # Add assignmentType if EnableAutoRemediation is used
     if ($EnableAutoRemediation)
     {
-        $propertiesSection.metadata.guestConfiguration.assignmentType = "[if(equals(parameters('EnableAutoRemediation'),'true'),'$AssignmentType','Audit')]"
+        $propertiesSection.metadata.guestConfiguration.assignmentType = "[if(parameters('EnableAutoRemediation'),'$AssignmentType','Audit')]"
     }
     elseif ($null -ne $AssignmentType)
     {

@@ -928,7 +928,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         # Verify dynamic assignmentType in metadata.guestConfiguration
                         $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
                         $metadataAssignmentType | Should -Not -BeNullOrEmpty
-                        $metadataAssignmentType | Should -Match "if\(equals\(parameters\('EnableAutoRemediation'\),'true'\),'ApplyAndAutoCorrect','Audit'\)"
+                        $metadataAssignmentType | Should -Match "if\(parameters\('EnableAutoRemediation'\),'ApplyAndAutoCorrect','Audit'\)"
 
                         # Verify static assignmentType in deployment resources
                         $deploymentTemplate = $fileContentJson.properties.policyRule.then.details.deployment.properties.template
@@ -962,7 +962,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         # Verify dynamic assignmentType in metadata.guestConfiguration
                         $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
                         $metadataAssignmentType | Should -Not -BeNullOrEmpty
-                        $metadataAssignmentType | Should -Match "if\(equals\(parameters\('EnableAutoRemediation'\),'true'\),'ApplyAndMonitor','Audit'\)"
+                        $metadataAssignmentType | Should -Match "if\(parameters\('EnableAutoRemediation'\),'ApplyAndMonitor','Audit'\)"
 
                         # Verify static assignmentType in deployment resources
                         $deploymentTemplate = $fileContentJson.properties.policyRule.then.details.deployment.properties.template

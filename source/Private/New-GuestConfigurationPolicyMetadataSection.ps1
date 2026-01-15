@@ -46,7 +46,7 @@ function New-GuestConfigurationPolicyMetadataSection
         $Parameter,
 
         [Parameter()]
-        [Switch]
+        [System.Boolean]
         $EnableAutoRemediation,
 
         [Parameter()]

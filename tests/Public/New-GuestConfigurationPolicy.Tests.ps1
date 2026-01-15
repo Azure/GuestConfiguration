@@ -875,7 +875,7 @@ Describe 'New-GuestConfigurationPolicy' {
                     }
                 }
 
-                Context 'EnableAutoRemediation parameter' {
+                Context 'Automatic EnableAutoRemediation for Set policies' {
                     AfterEach {
                         # Clean up temp files to avoid file locks between tests
                         Start-Sleep -Milliseconds 500  # Longer pause to allow file handles to release
@@ -898,18 +898,40 @@ Describe 'New-GuestConfigurationPolicy' {
                         }
                     }
 
-                    It 'Should throw an error when EnableAutoRemediation is used with Audit mode' {
+                    It 'Should NOT include EnableAutoRemediation parameter for Audit mode' {
                         $testPolicyParameters = $basePolicyParameters.Clone()
                         $testPolicyParameters['Mode'] = 'Audit'
 
-                        { New-GuestConfigurationPolicy @testPolicyParameters -EnableAutoRemediation } | Should -Throw -ExpectedMessage 'The EnableAutoRemediation parameter cannot be used with Audit mode. Please use ApplyAndAutoCorrect or ApplyAndMonitor mode.'
+                        $result = New-GuestConfigurationPolicy @testPolicyParameters
+
+                        $result | Should -Not -BeNull
+                        Test-Path -Path $result.Path | Should -BeTrue
+
+                        $fileContent = Get-Content -Path $result.Path -Raw
+                        $fileContentJson = $fileContent | ConvertFrom-Json
+
+                        # Verify EnableAutoRemediation parameter does NOT exist for Audit mode
+                        $fileContentJson.properties.parameters.EnableAutoRemediation | Should -BeNullOrEmpty
+
+                        # Verify static assignmentType in metadata (no dynamic expression)
+                        $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
+                        $metadataAssignmentType | Should -Be 'Audit'
+                        $metadataAssignmentType | Should -Not -Match "if\(parameters"
+
+                        # For Audit mode, this is AuditIfNotExists (no deployment section)
+                        # Verify NO EnableAutoRemediation check in existenceCondition
+                        $existenceCondition = $fileContentJson.properties.policyRule.then.details.existenceCondition
+                        if ($existenceCondition.allOf) {
+                            $autoRemediationCondition = $existenceCondition.allOf | Where-Object { $_.value -eq "[parameters('EnableAutoRemediation')]" }
+                            $autoRemediationCondition | Should -BeNullOrEmpty
+                        }
                     }
 
-                    It 'Should include EnableAutoRemediation parameter when switch is used with ApplyAndAutoCorrect mode' {
+                    It 'Should automatically include EnableAutoRemediation parameter for ApplyAndAutoCorrect mode' {
                         $testPolicyParameters = $basePolicyParameters.Clone()
                         $testPolicyParameters['Mode'] = 'ApplyAndAutoCorrect'
 
-                        $result = New-GuestConfigurationPolicy @testPolicyParameters -EnableAutoRemediation
+                        $result = New-GuestConfigurationPolicy @testPolicyParameters
 
                         $result | Should -Not -BeNull
                         Test-Path -Path $result.Path | Should -BeTrue
@@ -934,7 +956,7 @@ Describe 'New-GuestConfigurationPolicy' {
                         $deploymentTemplate = $fileContentJson.properties.policyRule.then.details.deployment.properties.template
                         $resourceAssignmentType = $deploymentTemplate.resources[0].properties.guestConfiguration.assignmentType
                         $resourceAssignmentType | Should -Be 'ApplyAndAutoCorrect'
-                        $resourceAssignmentType | Should -Not -Match "if\(equals\(parameters"
+                        $resourceAssignmentType | Should -Not -Match "if\(parameters"
 
                         # Verify EnableAutoRemediation check in existenceCondition
                         $existenceCondition = $fileContentJson.properties.policyRule.then.details.existenceCondition
@@ -944,11 +966,11 @@ Describe 'New-GuestConfigurationPolicy' {
                         $autoRemediationCondition.in | Should -Be @('true', 'false')
                     }
 
-                    It 'Should include EnableAutoRemediation parameter when switch is used with ApplyAndMonitor mode' {
+                    It 'Should automatically include EnableAutoRemediation parameter for ApplyAndMonitor mode' {
                         $testPolicyParameters = $basePolicyParameters.Clone()
                         $testPolicyParameters['Mode'] = 'ApplyAndMonitor'
 
-                        $result = New-GuestConfigurationPolicy @testPolicyParameters -EnableAutoRemediation
+                        $result = New-GuestConfigurationPolicy @testPolicyParameters
 
                         $result | Should -Not -BeNull
                         Test-Path -Path $result.Path | Should -BeTrue
@@ -958,6 +980,8 @@ Describe 'New-GuestConfigurationPolicy' {
 
                         # Verify EnableAutoRemediation parameter exists
                         $fileContentJson.properties.parameters.EnableAutoRemediation | Should -Not -BeNullOrEmpty
+                        $fileContentJson.properties.parameters.EnableAutoRemediation.type | Should -Be 'string'
+                        $fileContentJson.properties.parameters.EnableAutoRemediation.defaultValue | Should -Be 'false'
 
                         # Verify dynamic assignmentType in metadata.guestConfiguration
                         $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
@@ -974,9 +998,10 @@ Describe 'New-GuestConfigurationPolicy' {
                         $existenceCondition.allOf | Should -Not -BeNullOrEmpty
                         $autoRemediationCondition = $existenceCondition.allOf | Where-Object { $_.value -eq "[parameters('EnableAutoRemediation')]" }
                         $autoRemediationCondition | Should -Not -BeNullOrEmpty
+                        $autoRemediationCondition.in | Should -Be @('true', 'false')
                     }
 
-                    It 'Should NOT include EnableAutoRemediation parameter when switch is not used' {
+                    It 'Should use dynamic assignmentType for ApplyAndAutoCorrect Set policies' {
                         $testPolicyParameters = $basePolicyParameters.Clone()
                         $testPolicyParameters['Mode'] = 'ApplyAndAutoCorrect'
 
@@ -988,29 +1013,18 @@ Describe 'New-GuestConfigurationPolicy' {
                         $fileContent = Get-Content -Path $result.Path -Raw
                         $fileContentJson = $fileContent | ConvertFrom-Json
 
-                        # Verify EnableAutoRemediation parameter does NOT exist
-                        $fileContentJson.properties.parameters.EnableAutoRemediation | Should -BeNullOrEmpty
-
-                        # Verify static assignmentType in metadata (no dynamic expression)
+                        # Verify dynamic assignmentType in metadata
                         $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
-                        $metadataAssignmentType | Should -Be 'ApplyAndAutoCorrect'
-                        $metadataAssignmentType | Should -Not -Match "if\(equals\(parameters"
+                        $metadataAssignmentType | Should -Match "if\(parameters\('EnableAutoRemediation'\),'ApplyAndAutoCorrect','Audit'\)"
 
-                        # Verify static assignmentType in deployment resources
+                        # Verify static assignmentType in deployment (not dynamic)
                         $deploymentTemplate = $fileContentJson.properties.policyRule.then.details.deployment.properties.template
                         $resourceAssignmentType = $deploymentTemplate.resources[0].properties.guestConfiguration.assignmentType
                         $resourceAssignmentType | Should -Be 'ApplyAndAutoCorrect'
-                        $resourceAssignmentType | Should -Not -Match "if\(equals\(parameters"
-
-                        # Verify NO EnableAutoRemediation check in existenceCondition
-                        $existenceCondition = $fileContentJson.properties.policyRule.then.details.existenceCondition
-                        if ($existenceCondition.allOf) {
-                            $autoRemediationCondition = $existenceCondition.allOf | Where-Object { $_.value -eq "[parameters('EnableAutoRemediation')]" }
-                            $autoRemediationCondition | Should -BeNullOrEmpty
-                        }
+                        $resourceAssignmentType | Should -Not -Match "if\(parameters"
                     }
 
-                    It 'Should use static assignmentType when EnableAutoRemediation is not used with ApplyAndMonitor' {
+                    It 'Should use dynamic assignmentType for ApplyAndMonitor Set policies' {
                         $testPolicyParameters = $basePolicyParameters.Clone()
                         $testPolicyParameters['Mode'] = 'ApplyAndMonitor'
 
@@ -1022,26 +1036,15 @@ Describe 'New-GuestConfigurationPolicy' {
                         $fileContent = Get-Content -Path $result.Path -Raw
                         $fileContentJson = $fileContent | ConvertFrom-Json
 
-                        # Verify EnableAutoRemediation parameter does NOT exist
-                        $fileContentJson.properties.parameters.EnableAutoRemediation | Should -BeNullOrEmpty
-
-                        # Verify static assignmentType in metadata
+                        # Verify dynamic assignmentType in metadata
                         $metadataAssignmentType = $fileContentJson.properties.metadata.guestConfiguration.assignmentType
-                        $metadataAssignmentType | Should -Be 'ApplyAndMonitor'
-                        $metadataAssignmentType | Should -Not -Match "if\(equals\(parameters"
+                        $metadataAssignmentType | Should -Match "if\(parameters\('EnableAutoRemediation'\),'ApplyAndMonitor','Audit'\)"
 
-                        # Verify static assignmentType in deployment resources
+                        # Verify static assignmentType in deployment (not dynamic)
                         $deploymentTemplate = $fileContentJson.properties.policyRule.then.details.deployment.properties.template
                         $resourceAssignmentType = $deploymentTemplate.resources[0].properties.guestConfiguration.assignmentType
                         $resourceAssignmentType | Should -Be 'ApplyAndMonitor'
-                        $resourceAssignmentType | Should -Not -Match "if\(equals\(parameters"
-
-                        # Verify NO EnableAutoRemediation check in existenceCondition
-                        $existenceCondition = $fileContentJson.properties.policyRule.then.details.existenceCondition
-                        if ($existenceCondition.allOf) {
-                            $autoRemediationCondition = $existenceCondition.allOf | Where-Object { $_.value -eq "[parameters('EnableAutoRemediation')]" }
-                            $autoRemediationCondition | Should -BeNullOrEmpty
-                        }
+                        $resourceAssignmentType | Should -Not -Match "if\(parameters"
                     }
                 }
             }

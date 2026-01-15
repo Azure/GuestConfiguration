@@ -245,11 +245,7 @@ function New-GuestConfigurationPolicy
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines,
-
-        [Parameter()]
-        [Switch]
-        $EnableAutoRemediation
+        $ExcludeArcMachines
     )
 
     # Validate parameters
@@ -278,10 +274,8 @@ function New-GuestConfigurationPolicy
         throw "The ManagedIdentityResourceId parameter and UseSystemAssignedIdentity flag cannot be provided together."
     }
 
-    if ($EnableAutoRemediation -and $Mode -eq 'Audit')
-    {
-        throw "The EnableAutoRemediation parameter cannot be used with Audit mode. Please use ApplyAndAutoCorrect or ApplyAndMonitor mode."
-    }
+    # Automatically enable EnableAutoRemediation for Set policies (not Audit)
+    $EnableAutoRemediation = $Mode -ine 'Audit'
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId) -and -not $UseSystemAssignedIdentity)
     {

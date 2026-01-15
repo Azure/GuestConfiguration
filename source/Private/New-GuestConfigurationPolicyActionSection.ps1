@@ -46,7 +46,7 @@ function New-GuestConfigurationPolicyActionSection
         $ExcludeArcMachines,
 
         [Parameter()]
-        [Switch]
+        [System.Boolean]
         $EnableAutoRemediation
     )
 
@@ -104,6 +104,7 @@ function New-GuestConfigurationPolicyActionSection
         }
     }
 
+    # Auto-enable for Set policies (not Audit)
     if ($EnableAutoRemediation)
     {
         $complianceCondition = $actionSection.details.existenceCondition

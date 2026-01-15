@@ -68,7 +68,7 @@ function New-GuestConfigurationPolicyContent
         $ExcludeArcMachines,
 
         [Parameter()]
-        [Switch]
+        [System.Boolean]
         $EnableAutoRemediation
     )
 

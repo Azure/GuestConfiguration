@@ -65,7 +65,11 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines
+        $ExcludeArcMachines,
+
+        [Parameter()]
+        [System.Boolean]
+        $EnableAutoRemediation
     )
 
     $metadataSectionParameters = @{
@@ -77,6 +81,8 @@ function New-GuestConfigurationPolicyContent
         ContentUri = $ContentUri
         ContentHash = $ContentHash
         Parameter = $Parameter
+        EnableAutoRemediation = $EnableAutoRemediation
+        AssignmentType = $AssignmentType
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
@@ -86,7 +92,7 @@ function New-GuestConfigurationPolicyContent
 
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
 
-    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter -ExcludeArcMachines:$ExcludeArcMachines
+    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter -ExcludeArcMachines:$ExcludeArcMachines -EnableAutoRemediation:$EnableAutoRemediation
 
     $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS -ExcludeArcMachines:$ExcludeArcMachines
 
@@ -98,6 +104,7 @@ function New-GuestConfigurationPolicyContent
         AssignmentType = $AssignmentType
         Parameter = $Parameter
         IncludeVMSS = $IncludeVMSS
+        EnableAutoRemediation = $EnableAutoRemediation
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))

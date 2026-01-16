@@ -10,7 +10,11 @@ function New-GuestConfigurationPolicyParametersSection
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines
+        $ExcludeArcMachines,
+
+        [Parameter()]
+        [System.Boolean]
+        $EnableAutoRemediation
     )
 
     $templateFileName = '2-Parameters.json'
@@ -21,6 +25,16 @@ function New-GuestConfigurationPolicyParametersSection
         if ($parametersSection.parameters.IncludeArcMachines)
         {
             $parametersSection.parameters.Remove("IncludeArcMachines")
+        }
+    }
+
+    # Auto-enable EnableAutoRemediation for Set policies (not Audit)
+    # Remove from template if this is an Audit policy
+    if (-not $EnableAutoRemediation)
+    {
+        if ($parametersSection.parameters.EnableAutoRemediation)
+        {
+            $parametersSection.parameters.Remove("EnableAutoRemediation")
         }
     }
 

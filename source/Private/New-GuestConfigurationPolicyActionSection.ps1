@@ -43,7 +43,11 @@ function New-GuestConfigurationPolicyActionSection
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines
+        $ExcludeArcMachines,
+
+        [Parameter()]
+        [System.Boolean]
+        $EnableAutoRemediation
     )
 
     if ($AssignmentType -ieq 'Audit')
@@ -97,6 +101,33 @@ function New-GuestConfigurationPolicyActionSection
                 $complianceCondition,
                 $parameterCondition
             )
+        }
+    }
+
+    # Auto-enable for Set policies (not Audit)
+    if ($EnableAutoRemediation)
+    {
+        $complianceCondition = $actionSection.details.existenceCondition
+
+        $enableAutoRemediationCondition = [Ordered]@{
+            value = "[parameters('EnableAutoRemediation')]"
+            in = @('true', 'false')
+        }
+
+        if ($complianceCondition.allOf)
+        {
+            # Already has allOf array (e.g., when there are parameters)
+            $actionSection.details.existenceCondition.allOf += $enableAutoRemediationCondition
+        }
+        else
+        {
+            # Simple existenceCondition, wrap it in allOf
+            $actionSection.details.existenceCondition = [Ordered]@{
+                allOf = @(
+                    $complianceCondition,
+                    $enableAutoRemediationCondition
+                )
+            }
         }
     }
 

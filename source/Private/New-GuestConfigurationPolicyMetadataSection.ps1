@@ -43,7 +43,16 @@ function New-GuestConfigurationPolicyMetadataSection
 
         [Parameter()]
         [Hashtable[]]
-        $Parameter
+        $Parameter,
+
+        [Parameter()]
+        [System.Boolean]
+        $EnableAutoRemediation,
+
+        [Parameter()]
+        [ValidateSet('Audit', 'ApplyAndAutoCorrect', 'ApplyAndMonitor')]
+        [String]
+        $AssignmentType
     )
 
     $templateFileName = '1-Metadata.json'
@@ -60,6 +69,16 @@ function New-GuestConfigurationPolicyMetadataSection
         contentType = 'Custom'
         contentUri = $ContentUri
         contentHash = $ContentHash
+    }
+
+    # Add assignmentType if EnableAutoRemediation is used
+    if ($EnableAutoRemediation)
+    {
+        $propertiesSection.metadata.guestConfiguration.assignmentType = "[if(parameters('EnableAutoRemediation'),'$AssignmentType','Audit')]"
+    }
+    elseif ($null -ne $AssignmentType)
+    {
+        $propertiesSection.metadata.guestConfiguration.assignmentType = $AssignmentType
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))

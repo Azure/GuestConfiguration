@@ -43,11 +43,7 @@ function New-GuestConfigurationPolicyActionSection
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines,
-
-        [Parameter()]
-        [System.Boolean]
-        $EnableAutoRemediation
+        $ExcludeArcMachines
     )
 
     if ($AssignmentType -ieq 'Audit')
@@ -76,8 +72,6 @@ function New-GuestConfigurationPolicyActionSection
 
     if ($null -ne $Parameter -and $Parameter.Count -gt 0)
     {
-        $complianceCondition = $actionSection.details.existenceCondition
-
         $parameterHashStringList = @()
 
         foreach ($currentParameter in $Parameter)
@@ -96,39 +90,12 @@ function New-GuestConfigurationPolicyActionSection
             equals = $parameterHashString
         }
 
-        $actionSection.details.existenceCondition = [Ordered]@{
-            allOf = @(
-                $complianceCondition,
-                $parameterCondition
-            )
-        }
+        $actionSection.details.existenceCondition.allOf += $parameterCondition
     }
 
-    # Auto-enable for Set policies (not Audit)
-    if ($EnableAutoRemediation)
+    if ($actionSection.details.existenceCondition.allOf.Count -eq 1)
     {
-        $complianceCondition = $actionSection.details.existenceCondition
-
-        $enableAutoRemediationCondition = [Ordered]@{
-            value = "[parameters('EnableAutoRemediation')]"
-            in = @('true', 'false')
-        }
-
-        if ($complianceCondition.allOf)
-        {
-            # Already has allOf array (e.g., when there are parameters)
-            $actionSection.details.existenceCondition.allOf += $enableAutoRemediationCondition
-        }
-        else
-        {
-            # Simple existenceCondition, wrap it in allOf
-            $actionSection.details.existenceCondition = [Ordered]@{
-                allOf = @(
-                    $complianceCondition,
-                    $enableAutoRemediationCondition
-                )
-            }
-        }
+        $actionSection.details.existenceCondition = $actionSection.details.existenceCondition.allOf[0]
     }
 
     if ($ExcludeArcMachines -and $actionSection.details.deployment.properties.template.resources)

@@ -44,7 +44,7 @@ function New-GuestConfigurationPolicyContent
         [Parameter(Mandatory = $true)]
         [ValidateSet('Audit', 'ApplyAndMonitor', 'ApplyAndAutoCorrect')]
         [String]
-        $AssignmentType,
+        $AssignmentType = 'Audit',
 
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
@@ -65,11 +65,7 @@ function New-GuestConfigurationPolicyContent
 
         [Parameter()]
         [Switch]
-        $ExcludeArcMachines,
-
-        [Parameter()]
-        [System.Boolean]
-        $EnableAutoRemediation
+        $ExcludeArcMachines
     )
 
     $metadataSectionParameters = @{
@@ -81,7 +77,6 @@ function New-GuestConfigurationPolicyContent
         ContentUri = $ContentUri
         ContentHash = $ContentHash
         Parameter = $Parameter
-        EnableAutoRemediation = $EnableAutoRemediation
         AssignmentType = $AssignmentType
     }
 
@@ -92,7 +87,7 @@ function New-GuestConfigurationPolicyContent
 
     $metadataSection = New-GuestConfigurationPolicyMetadataSection @metadataSectionParameters
 
-    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter -ExcludeArcMachines:$ExcludeArcMachines -EnableAutoRemediation:$EnableAutoRemediation
+    $parametersSection = New-GuestConfigurationPolicyParametersSection -Parameter $Parameter -AssignmentType $AssignmentType -ExcludeArcMachines:$ExcludeArcMachines
 
     $conditionsSection = New-GuestConfigurationPolicyConditionsSection -Platform $Platform -Tag $Tag -IncludeVMSS $IncludeVMSS -ExcludeArcMachines:$ExcludeArcMachines
 
@@ -104,7 +99,6 @@ function New-GuestConfigurationPolicyContent
         AssignmentType = $AssignmentType
         Parameter = $Parameter
         IncludeVMSS = $IncludeVMSS
-        EnableAutoRemediation = $EnableAutoRemediation
     }
 
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))

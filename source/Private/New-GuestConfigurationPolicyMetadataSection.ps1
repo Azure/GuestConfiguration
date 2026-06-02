@@ -46,13 +46,9 @@ function New-GuestConfigurationPolicyMetadataSection
         $Parameter,
 
         [Parameter()]
-        [System.Boolean]
-        $EnableAutoRemediation,
-
-        [Parameter()]
         [ValidateSet('Audit', 'ApplyAndAutoCorrect', 'ApplyAndMonitor')]
         [String]
-        $AssignmentType
+        $AssignmentType = 'Audit'
     )
 
     $templateFileName = '1-Metadata.json'
@@ -71,16 +67,6 @@ function New-GuestConfigurationPolicyMetadataSection
         contentHash = $ContentHash
     }
 
-    # Add assignmentType if EnableAutoRemediation is used
-    if ($EnableAutoRemediation)
-    {
-        $propertiesSection.metadata.guestConfiguration.assignmentType = "[if(parameters('EnableAutoRemediation'),'$AssignmentType','Audit')]"
-    }
-    elseif ($null -ne $AssignmentType)
-    {
-        $propertiesSection.metadata.guestConfiguration.assignmentType = $AssignmentType
-    }
-
     if (-not [string]::IsNullOrWhiteSpace($ManagedIdentityResourceId))
     {
         $propertiesSection.metadata.guestConfiguration.contentManagedIdentity = $ManagedIdentityResourceId
@@ -97,6 +83,13 @@ function New-GuestConfigurationPolicyMetadataSection
 
             $propertiesSection.metadata.guestConfiguration.configurationParameter.$parameterName = $parameterReferenceString
         }
+    }
+
+    # Add auto-remediation if this is an Apply/Set policy
+    if ($AssignmentType -ne 'Audit')
+    {
+        $propertiesSection.metadata.guestConfiguration.enableAutoRemediation = "[parameters('EnableAutoRemediation')]"
+        $propertiesSection.metadata.guestConfiguration.autoRemediationAssignmentType = $AssignmentType
     }
 
     return $propertiesSection

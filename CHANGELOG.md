@@ -4,6 +4,16 @@ The format is based on and uses the types of changes according to [Keep a Change
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [4.12.0]
+### Added
+- Added auto-remediation for Apply/Set policies
+
+## [4.11.0] - 2025-08-29
+### Fixed
+- Fixed duplicate modules getting copied into package
+
+## [4.10.0] - 2025-08-05
 ### Fixed
 - Fixed "IncludeArcMachines" property to be compared as string instead of bool
   

@@ -1,5 +1,9 @@
 BeforeDiscovery {
-    $null = Import-Module -Name 'GuestConfiguration' -Force
+    $testsFolderPath = Split-Path -Path $PSScriptRoot -Parent
+    $projectPath = Split-Path -Path $testsFolderPath -Parent
+    $outputPath = Join-Path -Path $projectPath -ChildPath 'output'
+    $modulePath = Join-Path -Path $outputPath -ChildPath 'GuestConfiguration'
+    $null = Import-Module $modulePath -Force
 }
 
 Describe 'Start-GuestConfigurationPackageRemediation' {

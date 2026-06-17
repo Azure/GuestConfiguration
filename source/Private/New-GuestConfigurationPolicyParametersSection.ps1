@@ -13,8 +13,9 @@ function New-GuestConfigurationPolicyParametersSection
         $ExcludeArcMachines,
 
         [Parameter()]
-        [System.Boolean]
-        $EnableAutoRemediation
+        [ValidateSet('Audit', 'ApplyAndAutoCorrect', 'ApplyAndMonitor')]
+        [String]
+        $AssignmentType = 'Audit'
     )
 
     $templateFileName = '2-Parameters.json'
@@ -28,9 +29,8 @@ function New-GuestConfigurationPolicyParametersSection
         }
     }
 
-    # Auto-enable EnableAutoRemediation for Set policies (not Audit)
-    # Remove from template if this is an Audit policy
-    if (-not $EnableAutoRemediation)
+    # Remove EnableAutoRemediation if this is an Audit policy
+    if ($AssignmentType -ieq 'Audit')
     {
         if ($parametersSection.parameters.EnableAutoRemediation)
         {

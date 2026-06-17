@@ -7,8 +7,19 @@
         "type": "Microsoft.GuestConfiguration/guestConfigurationAssignments",
         "name": "<REPLACE>",
         "existenceCondition": {
-            "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
-            "equals": "Compliant"
+            "allOf": [
+                {
+                    "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
+                    "equals": "Compliant"
+                },
+                {
+                    "value": "[parameters('EnableAutoRemediation')]",
+                    "in": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ]
         },
         "deployment": {
             "properties": {
@@ -79,7 +90,7 @@
                                 }
                             }
                         },
-						{
+                        {
                             "condition": "[equals(toLower(parameters('type')), toLower('Microsoft.Compute/virtualMachineScaleSets'))]",
                             "apiVersion": "2024-04-05",
                             "type": "Microsoft.Compute/virtualMachineScaleSets/providers/guestConfigurationAssignments",

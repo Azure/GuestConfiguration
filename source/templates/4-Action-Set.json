@@ -7,8 +7,19 @@
         "type": "Microsoft.GuestConfiguration/guestConfigurationAssignments",
         "name": "<REPLACE>",
         "existenceCondition": {
-            "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
-            "equals": "Compliant"
+            "allOf": [
+                {
+                    "field": "Microsoft.GuestConfiguration/guestConfigurationAssignments/complianceStatus",
+                    "equals": "Compliant"
+                },
+                {
+                    "value": "[parameters('EnableAutoRemediation')]",
+                    "in": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ]
         },
         "deployment": {
             "properties": {

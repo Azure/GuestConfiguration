@@ -47,6 +47,7 @@ function New-GuestConfigurationPolicySetActionSection
     {
         $templateFileName = "4-Action-Set-VMSS.json"
     }
+
     $setActionSection = Get-GuestConfigurationPolicySectionFromTemplate -FileName $templateFileName
 
     $assignmentName = New-GuestConfigurationPolicyGuestAssignmentNameReference -ConfigurationName $ConfigurationName
